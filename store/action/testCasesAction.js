@@ -1,0 +1,249 @@
+import {
+  createTestCaseApi,
+  deleteTestCaseApi,
+  deleteMultipleTestCasesApi,
+  deleteAllTestCasesByAgentApi,
+  getAllTestCasesOfBridgeApi,
+  runTestCaseApi,
+  updateTestCaseApi,
+  generateAdditionalTestCasesApi,
+} from "@/config/index";
+import {
+  createTestCaseReducer,
+  deleteTestCaseReducer,
+  deleteMultipleTestCasesReducer,
+  getAllTestCasesReducer,
+  appendTestCasesReducer,
+  updateTestCaseReducer,
+  runTestCaseReducer,
+  testRunStartedReducer,
+  testRunFailedReducer,
+} from "../reducer/testCasesReducer";
+import { toast } from "react-toastify";
+
+export const createTestCaseAction =
+  ({ bridgeId, data }) =>
+  async (dispatch) => {
+    try {
+      const response = await createTestCaseApi({ bridgeId, data });
+      if (response?.success) {
+        dispatch(createTestCaseReducer({ bridgeId, data: response?.result }));
+        toast.success("Test case created successfully");
+      }
+      return;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+export const getAllTestCasesOfBridgeAction =
+  ({ bridgeId, page = 1, limit = 30, append = false, keyword }) =>
+  async (dispatch) => {
+    try {
+      const response = await getAllTestCasesOfBridgeApi({ bridgeId, page, limit, keyword });
+      if (response?.success) {
+        const data = Array.isArray(response?.data) ? response.data : [];
+        const total = response?.total || 0;
+        if (append && page > 1) {
+          dispatch(appendTestCasesReducer({ bridgeId, data, total }));
+        } else {
+          dispatch(getAllTestCasesReducer({ bridgeId, data, total }));
+        }
+        // Backend now returns total count — use it to determine hasMore
+        const hasMore = data.length >= limit && page * limit < total;
+        return { success: true, data, hasMore, page, total };
+      }
+      return { success: false, data: [], hasMore: false, page, total: 0 };
+    } catch (error) {
+      console.error(error);
+      return { success: false, data: [], hasMore: false, page, total: 0 };
+    }
+  };
+
+export const deleteTestCaseAction =
+  ({ testCaseId, bridgeId }) =>
+  async (dispatch) => {
+    try {
+      const response = await deleteTestCaseApi({ testCaseId });
+      if (response?.success) {
+        dispatch(deleteTestCaseReducer({ testCaseId, bridgeId }));
+        toast.success("Test case deleted successfully");
+      }
+      return;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+export const deleteMultipleTestCasesAction =
+  ({ testCaseIds, bridgeId }) =>
+  async (dispatch) => {
+    try {
+      if (!Array.isArray(testCaseIds) || testCaseIds.length === 0) return;
+      const response = await deleteMultipleTestCasesApi({ testCaseIds });
+      if (response?.success) {
+        dispatch(deleteMultipleTestCasesReducer({ testCaseIds, bridgeId }));
+        toast.success(`${testCaseIds.length} test case${testCaseIds.length > 1 ? "s" : ""} deleted successfully`);
+      }
+      return response;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+export const deleteAllTestCasesByAgentAction =
+  ({ bridgeId }) =>
+  async (dispatch) => {
+    const response = await deleteAllTestCasesByAgentApi({ bridgeId });
+    if (!response?.success) {
+      const msg = response?.error || "Failed to delete all test cases";
+      toast.error(msg);
+      throw new Error(msg);
+    }
+    dispatch(getAllTestCasesReducer({ bridgeId, data: [], total: 0 }));
+    toast.success(`All test cases deleted successfully (${response?.deletedCount || 0} deleted)`);
+    return response;
+  };
+
+export const runTestCaseAction =
+  ({
+    versionIds = null,
+    bridgeId = null,
+    testcase_id = null,
+    testcase_ids = null,
+    testCaseData = null,
+    variables = null,
+    matching_type = null,
+    ai_matching_custom_prompt = null,
+    model = null,
+    service = null,
+    models = null,
+    include_default = false,
+  }) =>
+  async (dispatch) => {
+    try {
+      // Optimistically mark run as started so UI shows running state without waiting
+      // for the run_started RTLayer event (which arrives moments later on the bridge channel).
+      if (bridgeId) {
+        const versionIdsArrayInit = Array.isArray(versionIds) ? versionIds : [versionIds].filter(Boolean);
+        const bulkCount = Array.isArray(testcase_ids) ? testcase_ids.length : 0;
+        const totalTestCases = testcase_id ? 1 : bulkCount; // Single=1, bulk=length, run all=0 (RTLayer updates)
+        // Mirror the backend cartesian-product so the UI knows how many model
+        // results to wait for per version before declaring a card "done".
+        const modelsCount = Array.isArray(models) ? models.length : 0;
+        const expectedRunsPerVersion = Math.max(1, modelsCount + (include_default ? 1 : 0));
+        dispatch(
+          testRunStartedReducer({
+            bridgeId,
+            total: totalTestCases,
+            versionIds: versionIdsArrayInit,
+            testcaseId: testcase_id || null,
+            testcaseIds: Array.isArray(testcase_ids) && testcase_ids.length > 0 ? testcase_ids : null,
+            expectedRunsPerVersion,
+          })
+        );
+      }
+
+      const response = await runTestCaseApi({
+        versionIds,
+        testcase_id,
+        testcase_ids,
+        testCaseData,
+        bridgeId,
+        variables,
+        matching_type,
+        ai_matching_custom_prompt,
+        model,
+        service,
+        models,
+        include_default,
+      });
+
+      // New flow: backend returns immediately with rtlayer_cred and streams results via RTLayer.
+      // The `useRtLayerEventHandler` hook listens on `${orgId}_${bridgeId}` and updates the
+      // store via `testRunResultReducer` / `testRunCompletedReducer`. Nothing else to do here.
+      if (response?.rtlayer_cred && !response?.results) {
+        return response;
+      }
+
+      // Legacy synchronous response path (kept as fallback for ad-hoc / direct testcase_data runs).
+      if (response?.success && response?.results) {
+        // Transform the results array into the format the reducer expects
+        const versionIdsArray = Array.isArray(versionIds) ? versionIds : [versionIds];
+
+        versionIdsArray.forEach((versionId) => {
+          const testcases_result = {};
+          response.results.forEach((result) => {
+            if (result.testcase_id) {
+              testcases_result[result.testcase_id] = {
+                result: {
+                  score: result.score,
+                  model_output: result.actual_result,
+                  expected: result.expected,
+                  matching_type: result.matching_type,
+                  tools_call_data: result.tools_call_data || null,
+                  metadata: {
+                    bridge_id: result.bridge_id,
+                  },
+                  created_at: new Date().toISOString(),
+                },
+              };
+            }
+          });
+
+          if (Object.keys(testcases_result).length > 0 && bridgeId && versionId) {
+            dispatch(
+              runTestCaseReducer({
+                data: { testcases_result },
+                bridgeId,
+                versionId,
+              })
+            );
+          }
+        });
+
+        toast.success("Test case run successfully");
+      }
+      return response;
+    } catch (error) {
+      console.error(error);
+      if (bridgeId) {
+        dispatch(
+          testRunFailedReducer({
+            bridgeId,
+            error: error?.response?.data?.detail?.error || error?.message || "Failed to start test run",
+          })
+        );
+      }
+    }
+  };
+
+export const updateTestCaseAction =
+  ({ testCaseId, dataToUpdate }) =>
+  async (dispatch) => {
+    try {
+      const response = await updateTestCaseApi({ testCaseId, dataToUpdate });
+      if (response?.success) {
+        // Use the API result so updatedAt and other server-set fields are accurate
+        dispatch(updateTestCaseReducer({ testCaseId, dataToUpdate: response?.result || dataToUpdate }));
+        toast.success("Test case updated successfully");
+      }
+      return;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+export const generateAdditionalTestCasesAction =
+  ({ bridgeId, versionId }) =>
+  async (dispatch) => {
+    try {
+      const response = await generateAdditionalTestCasesApi({ bridgeId, versionId });
+      if (response?.success) {
+        toast.success("Additional test cases generated successfully");
+      }
+      return response;
+    } catch (error) {
+      console.error(error);
+    }
+  };

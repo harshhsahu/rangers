@@ -1,0 +1,1100 @@
+import { dryRun } from "@/config/index";
+import { useCustomSelector } from "@/customHooks/customSelector";
+import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
+import { uploadImageAction } from "@/store/action/bridgeAction";
+import {
+  setChatLoading,
+  setChatError,
+  setChatUploadedFiles,
+  setChatUploadedImages,
+  sendMessageWithRtLayer,
+  sendMessageWithApiStreaming,
+  setChatTestCaseIdAction,
+  clearTestCaseConversationAction,
+} from "@/store/action/chatAction";
+import Image from "next/image";
+import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import { SendHorizontalIcon, UploadIcon, LinkIcon, PlayIcon, CloseCircleIcon } from "@/components/Icons";
+import { Paperclip } from "lucide-react";
+import { PdfIcon } from "@/icons/pdfIcon";
+import GoogleDocIcon from "@/icons/GoogleDocIcon";
+import { toggleSidebar, openModal, closeModal } from "@/utils/utility";
+import { MODAL_TYPE } from "@/utils/enums";
+import ConfirmationModal from "@/components/UI/ConfirmationModal";
+import { buildVariablesObject } from "@/utils/variableValidation";
+import { buildUserUrls, isWordFileUrl } from "@/utils/attachmentUtils";
+
+const VARIABLE_SLIDER_DISABLE_KEY = "variableSliderDisabled";
+
+const DOC_MIME_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const isDocFile = (file) => DOC_MIME_TYPES.includes(file.type);
+const DOC_ACCEPT = ".pdf,.doc,.docx";
+
+function ChatTextInput({
+  channelIdentifier,
+  params,
+  isOrchestralModel,
+  inputRef,
+  searchParams,
+  setTestCaseId,
+  testCaseId,
+  selectedStrategy,
+  handleSendMessageRef,
+  showTestCases,
+  draftPrompt,
+  uploadRef,
+}) {
+  // Reset textarea height when test cases are toggled or when the component mounts
+  useEffect(() => {
+    if (inputRef.current) {
+      // Use requestAnimationFrame to ensure the DOM is ready
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          inputRef.current.style.height = "auto";
+          inputRef.current.style.height = "40px"; // Reset to default height
+          // Clear any existing content
+          if (inputRef.current.value === "") {
+            inputRef.current.style.height = "40px";
+          }
+        }
+      });
+    }
+  }, [showTestCases, inputRef]);
+  const [uploading, setUploading] = useState(false);
+  const [mediaUrls, setMediaUrls] = useState(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  // Reactively track unsaved prompt changes
+  const hasUnsavedPrompt = useSyncExternalStore(
+    unsavedPromptGuard.subscribe.bind(unsavedPromptGuard),
+    unsavedPromptGuard.getSnapshot.bind(unsavedPromptGuard)
+  );
+  const [validationError, setValidationError] = useState(null);
+  const [imagePreviewLoadedKeys, setImagePreviewLoadedKeys] = useState(() => new Set());
+  const dispatch = useDispatch();
+  const [fileInput, setFileInput] = useState(null); // Use state for the file input element
+  const versionId = searchParams?.version;
+  const isPublished = searchParams?.isPublished === "true";
+
+  const {
+    bridge,
+    variablesKeyValue,
+    prompt,
+    configuration,
+    modelInfo,
+    service,
+    modelType,
+    modelName,
+    isEmbedUser,
+    showVariables,
+  } = useCustomSelector((state) => {
+    const versionData = state?.bridgeReducer?.bridgeVersionMapping?.[params?.id]?.[versionId];
+    const bridgeDataFromState = state?.bridgeReducer?.allBridgesMap?.[params?.id];
+
+    // Use bridgeData when isPublished=true, otherwise use versionData
+    const activeData = isPublished ? bridgeDataFromState : versionData;
+
+    return {
+      bridge: activeData,
+      prompt: isPublished ? bridgeDataFromState?.configuration?.prompt : versionData?.configuration?.prompt,
+      variablesKeyValue: state?.variableReducer?.VariableMapping?.[params?.id]?.[versionId]?.variables || [],
+      configuration: isPublished ? bridgeDataFromState?.configuration : versionData?.configuration,
+      modelInfo: state?.modelReducer?.serviceModels,
+      service: isPublished ? bridgeDataFromState?.service?.toLowerCase() : versionData?.service?.toLowerCase(),
+      modelType: isPublished ? bridgeDataFromState?.configuration?.type : versionData?.configuration?.type,
+      modelName: isPublished ? bridgeDataFromState?.configuration?.model : versionData?.configuration?.model,
+      isEmbedUser: state?.appInfoReducer?.embedUserDetails?.isEmbedUser || false,
+      showVariables: state?.appInfoReducer?.embedUserDetails?.showVariables || false,
+    };
+  });
+
+  // Redux selectors for chat state
+  const { threadId, loading, uploadedFiles, uploadedImages, testCaseConversation } = useCustomSelector((state) => ({
+    threadId: state?.chatReducer?.threadIdByChannel?.[channelIdentifier] || null,
+    loading: state?.chatReducer?.loadingByChannel?.[channelIdentifier] || false,
+    uploadedFiles: state?.chatReducer?.uploadedFilesByChannel?.[channelIdentifier] || [],
+    uploadedImages: state?.chatReducer?.uploadedImagesByChannel?.[channelIdentifier] || [],
+    testCaseConversation: state?.chatReducer?.testCaseConversationByChannel?.[channelIdentifier] || null,
+  }));
+  const dataToSend = useMemo(
+    () => ({
+      configuration: {
+        model: modelName,
+        type: modelType,
+      },
+      service: bridge?.service?.toLowerCase(),
+      apikey_object_id: bridge?.apikey,
+      bridgeType: bridge?.bridgeType,
+      slugName: bridge?.slugName,
+      response_format: {
+        type: "default",
+      },
+    }),
+    [modelName, modelType, bridge]
+  );
+
+  const [localDataToSend, setLocalDataToSend] = useState(dataToSend);
+
+  const activePrompt = draftPrompt !== undefined ? draftPrompt : prompt;
+
+  const { isVision, isFileSupported, isVideoSupported } = useMemo(() => {
+    const validationConfig =
+      modelInfo?.[service]?.[configuration?.type]?.[configuration?.model]?.validationConfig || {};
+    return {
+      isVision: validationConfig.vision,
+      isFileSupported: validationConfig.files,
+      isVideoSupported: validationConfig.video,
+    };
+  }, [modelInfo, service, configuration?.type, configuration?.model]);
+
+  useEffect(() => {
+    setLocalDataToSend(dataToSend);
+  }, [dataToSend]);
+
+  const [attachmentError, setAttachmentError] = useState(null);
+
+  useEffect(() => {
+    if (!isVision && uploadedImages.length > 0) {
+      setAttachmentError("Images are not supported by the selected model. Please remove the image(s) first.");
+    } else if (!isFileSupported && uploadedFiles.length > 0) {
+      setAttachmentError("Files are not supported by the selected model. Please remove the file(s) first.");
+    } else {
+      setAttachmentError(null);
+    }
+  }, [isVision, isFileSupported, uploadedImages, uploadedFiles]);
+
+  const variables = useMemo(() => buildVariablesObject(variablesKeyValue), [variablesKeyValue]);
+
+  // Validate missing variables in prompt
+  const validateVariables = useCallback(() => {
+    if (!activePrompt) return { isValid: true, missingVariables: [] };
+
+    // Extract variables from prompt using regex
+    const regex = /{{(.*?)}}/g;
+    // Handle both string and object formats
+    let promptText = "";
+    if (typeof activePrompt === "string") {
+      promptText = activePrompt;
+    } else if (typeof activePrompt === "object") {
+      // Check if this is embed user format (has customPrompt and useDefaultPrompt is false)
+      const isEmbedFormat = activePrompt.customPrompt && activePrompt.useDefaultPrompt === false;
+
+      if (isEmbedFormat) {
+        // For embed users: use customPrompt template to find variables, and only check visible embedFields
+        if (activePrompt.customPrompt) promptText += activePrompt.customPrompt + " ";
+        // Note: We use customPrompt to find variables, but validation will check visible embedFields
+      } else {
+        // For main users: extract from default fields (role, goal, instruction)
+        if (activePrompt.role) promptText += activePrompt.role + " ";
+        if (activePrompt.goal) promptText += activePrompt.goal + " ";
+        if (activePrompt.instruction) promptText += activePrompt.instruction + " ";
+        // Also extract from embedFields if present (for backward compatibility)
+        if (Array.isArray(activePrompt.embedFields)) {
+          activePrompt.embedFields.forEach((field) => {
+            if (field.value) promptText += field.value + " ";
+          });
+        }
+      }
+    }
+    const matches = promptText ? [...promptText.matchAll(regex)] : [];
+    const promptVariables = [...new Set(matches.map((match) => match[1].trim()))];
+
+    if (!promptVariables.length) return { isValid: true, missingVariables: [] };
+
+    // Check which variables are missing values
+    const missingVariables = promptVariables.filter((varName) => {
+      const variable = variablesKeyValue.find((v) => v.key === varName);
+      if (!variable) {
+        return true; // Variable not defined at all
+      }
+
+      // Skip validation for optional variables
+      if (!variable.required) {
+        return false;
+      }
+
+      const hasValue = variable.value !== undefined && variable.value !== null && String(variable.value).trim() !== "";
+      const hasDefault =
+        variable.defaultValue !== undefined &&
+        variable.defaultValue !== null &&
+        String(variable.defaultValue).trim() !== "";
+      return !hasValue && !hasDefault; // Missing both value and default
+    });
+
+    return {
+      isValid: missingVariables.length === 0,
+      missingVariables,
+    };
+  }, [activePrompt, variablesKeyValue]);
+
+  const handleSendMessage = async (e, forceRun = false) => {
+    if (loading || uploading) {
+      return;
+    }
+    if (unsavedPromptGuard.hasUnsavedChanges) {
+      openModal(MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL);
+      return;
+    }
+    if (attachmentError) {
+      return;
+    }
+    if (inputRef.current) {
+      inputRef.current.style.height = "40px"; // Set initial height
+    }
+
+    const isSliderAutoOpenDisabled =
+      typeof window !== "undefined" && sessionStorage.getItem(VARIABLE_SLIDER_DISABLE_KEY) === "true";
+
+    // Validate variables in prompt
+    if (!forceRun && !isSliderAutoOpenDisabled) {
+      const validation = validateVariables();
+      if (!validation.isValid && (!isEmbedUser || (isEmbedUser && showVariables))) {
+        const missingVars = validation.missingVariables.join(", ");
+        const errorMsg = `Missing values for variables: ${missingVars}. Please provide values or default values.`;
+        setValidationError(errorMsg);
+        // Open the variable collection slider
+        toggleSidebar("variable-collection-slider", "right");
+
+        // Store missing variables in sessionStorage for the slider to highlight
+        sessionStorage.setItem("missingVariables", JSON.stringify(validation.missingVariables));
+
+        return;
+      } else {
+        // Clear validation states if validation passes
+        setValidationError(null);
+        sessionStorage.removeItem("missingVariables");
+      }
+    } else {
+      setValidationError(null);
+    }
+
+    const newMessage = inputRef?.current?.value.replace(/\r?\n/g, "\n");
+
+    if (uploadedFiles?.length > 0 && newMessage?.trim() === "") {
+      dispatch(setChatError(channelIdentifier, "A message is required when uploading a PDF."));
+      return;
+    }
+
+    if (modelType !== "completion" && modelType !== "embedding") {
+      if (newMessage?.trim() === "" && uploadedImages?.length === 0 && uploadedFiles?.length === 0) {
+        dispatch(setChatError(channelIdentifier, "Message cannot be empty"));
+        return;
+      }
+    }
+    dispatch(setChatError(channelIdentifier, ""));
+    if (modelType !== "completion") inputRef.current.value = "";
+
+    // Capture current attachments and clear preview immediately for snappier UX.
+    const selectedUploadedImages = [...uploadedImages];
+    const selectedUploadedFiles = [...uploadedFiles];
+    dispatch(setChatUploadedFiles(channelIdentifier, []));
+    dispatch(setChatUploadedImages(channelIdentifier, []));
+    setImagePreviewLoadedKeys(new Set());
+
+    try {
+      let responseData;
+      let data;
+      const userUrls = buildUserUrls(selectedUploadedImages, selectedUploadedFiles);
+      if (modelType !== "completion" && modelType !== "embedding") {
+        data = {
+          role: "user",
+          content: newMessage,
+          images: selectedUploadedImages,
+          files: selectedUploadedFiles,
+          youtube_url: mediaUrls, // Include media URLs in the data
+        };
+
+        const apiCall = async () => {
+          return await dryRun({
+            localDataToSend: {
+              ...(isPublished ? {} : { version_id: versionId }),
+              configuration: {
+                type: modelType,
+                ...(testCaseConversation ? { conversation: testCaseConversation } : {}),
+              },
+              thread_id: threadId,
+              user: data.content,
+              user_urls: userUrls,
+              variables,
+              is_playground: true,
+              orchestrator_flag: isOrchestralModel,
+              is_stream:
+                bridge?.configuration?.stream !== true || bridge?.configuration?.type === "image" ? false : true,
+            },
+            bridge_id: params?.id,
+          });
+        };
+
+        // Send message — streams SSE response from dryRun directly
+        const result = await dispatch(
+          sendMessageWithApiStreaming(channelIdentifier, newMessage, apiCall, isOrchestralModel, {
+            user_urls: userUrls,
+            youtube_url: mediaUrls,
+          })
+        );
+
+        responseData = result.response;
+
+        // Handle unsuccessful response: rollback via Redux
+        if (!responseData || !responseData.success) {
+          inputRef.current.value = data.content;
+          dispatch(setChatError(channelIdentifier, "Failed to get response"));
+          return;
+        }
+      } else if (modelType === "embedding") {
+        data = {
+          role: "user",
+          content: newMessage,
+        };
+
+        // Use RT layer action for embedding models too
+        const apiCall = async () => {
+          return await dryRun({
+            localDataToSend: {
+              ...(isPublished ? {} : { version_id: versionId }),
+              configuration: {
+                type: modelType,
+                ...(testCaseConversation ? { conversation: testCaseConversation } : {}),
+              },
+              thread_id: threadId,
+              text: newMessage,
+              is_playground: true,
+              orchestrator_flag: isOrchestralModel,
+              is_stream:
+                bridge?.configuration?.stream !== true || bridge?.configuration?.type === "image" ? false : true,
+            },
+            bridge_id: params?.id,
+          });
+        };
+
+        // Send message with RT layer handling (loading will persist until RT response)
+        const result = await dispatch(
+          sendMessageWithRtLayer(channelIdentifier, newMessage, apiCall, isOrchestralModel)
+        );
+
+        responseData = result.response;
+
+        if (!responseData || !responseData.success) {
+          inputRef.current.value = data.content;
+          dispatch(setChatError(channelIdentifier, "Failed to get response"));
+          return;
+        }
+      } else if (modelType !== "image") {
+        // Use RT layer action for completion models too
+        const apiCall = async () => {
+          return await dryRun({
+            localDataToSend: {
+              ...localDataToSend,
+              ...(isPublished ? {} : { version_id: versionId }),
+              configuration: {
+                ...localDataToSend.configuration,
+                ...(testCaseConversation ? { conversation: testCaseConversation } : {}),
+              },
+              input: bridge?.inputConfig?.input?.input,
+              is_playground: true,
+              orchestrator_flag: isOrchestralModel,
+              is_stream:
+                bridge?.configuration?.stream !== true || bridge?.configuration?.type === "image" ? false : true,
+            },
+            bridge_id: params?.id,
+          });
+        };
+
+        // Send message with RT layer handling (loading will persist until RT response)
+        const result = await dispatch(
+          sendMessageWithRtLayer(channelIdentifier, bridge?.inputConfig?.input?.input || "", apiCall, isOrchestralModel)
+        );
+
+        responseData = result.response;
+
+        if (!responseData || !responseData.success) {
+          dispatch(setChatError(channelIdentifier, "Failed to get response"));
+          return;
+        }
+      }
+      if (responseData?.response?.testcase_id) {
+        dispatch(setChatTestCaseIdAction(channelIdentifier, responseData?.response?.testcase_id));
+        if (setTestCaseId) {
+          setTestCaseId(responseData?.response?.testcase_id);
+        }
+      }
+      // After a successful API call with a loaded test case conversation, clear it
+      // so subsequent user messages don't re-send the same conversation context.
+      if (testCaseConversation) {
+        dispatch(clearTestCaseConversationAction(channelIdentifier));
+      }
+    } catch {
+      dispatch(setChatError(channelIdentifier, "Something went wrong. Please try again."));
+      dispatch(setChatLoading(channelIdentifier, false)); // Clear loading on error
+    }
+  };
+
+  // Listen for runAnyway event from variable slider
+  useEffect(() => {
+    const handleRunAnywayEvent = (event) => {
+      if (event.detail?.forceRun) {
+        handleSendMessage(null, true); // Call with forceRun = true
+      }
+    };
+
+    const handleClearValidationEvent = () => {
+      setValidationError(null); // Clear validation error
+    };
+
+    window.addEventListener("runAnyway", handleRunAnywayEvent);
+    window.addEventListener("clearValidationError", handleClearValidationEvent);
+
+    return () => {
+      window.removeEventListener("runAnyway", handleRunAnywayEvent);
+      window.removeEventListener("clearValidationError", handleClearValidationEvent);
+    };
+  }, [handleSendMessage]);
+
+  // Provide handleSendMessage function to parent component
+  useEffect(() => {
+    if (handleSendMessageRef) {
+      handleSendMessageRef.current = handleSendMessage;
+    }
+  }, [handleSendMessageRef, handleSendMessage]);
+
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (event.key === "Enter") {
+        if (event.shiftKey) {
+          // Do nothing, let the default behavior create a new line
+        } else {
+          if (hasUnsavedPrompt) {
+            event.preventDefault();
+            openModal(MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL);
+          } else if (!loading && !uploading) {
+            event.preventDefault();
+            handleSendMessage(event);
+          }
+        }
+      }
+    },
+    [loading, uploading, hasUnsavedPrompt, handleSendMessage]
+  );
+
+  const handlePaste = useCallback(
+    async (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const files = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            files.push(file);
+          }
+        }
+      }
+
+      if (files.length === 0) return;
+
+      e.preventDefault();
+
+      if (!isVision) {
+        toast.error("Images are not supported by the selected model.");
+        return;
+      }
+
+      const largeFiles = files.filter((file) => file.size > 35 * 1024 * 1024);
+      if (largeFiles.length > 0) {
+        toast.error("Each file should be less than 35MB.");
+        return;
+      }
+
+      const totalImages = uploadedImages.length + files.length;
+      if (totalImages > 4) {
+        toast.error("Only four images are allowed.");
+        return;
+      }
+
+      setUploading(true);
+
+      let currentImages = [...uploadedImages];
+      for (let file of files) {
+        const formData = new FormData();
+        formData.append("image", file);
+        const result = await dispatch(uploadImageAction(formData));
+
+        if (result.success) {
+          currentImages = [...currentImages, result.image_url];
+          dispatch(setChatUploadedImages(channelIdentifier, currentImages));
+        }
+      }
+
+      setUploading(false);
+    },
+    [dispatch, isVision, uploadedImages, channelIdentifier]
+  );
+
+  const handleFilesUpload = useCallback(
+    async (files) => {
+      if (files.length === 0) return;
+
+      const newImages = files.filter((file) => file.type.startsWith("image/"));
+      const newFiles = files.filter((file) => isDocFile(file));
+
+      if (newImages.length === 0 && newFiles.length === 0) return;
+
+      const largeFiles = files.filter((file) => file.size > 35 * 1024 * 1024);
+      if (largeFiles.length > 0) {
+        toast.error("Each file should be less than 35MB.");
+        return;
+      }
+
+      if (newImages.length > 0) {
+        if (!isVision) {
+          toast.error("Images are not supported by the selected model.");
+          return;
+        }
+        const totalImages = uploadedImages.length + newImages.length;
+        if (totalImages > 4) {
+          toast.error("Only four images are allowed.");
+          return;
+        }
+      }
+
+      if (newFiles.length > 0 && !isFileSupported) {
+        toast.error("Files are not supported by the selected model.");
+        return;
+      }
+
+      setUploading(true);
+
+      let currentImages = [...uploadedImages];
+      let currentFiles = [...uploadedFiles];
+
+      for (let file of files) {
+        const formData = new FormData();
+        formData.append("image", file);
+        const isPdf = isDocFile(file);
+        const result = await dispatch(uploadImageAction(formData, isPdf));
+
+        if (result.success) {
+          if (isPdf) {
+            currentFiles = [...currentFiles, result.image_url];
+            dispatch(setChatUploadedFiles(channelIdentifier, currentFiles));
+          } else {
+            currentImages = [...currentImages, result.image_url];
+            dispatch(setChatUploadedImages(channelIdentifier, currentImages));
+          }
+        }
+      }
+
+      setUploading(false);
+    },
+    [dispatch, isVision, isFileSupported, uploadedImages, uploadedFiles, channelIdentifier]
+  );
+
+  useEffect(() => {
+    if (uploadRef) {
+      uploadRef.current = {
+        uploadFiles: handleFilesUpload,
+      };
+    }
+    return () => {
+      if (uploadRef) {
+        uploadRef.current = null;
+      }
+    };
+  }, [uploadRef, handleFilesUpload]);
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    const largeFiles = files.filter((file) => file.size > 35 * 1024 * 1024);
+    if (largeFiles.length > 0) {
+      toast.error("Each file should be less than 35MB.");
+      return;
+    }
+    const newImages = files.filter((file) => file.type.startsWith("image/"));
+
+    const totalImages = uploadedImages.length + newImages.length;
+    if (totalImages > 4) {
+      toast.error("Only four images are allowed.");
+      return;
+    }
+
+    if (files.length > 0) {
+      setUploading(true);
+
+      for (let file of files) {
+        const formData = new FormData();
+        formData.append("image", file);
+        const result = await dispatch(uploadImageAction(formData));
+
+        if (result.success) {
+          if (isDocFile(file)) {
+            dispatch(setChatUploadedFiles(channelIdentifier, [...uploadedFiles, result.image_url]));
+          } else {
+            dispatch(setChatUploadedImages(channelIdentifier, [...uploadedImages, result.image_url]));
+          }
+        }
+      }
+
+      setUploading(false);
+    }
+    // Clear the file input value to allow re-uploading the same file
+    if (fileInput) {
+      fileInput.value = "";
+    }
+  };
+
+  const addMediaUrl = () => {
+    if (urlInput.trim() && !mediaUrls) {
+      // Basic URL validation
+      try {
+        new URL(urlInput.trim());
+        setMediaUrls(urlInput.trim());
+        setUrlInput("");
+        setShowUrlInput(false);
+      } catch {
+        toast.error("Please enter a valid URL.");
+      }
+    } else if (mediaUrls) {
+      toast.error("Only one YouTube URL is allowed.");
+    }
+  };
+
+  const removeUrl = () => {
+    setMediaUrls(null);
+  };
+
+  const handleAttachmentOption = (type) => {
+    switch (type) {
+      case "images":
+        if (fileInput) {
+          fileInput.accept = "image/*";
+          fileInput.click();
+        }
+        break;
+      case "videos":
+        if (fileInput) {
+          fileInput.accept = "video/*";
+          fileInput.click();
+        }
+        break;
+      case "files":
+        if (fileInput) {
+          fileInput.accept = DOC_ACCEPT;
+          fileInput.click();
+        }
+        break;
+      case "url":
+        setShowUrlInput(true);
+        break;
+      default:
+        if (fileInput) {
+          fileInput.accept =
+            isVision && isFileSupported && isVideoSupported
+              ? `image/*,${DOC_ACCEPT},video/*`
+              : isVision && isVideoSupported
+                ? "image/*,video/*"
+                : isVision && isFileSupported
+                  ? `image/*,${DOC_ACCEPT}`
+                  : isVision
+                    ? "image/*"
+                    : isFileSupported
+                      ? DOC_ACCEPT
+                      : `image/*,${DOC_ACCEPT},video/*`;
+          fileInput.click();
+        }
+    }
+  };
+
+  const hasPreviews = uploadedImages.length > 0 || uploadedFiles.length > 0 || mediaUrls || showUrlInput || uploading;
+
+  return (
+    <div
+      data-testid="chat-text-input-container"
+      id="chat-text-input-container"
+      className="input-group flex justify-end items-end gap-2 w-full relative"
+    >
+      {/* Unsaved prompt changes modal */}
+      <ConfirmationModal
+        modalType={MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL}
+        title="Unsaved Prompt Changes"
+        message="You have unsaved changes to your prompt. Please save your prompt first before sending a message."
+        confirmText="Got it"
+        cancelText=""
+        confirmButtonClass="btn-primary"
+        cancelButtonClass="hidden"
+        onConfirm={() => closeModal(MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL)}
+        onCancel={() => closeModal(MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL)}
+        onClose={() => closeModal(MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL)}
+      />
+      {/* --- CORRECTED PREVIEW CONTAINER --- */}
+      {(uploadedImages.length > 0 || uploadedFiles.length > 0 || uploading) && (
+        <div
+          data-testid="chat-preview-container"
+          id="chat-preview-container"
+          className="absolute bottom-16 left-0 inline-flex w-fit max-w-full flex-nowrap overflow-x-auto items-end gap-2 p-2 border border-base-300/70 rounded-lg bg-base-200/40"
+        >
+          {/* Image Previews */}
+          {uploadedImages.map((url, index) => (
+            <div key={index} className="relative flex-shrink-0">
+              {(() => {
+                const previewKey = `${url}-${index}`;
+                const isLoaded = imagePreviewLoadedKeys.has(previewKey);
+
+                return (
+                  <div className="relative w-16 h-16 rounded-lg border border-base-300 overflow-hidden bg-base-200">
+                    {!isLoaded && <div className="absolute inset-0 animate-pulse bg-base-300" />}
+                    <Image
+                      src={url}
+                      alt={`Uploaded Preview ${index + 1}`}
+                      width={64}
+                      height={64}
+                      onLoad={() =>
+                        setImagePreviewLoadedKeys((prev) => {
+                          if (prev.has(previewKey)) return prev;
+                          const next = new Set(prev);
+                          next.add(previewKey);
+                          return next;
+                        })
+                      }
+                      onError={() =>
+                        setImagePreviewLoadedKeys((prev) => {
+                          if (prev.has(previewKey)) return prev;
+                          const next = new Set(prev);
+                          next.add(previewKey);
+                          return next;
+                        })
+                      }
+                      className={`w-16 h-16 object-cover transition-opacity duration-200 ${
+                        isLoaded ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  </div>
+                );
+              })()}
+              <button
+                data-testid={`chat-remove-image-${index}`}
+                id={`chat-remove-image-${index}`}
+                className="absolute -top-2 -right-2 text-white rounded-full"
+                onClick={() => {
+                  const previewKey = `${url}-${index}`;
+                  setImagePreviewLoadedKeys((prev) => {
+                    if (!prev.has(previewKey)) return prev;
+                    const next = new Set(prev);
+                    next.delete(previewKey);
+                    return next;
+                  });
+                  const newImages = uploadedImages.filter((_, i) => i !== index);
+                  dispatch(setChatUploadedImages(channelIdentifier, newImages));
+                }}
+              >
+                <CloseCircleIcon className="text-base-content bg-base-200 rounded-full" size={20} />
+              </button>
+            </div>
+          ))}
+          {/* File Previews */}
+          {uploadedFiles.map((url, index) => (
+            <div key={index} className="relative flex-shrink-0">
+              <div className="flex items-center h-16 gap-2 bg-base-300 p-2 rounded-lg border border-base-300">
+                {isWordFileUrl(url) ? <GoogleDocIcon height={24} width={24} /> : <PdfIcon height={24} width={24} />}
+                <p className="text-sm max-w-[120px] truncate" title={url}>
+                  {url.split("/").pop()}
+                </p>
+              </div>
+
+              <button
+                data-testid={`chat-remove-file-${index}`}
+                id={`chat-remove-file-${index}`}
+                className="absolute -top-2 -right-2 text-white rounded-full"
+                onClick={() => {
+                  const newFiles = uploadedFiles.filter((_, i) => i !== index);
+                  dispatch(setChatUploadedFiles(channelIdentifier, newFiles));
+                }}
+              >
+                <CloseCircleIcon className="text-base-content bg-base-200 rounded-full" size={20} />
+              </button>
+            </div>
+          ))}
+          {/* Uploading loading spinner placeholder */}
+          {uploading && (
+            <div
+              data-testid="chat-preview-uploading-placeholder"
+              className="relative flex-shrink-0 w-16 h-16 rounded-lg border border-primary/30 border-dashed overflow-hidden bg-base-200/50 flex items-center justify-center"
+            >
+              <span className="loading loading-spinner loading-sm text-primary"></span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Media URL Preview */}
+      {mediaUrls && (
+        <div
+          data-testid="chat-media-url-preview"
+          id="chat-media-url-preview"
+          className="absolute bottom-16 left-0 w-full flex items-center gap-2 p-2 bg-base-100 border-t rounded-t-lg"
+        >
+          <LinkIcon size={16} className="text-base-content" />
+          <span className="text-sm truncate flex-1">{mediaUrls}</span>
+          <button
+            data-testid="chat-remove-url-button"
+            id="chat-remove-url-button"
+            onClick={removeUrl}
+            className="btn btn-ghost btn-xs"
+          >
+            <CloseCircleIcon size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* URL Input Modal */}
+      {showUrlInput && (
+        <div
+          data-testid="chat-url-input-modal"
+          id="chat-url-input-modal"
+          className="absolute bottom-16 left-0 w-full p-3 bg-base-100 border rounded-lg shadow-lg"
+        >
+          <div className="flex gap-2 items-center">
+            <input
+              autoComplete="off"
+              data-testid="chat-url-input"
+              id="chat-url-input"
+              type="url"
+              placeholder="Enter YouTube URL"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              className="input input-sm flex-1 border-base-300"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addMediaUrl();
+                if (e.key === "Escape") setShowUrlInput(false);
+              }}
+            />
+            <button
+              data-testid="chat-url-add-button"
+              id="chat-url-add-button"
+              onClick={addMediaUrl}
+              className="btn btn-primary btn-sm"
+            >
+              Add
+            </button>
+            <button
+              data-testid="chat-url-cancel-button"
+              id="chat-url-cancel-button"
+              onClick={() => setShowUrlInput(false)}
+              className="btn btn-ghost btn-sm"
+            >
+              Cancel
+            </button>
+          </div>
+          <p className="text-xs text-base-content/60 mt-1">Support YouTube videos URL only</p>
+        </div>
+      )}
+
+      {/* Validation or Attachment Error Display */}
+      {(validationError || attachmentError) && (
+        <div
+          data-testid="chat-validation-error"
+          id="chat-validation-error"
+          className={`absolute left-0 w-full p-3 bg-error/10 border border-error/20 rounded-lg z-10 ${
+            hasPreviews ? "bottom-36" : "bottom-16"
+          }`}
+        >
+          <p className="text-sm text-error">{validationError || attachmentError}</p>
+          {validationError && (
+            <p className="text-xs text-error/70 mt-1">Please fill in the missing variables in the Variables panel.</p>
+          )}
+        </div>
+      )}
+
+      {/* Input Group */}
+      <div className="input-group flex justify-end items-end gap-2 w-full relative">
+        {modelType !== "completion" && (
+          <textarea
+            data-testid="chat-message-textarea"
+            id="chat-message-textarea"
+            ref={inputRef}
+            placeholder="Type here"
+            className={`textarea bg-base-100 textarea-bordered w-full max-h-[200px] resize-none overflow-y-auto h-auto ${
+              validationError || attachmentError
+                ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
+                : "focus:border-primary"
+            }`}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            rows={1}
+            onInput={(e) => {
+              e.target.style.height = "auto"; // Reset height
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`; // Set to scroll height, max 200px
+            }}
+          />
+        )}
+        <input
+          autoComplete="off"
+          data-testid="chat-file-input"
+          id="chat-file-input"
+          ref={(el) => setFileInput(el)} // Use callback ref to set the state
+          type="file"
+          accept={
+            isVision && isFileSupported && isVideoSupported
+              ? `image/*,${DOC_ACCEPT},video/*`
+              : isVision && isVideoSupported
+                ? "image/*,video/*"
+                : isVision && isFileSupported
+                  ? `image/*,${DOC_ACCEPT}`
+                  : isVision
+                    ? "image/*"
+                    : isFileSupported
+                      ? DOC_ACCEPT
+                      : `image/*,${DOC_ACCEPT},video/*`
+          }
+          multiple={isVision || isFileSupported || isVideoSupported}
+          onChange={handleFileChange}
+          className="hidden"
+          data-max-size="35MB"
+        />
+        {/* DaisyUI Dropdown for Attachments */}
+        {(isVision || isFileSupported || isVideoSupported) && (
+          <div
+            data-testid="chat-attachment-dropdown"
+            id="chat-attachment-dropdown"
+            className="dropdown dropdown-top dropdown-end"
+          >
+            <div className="tooltip tooltip-top" data-tip="Attach files">
+              <label
+                data-testid="chat-attachment-button"
+                id="chat-attachment-button"
+                tabIndex={0}
+                className={`btn btn-circle transition-all duration-200 ${
+                  loading || uploading ? "btn-disabled bg-base-300" : "btn-ghost hover:btn-primary hover:scale-105"
+                }`}
+                disabled={loading || uploading}
+              >
+                {uploading ? <span className="loading loading-spinner loading-sm"></span> : <Paperclip size={18} />}
+              </label>
+            </div>
+
+            {/* DaisyUI Dropdown Content */}
+            <ul
+              tabIndex={0}
+              className="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-60 border border-base-300"
+            >
+              <li className="menu-title">
+                <span className="text-xs font-semibold text-base-content/60">Attach files</span>
+              </li>
+
+              {/* Images Option */}
+              {isVision && (
+                <li>
+                  <a
+                    data-testid="chat-attach-images-option"
+                    id="chat-attach-images-option"
+                    onClick={() => handleAttachmentOption("images")}
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div className="p-1.5 bg-base-100 rounded-lg">
+                      <UploadIcon size={16} className="text-base-content" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium">Upload Images</div>
+                      <div className="text-xs text-base-content/60">JPG, PNG, GIF, WebP</div>
+                    </div>
+                  </a>
+                </li>
+              )}
+
+              {/* Videos Option */}
+              {isVideoSupported && (
+                <li>
+                  <a
+                    data-testid="chat-attach-videos-option"
+                    id="chat-attach-videos-option"
+                    onClick={() => handleAttachmentOption("videos")}
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div className="p-1.5 bg-base-100 rounded-lg">
+                      <PlayIcon size={16} className="text-base-content" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium">Upload Video</div>
+                      <div className="text-xs text-base-content/60">MP4, WebM, AVI (1 max)</div>
+                    </div>
+                  </a>
+                </li>
+              )}
+
+              {/* Files Option */}
+              {isFileSupported && (
+                <li>
+                  <a
+                    data-testid="chat-attach-files-option"
+                    id="chat-attach-files-option"
+                    onClick={() => handleAttachmentOption("files")}
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div className="p-1.5 bg-base-100 rounded-lg">
+                      <PdfIcon height={16} width={16} className="text-base-content" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium">Upload Documents</div>
+                      <div className="text-xs text-base-content/60">PDF, DOC, DOCX files</div>
+                    </div>
+                  </a>
+                </li>
+              )}
+
+              {/* URL Option */}
+              {isVideoSupported && (
+                <li>
+                  <a
+                    data-testid="chat-attach-url-option"
+                    id="chat-attach-url-option"
+                    onClick={() => handleAttachmentOption("url")}
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div className="p-1.5 bg-base-100 rounded-lg">
+                      <LinkIcon size={16} className="text-base-content" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      The above content does NOT show the entire file contents. If you need to view any lines of the
+                      file which were not shown to complete your task, call this tool again to view those lines.
+                      <div className="text-sm font-medium">Add URL</div>
+                      <div className="text-xs text-base-content/60">Youtube URL</div>
+                    </div>
+                  </a>
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+        {/* Enhanced Send Button */}
+        <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
+          <button
+            id="chat-send-button"
+            className={`btn btn-circle transition-all duration-200 ${
+              loading || uploading
+                ? "btn-disabled"
+                : " btn hover:btn-primary-focus hover:scale-105 shadow-lg hover:shadow-xl"
+            }`}
+            onClick={() => {
+              handleSendMessage();
+            }}
+            disabled={loading || uploading}
+          >
+            {loading || uploading ? (
+              <span className="loading loading-dots loading-md"></span>
+            ) : (
+              <SendHorizontalIcon size={18} />
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ChatTextInput;

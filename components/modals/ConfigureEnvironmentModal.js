@@ -1,0 +1,240 @@
+import React, { useState, useEffect, useRef } from "react";
+import Modal from "@/components/UI/Modal";
+import { MODAL_TYPE } from "@/utils/enums";
+import { closeModal } from "@/utils/utility";
+import { X, Plus, AlertCircle, SlidersHorizontal } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { updateBridgeAction } from "@/store/action/bridgeAction";
+
+const ConfigureEnvironmentModal = ({ bridgeId, bridgeData }) => {
+  const dispatch = useDispatch();
+  const [environments, setEnvironments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [availableVersions, setAvailableVersions] = useState([]);
+  const [whenErrors, setWhenErrors] = useState({});
+  const initialEnvironments = useRef(null);
+
+  useEffect(() => {
+    if (bridgeData) {
+      const existingConfig = bridgeData?.settings?.environment_config || {};
+      const environmentsArray = Object.entries(existingConfig).map(([when, versionId]) => ({
+        when,
+        do: versionId,
+      }));
+      const initial = environmentsArray.length > 0 ? environmentsArray : [{ when: "", do: "" }];
+      initialEnvironments.current = JSON.parse(JSON.stringify(initial));
+      setEnvironments(initial);
+
+      const versions = bridgeData?.versions || [];
+      setAvailableVersions([
+        ...versions.map((v, index) => ({
+          value: v._id || v,
+          label: `Version ${index + 1}`,
+        })),
+      ]);
+    }
+  }, [bridgeData]);
+
+  const handleClose = () => {
+    closeModal(MODAL_TYPE.CONFIGURE_ENVIRONMENT_MODAL);
+  };
+
+  const handleAddEnvironment = () => {
+    setEnvironments([...environments, { when: "", do: "" }]);
+  };
+
+  const handleRemoveEnvironment = (index) => {
+    setEnvironments(environments.filter((_, i) => i !== index));
+  };
+
+  const handleEnvironmentChange = (index, field, value) => {
+    const updated = environments.map((env, i) => (i === index ? { ...env, [field]: value } : env));
+    setEnvironments(updated);
+
+    if (field === "when") {
+      const trimmed = value.trim().toLowerCase();
+      const isDuplicate =
+        trimmed !== "" && updated.some((env, i) => i !== index && env.when.trim().toLowerCase() === trimmed);
+      setWhenErrors((prev) => ({
+        ...prev,
+        [index]: isDuplicate ? `"${value.trim()}" is already defined` : "",
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (environments.some((env) => !env.when || !env.do)) {
+      setError("Please fill in all environment fields");
+      return;
+    }
+
+    const hasDuplicateKeys = Object.values(whenErrors).some(Boolean);
+    if (hasDuplicateKeys) {
+      setError("Please fix duplicate environment keys before saving");
+      return;
+    }
+
+    if (!bridgeId) {
+      setError("No agent selected");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const environmentConfig = {};
+      environments.forEach((env) => {
+        environmentConfig[env.when] = env.do;
+      });
+
+      const dataToSend = {
+        settings: {
+          environment_config: environmentConfig,
+        },
+      };
+
+      await dispatch(updateBridgeAction({ bridgeId, dataToSend }));
+      handleClose();
+    } catch (err) {
+      setError(err.message || "Failed to save environment configuration");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const allRowsFilled = environments.length > 0 && environments.every((env) => env.when.trim() && env.do);
+  const hasDuplicateWhenErrors = Object.values(whenErrors).some(Boolean);
+  const dataChanged =
+    initialEnvironments.current === null
+      ? allRowsFilled // no initial snapshot yet — enable if form is valid
+      : JSON.stringify(environments) !== JSON.stringify(initialEnvironments.current);
+
+  const isSaveDisabled = isLoading || !bridgeId || !allRowsFilled || hasDuplicateWhenErrors || !dataChanged;
+
+  return (
+    <Modal
+      MODAL_ID={MODAL_TYPE.CONFIGURE_ENVIRONMENT_MODAL}
+      onClose={handleClose}
+      title="Configure Environment"
+      description="Map environments to specific agent versions for different deployment scenarios."
+      icon={<SlidersHorizontal size={16} className="text-trace-gold" />}
+      widthClass="w-[min(560px,92vw)]"
+    >
+      <div className="flex flex-col">
+        {!bridgeId && (
+          <div className="flex items-start gap-2 mb-4 p-3 bg-warning/10 border border-warning/30 rounded-md">
+            <AlertCircle size={16} className="text-warning flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-warning">Please open this modal from an agent to configure environments.</p>
+          </div>
+        )}
+      </div>
+
+      <form id="configure-environment-form" onSubmit={handleSubmit} className="mt-0">
+        <div className="space-y-4" style={{ opacity: !bridgeId ? 0.5 : 1, pointerEvents: !bridgeId ? "none" : "auto" }}>
+          <div className="grid grid-cols-2 gap-4 pb-4 border-b border-base-300">
+            <div>
+              <label className="label-text font-semibold text-sm">When</label>
+            </div>
+            <div>
+              <label className="label-text font-semibold text-sm">Do</label>
+            </div>
+          </div>
+
+          {environments.map((env, index) => {
+            // Versions already selected in OTHER rows
+            const usedVersionIds = environments
+              .filter((_, i) => i !== index)
+              .map((e) => e.do)
+              .filter(Boolean);
+
+            const filteredVersions = availableVersions.filter((v) => !usedVersionIds.includes(v.value));
+
+            return (
+              <div key={index} className="grid grid-cols-2 gap-4 items-start">
+                <div className="form-control w-full">
+                  <input
+                    autoComplete="off"
+                    data-testid={`environment-when-input-${index}`}
+                    type="text"
+                    placeholder="e.g., Production, Testing, Staging"
+                    className={`input input-bordered w-full input-sm${whenErrors[index] ? " input-error" : ""}`}
+                    value={env.when}
+                    onChange={(e) => handleEnvironmentChange(index, "when", e.target.value)}
+                  />
+                  {whenErrors[index] && <span className="text-error text-xs mt-1">{whenErrors[index]}</span>}
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="form-control w-full">
+                    <select
+                      data-testid={`environment-do-select-${index}`}
+                      className="select select-bordered w-full select-sm"
+                      value={env.do}
+                      onChange={(e) => handleEnvironmentChange(index, "do", e.target.value)}
+                    >
+                      <option value="">Select version</option>
+                      {filteredVersions.length > 0 ? (
+                        filteredVersions.map((version) => (
+                          <option key={version.value} value={version.value}>
+                            {version.label}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No versions available</option>
+                      )}
+                    </select>
+                  </div>
+                  {environments.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveEnvironment(index)}
+                      className="btn btn-ghost btn-sm"
+                      title="Remove environment"
+                    >
+                      <X size={16} className="text-error" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {error && <p className="text-error text-sm mt-2">{error}</p>}
+        </div>
+
+        <button type="button" onClick={handleAddEnvironment} className="btn btn-ghost btn-sm mt-4 gap-2">
+          <Plus size={14} />
+          Add Environment
+        </button>
+
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-8">
+          <button
+            data-testid="configure-environment-cancel-button"
+            id="configure-environment-cancel-button"
+            type="button"
+            onClick={handleClose}
+            className="btn btn-sm"
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          <button
+            data-testid="configure-environment-save-button"
+            id="configure-environment-save-button"
+            type="submit"
+            className="btn btn-primary btn-sm"
+            disabled={isSaveDisabled}
+          >
+            {isLoading ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+export default ConfigureEnvironmentModal;

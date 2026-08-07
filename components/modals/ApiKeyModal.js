@@ -1,0 +1,353 @@
+import { useCustomSelector } from "@/customHooks/customSelector";
+import { saveApiKeysAction, updateApikeyAction } from "@/store/action/apiKeyAction";
+import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
+import { API_KEY_MODAL_INPUT, MODAL_TYPE } from "@/utils/enums";
+import { closeModal, RequiredItem } from "@/utils/utility";
+import { usePathname } from "next/navigation";
+import React, { useCallback, useState, useEffect, useContext } from "react";
+import { useDispatch } from "react-redux";
+import Modal from "../UI/Modal";
+import useDeleteOperation from "@/customHooks/useDeleteOperation";
+import { FolderContext } from "@/components/folders/FolderContext";
+import { Key } from "lucide-react";
+
+const ApiKeyModal = ({
+  params,
+  searchParams,
+  isEditing,
+  selectedApiKey,
+  setSelectedApiKey = () => {},
+  setIsEditing = () => {},
+  apikeyData,
+  service,
+  bridgeApikey_object_id,
+  selectedService,
+}) => {
+  const pathName = usePathname();
+  const folderContext = useContext(FolderContext);
+  const activeFolderId = folderContext?.activeFolderId;
+
+  const { isDeleting: isLoading, executeDelete: executeOperation } = useDeleteOperation(MODAL_TYPE.API_KEY_MODAL, {
+    closeOnSuccess: false, // We'll handle modal closing manually
+    onSuccess: () => {
+      setSelectedApiKey(null);
+      setIsEditing(false);
+    },
+  });
+  const [ischanged, setischanged] = useState({
+    isAdd: false,
+    isUpdate: false,
+  });
+  const path = pathName?.split("?")[0].split("/");
+  const orgId = path[2] || "";
+  const dispatch = useDispatch();
+  const { SERVICES } = useCustomSelector((state) => ({ SERVICES: state?.serviceReducer?.services }));
+  const lockedService = service || selectedService || "";
+
+  // Reset ischanged state when modal opens/closes
+  useEffect(() => {
+    setischanged({
+      isAdd: false,
+      isUpdate: false,
+    });
+  }, [selectedApiKey, isEditing]);
+
+  // Handle form input changes
+  const handleFormChange = useCallback(
+    (event) => {
+      const form = event.target.form;
+      const formData = new FormData(form);
+
+      const currentData = {
+        name: formData.get("name") || "",
+        apikey: formData.get("apikey") || "",
+        service: lockedService || formData.get("service") || "",
+        apikey_limit: formData.get("apikey_limit") || "",
+        apikey_limit_reset_period: formData.get("apikey_limit_reset_period") || "",
+      };
+      // Check if all required fields are filled for Add mode
+      const requiredFields = ["name", "apikey", "service"];
+      const allRequiredFilled = requiredFields.every(
+        (field) => currentData[field] && currentData[field].trim().length > 0
+      );
+
+      if (isEditing && selectedApiKey) {
+        // For update mode: check if any field has changed
+        const hasChanges =
+          currentData.name !== (selectedApiKey.name || "") ||
+          currentData.apikey !== (selectedApiKey.apikey || "") ||
+          currentData.service !== lockedService ||
+          (currentData.apikey_limit !== "" &&
+            Number(currentData.apikey_limit) !== Number(selectedApiKey.apikey_limit || 0)) ||
+          currentData.apikey_limit_reset_period !== (selectedApiKey.apikey_limit_reset_period || "");
+
+        setischanged((prev) => ({
+          ...prev,
+          isUpdate: hasChanges,
+        }));
+      } else {
+        // For add mode: check if all required fields are filled
+        setischanged((prev) => ({
+          ...prev,
+          isAdd: allRequiredFilled,
+        }));
+      }
+    },
+    [isEditing, selectedApiKey, lockedService]
+  );
+
+  const handleClose = useCallback(() => {
+    setSelectedApiKey(null);
+    setIsEditing(false);
+    closeModal(MODAL_TYPE.API_KEY_MODAL);
+  }, [setSelectedApiKey, setIsEditing]);
+
+  const handleSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = {
+        name: formData.get("name"),
+        service: lockedService || formData.get("service"),
+        apikey: formData.get("apikey"),
+        apikey_limit: Number(formData.get("apikey_limit")) || 0,
+        apikey_limit_reset_period: formData.get("apikey_limit_reset_period") || "",
+        apikey_usage: selectedApiKey ? selectedApiKey.apikey_usage : 0,
+        _id: selectedApiKey ? selectedApiKey._id : null,
+      };
+
+      await executeOperation(async () => {
+        if (isEditing) {
+          const isIdChange = apikeyData.some((item) => item.apikey === data.apikey && item._id === data._id);
+          const isNameChange = apikeyData.some((item) => item.name === data.name && item._id === data._id);
+          const apikeyLimitChange = apikeyData.some(
+            (item) => item.apikey_limit === data.apikey_limit && item._id === data._id
+          );
+          const apikeyResetPeriodChange = apikeyData.some(
+            (item) =>
+              (item.apikey_limit_reset_period || "") === (data.apikey_limit_reset_period || "") && item._id === data._id
+          );
+
+          if (!isIdChange) {
+            const dataToSend = {
+              org_id: orgId,
+              apikey_object_id: data._id,
+              name: data.name,
+              apikey: data.apikey,
+              service: selectedService,
+              apikey_limit: data.apikey_limit,
+              apikey_limit_reset_period: data.apikey_limit_reset_period,
+              apikey_usage: data.apikey_usage,
+            };
+            await dispatch(updateApikeyAction(dataToSend));
+          }
+          if (!isNameChange || !apikeyLimitChange || !apikeyResetPeriodChange) {
+            const dataToSend = {
+              org_id: orgId,
+              apikey_object_id: data._id,
+              name: data.name,
+              service: selectedService,
+              apikey_limit: data.apikey_limit,
+              apikey_limit_reset_period: data.apikey_limit_reset_period,
+              apikey_usage: data.apikey_usage,
+            };
+            await dispatch(updateApikeyAction(dataToSend));
+          }
+        } else {
+          const dataToSend = {
+            name: data.name,
+            service: data.service,
+            apikey: data.apikey,
+            apikey_limit: data.apikey_limit,
+            apikey_limit_reset_period: data.apikey_limit_reset_period,
+            ...(activeFolderId && activeFolderId !== "uncategorized" ? { folder_id: activeFolderId } : {}),
+          };
+          const response = await dispatch(saveApiKeysAction(dataToSend, orgId));
+          if (service && response?._id) {
+            const updated = { ...bridgeApikey_object_id, [service]: response._id };
+            await dispatch(
+              updateBridgeVersionAction({
+                bridgeId: params?.id,
+                versionId: searchParams?.version,
+                dataToSend: { apikey_object_id: updated },
+              })
+            );
+          }
+        }
+
+        event.target.reset();
+        closeModal(MODAL_TYPE.API_KEY_MODAL);
+      });
+    },
+    [
+      isEditing,
+      selectedApiKey,
+      lockedService,
+      apikeyData,
+      orgId,
+      dispatch,
+      params,
+      searchParams,
+      bridgeApikey_object_id,
+      selectedService,
+      executeOperation,
+      activeFolderId,
+    ]
+  );
+
+  const footerContent = (
+    <div id="apikey-modal-actions" className="flex gap-2 justify-end">
+      <button
+        data-testid="apikey-modal-cancel-button"
+        id="apikey-modal-cancel-button"
+        type="reset"
+        form="apikey-modal-form"
+        className="btn btn-sm"
+        onClick={handleClose}
+      >
+        Cancel
+      </button>
+      <button
+        data-testid="apikey-modal-submit-button"
+        id="apikey-modal-submit-button"
+        type="submit"
+        form="apikey-modal-form"
+        className={`btn btn-sm btn-primary ${
+          isLoading || (isEditing && !ischanged.isUpdate) || (!isEditing && !ischanged.isAdd) ? "btn-disabled" : ""
+        }`}
+        disabled={isLoading || (isEditing && !ischanged.isUpdate) || (!isEditing && !ischanged.isAdd)}
+      >
+        {isLoading ? "Saving..." : isEditing ? "Update" : "Add"}
+      </button>
+    </div>
+  );
+
+  return (
+    <Modal
+      MODAL_ID={MODAL_TYPE?.API_KEY_MODAL}
+      onClose={handleClose}
+      title={isEditing ? "Update API Key" : "Add New API Key"}
+      icon={<Key size={16} className="text-trace-gold" />}
+      widthClass="w-[min(480px,92vw)]"
+      footer={footerContent}
+    >
+      <form id="apikey-modal-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {API_KEY_MODAL_INPUT.filter((field) => field !== "apikey_limit").map((field) => {
+          const displayLabel = field.includes("_")
+            ? field
+                .replace(/_/g, " ")
+                .replace(/^\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
+            : field.charAt(0).toUpperCase() + field.slice(1);
+          const isRequired = field !== "apikey_limit";
+          return (
+            <div id={`apikey-modal-field-${field}`} key={field} className="flex flex-col gap-2">
+              <label className="label-text">
+                {displayLabel}
+                {isRequired && RequiredItem()} <span className="opacity-55">{field === "apikey_limit" && "in $"}</span>
+              </label>
+              <input
+                autoComplete="off"
+                data-testid={`apikey-modal-field-${field}-input`}
+                id={field}
+                required={isRequired}
+                type={
+                  (field === "apikey" && isEditing && "password") || (field === "apikey_limit" && "number") || "text"
+                }
+                className="input input-bordered input-sm"
+                name={field}
+                key={field}
+                placeholder={`Enter ${displayLabel}`}
+                defaultValue={
+                  field === "apikey_limit"
+                    ? selectedApiKey
+                      ? selectedApiKey.apikey_limit
+                      : ""
+                    : selectedApiKey
+                      ? selectedApiKey[field]
+                      : ""
+                }
+                onChange={handleFormChange}
+                {...(field !== "apikey" && { maxLength: 50 })}
+                {...(field === "apikey_limit" && { step: "0.00001", inputMode: "decimal", min: "0" })}
+              />
+            </div>
+          );
+        })}
+
+        {API_KEY_MODAL_INPUT.filter((field) => field === "apikey_limit").map((field) => {
+          const displayLabel = field.includes("_")
+            ? field
+                .replace(/_/g, " ")
+                .replace(/^\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
+            : field.charAt(0).toUpperCase() + field.slice(1);
+          return (
+            <div id={`apikey-modal-field-${field}`} key={field} className="flex flex-col gap-2">
+              <label className="label-text">
+                {displayLabel} <span className="opacity-55">in $</span>
+              </label>
+              <input
+                autoComplete="off"
+                data-testid={`apikey-modal-field-${field}-input`}
+                id={field}
+                type="number"
+                className="input input-bordered input-sm"
+                name={field}
+                placeholder={`Enter ${displayLabel}`}
+                defaultValue={selectedApiKey ? selectedApiKey.apikey_limit : ""}
+                onChange={handleFormChange}
+                step="0.00001"
+                inputMode="decimal"
+                min="0"
+              />
+            </div>
+          );
+        })}
+        <div id="apikey-modal-reset-period-field" className="flex flex-col gap-2">
+          <label htmlFor="apikey_limit_reset_period" className="label-text">
+            Limit Reset Period
+          </label>
+          <select
+            data-testid="apikey-modal-reset-period-select"
+            id="apikey_limit_reset_period"
+            name="apikey_limit_reset_period"
+            className="select select-sm select-bordered"
+            defaultValue={selectedApiKey?.apikey_limit_reset_period || "monthly"}
+            onChange={handleFormChange}
+          >
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+
+        <div id="apikey-modal-service-field" className="flex flex-col gap-2">
+          <label htmlFor="service" className="label-text">
+            Service{RequiredItem()}
+          </label>
+          <select
+            data-testid="apikey-modal-service-select"
+            id="service"
+            name="service"
+            className="select select-sm select-bordered"
+            key={lockedService || "service-select"}
+            defaultValue={lockedService || ""}
+            disabled={Boolean(lockedService)}
+            onChange={handleFormChange}
+            required
+          >
+            {Array.isArray(SERVICES)
+              ? SERVICES.map(({ value, displayName }) => (
+                  <option key={value} value={value}>
+                    {displayName}
+                  </option>
+                ))
+              : null}
+          </select>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
+export default ApiKeyModal;

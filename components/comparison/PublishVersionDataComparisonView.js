@@ -1,0 +1,508 @@
+import React, { useMemo } from "react";
+import { Check, X, AlertCircle } from "lucide-react";
+import { isEqual } from "lodash";
+import { useCustomSelector } from "@/customHooks/customSelector";
+import { DIFFERNCE_DATA_DISPLAY_NAME, CONFIGURATION_KEYS_TO_EXCLUDE } from "@/jsonFiles/bridgeParameter";
+import ComparisonCheck from "@/utils/comparisonCheck";
+import { preprocessPrompt } from "@/utils/promptUtils";
+import { PROMPT_SECTION_CONFIG } from "@/utils/enums";
+
+const PublishVersionDataComparisonView = ({ oldData, newData, params }) => {
+  const { apikeyData, functionData, knowledgeBaseData, orgAgents, allBridgesMap } = useCustomSelector((state) => ({
+    apikeyData: state?.apiKeysReducer?.apikeys[params.org_id] || [],
+    functionData: state?.bridgeReducer?.org[params.org_id]?.functionData || {},
+    knowledgeBaseData: state?.knowledgeBaseReducer?.knowledgeBaseData?.[params.org_id] || [],
+    orgAgents: state?.bridgeReducer?.org?.[params.org_id]?.orgs || [],
+    allBridgesMap: state?.bridgeReducer?.allBridgesMap || {},
+  }));
+
+  const bridgeIdToNameMap = useMemo(() => {
+    const idToName = {};
+    orgAgents.forEach((agent) => {
+      if (agent?._id) {
+        idToName[agent._id] = agent?.name || idToName[agent._id];
+      }
+    });
+    Object.entries(allBridgesMap || {}).forEach(([id, agent]) => {
+      if (id) {
+        idToName[id] = agent?.name || idToName[id];
+      }
+    });
+    return idToName;
+  }, [orgAgents, allBridgesMap]);
+
+  // Get status badge
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "added":
+        return (
+          <span data-testid="status-badge-added" className="badge badge-success flex items-center gap-1 text-white">
+            <Check size={12} /> Added
+          </span>
+        );
+      case "removed":
+        return (
+          <span data-testid="status-badge-removed" className="badge badge-error flex items-center gap-1 text-white">
+            <X size={12} /> Removed
+          </span>
+        );
+      case "changed":
+        return (
+          <span data-testid="status-badge-changed" className="badge badge-warning flex items-center gap-1 text-white">
+            <AlertCircle size={12} /> Changed
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Function to deeply compare objects and find differences
+  const findDifferences = (obj1, obj2, path = "") => {
+    if (!obj1 || !obj2) {
+      return { [path]: { oldValue: obj1, newValue: obj2, status: "changed" } };
+    }
+
+    if (typeof obj1 !== "object" || typeof obj2 !== "object") {
+      if (obj1 !== obj2) {
+        return { [path]: { oldValue: obj1, newValue: obj2, status: "changed" } };
+      }
+      return {};
+    }
+
+    // Handle arrays
+    if (Array.isArray(obj1) && Array.isArray(obj2)) {
+      if (isEqual(obj1, obj2)) {
+        return {};
+      }
+      return { [path]: { oldValue: obj1, newValue: obj2, status: "changed" } };
+    }
+
+    const allKeys = [...new Set([...Object.keys(obj1), ...Object.keys(obj2)])];
+    const differences = {};
+
+    allKeys.forEach((key) => {
+      const currentPath = path ? `${path}.${key}` : key;
+
+      // Key exists only in obj1
+      if (!(key in obj2)) {
+        differences[currentPath] = { oldValue: obj1[key], newValue: undefined, status: "removed" };
+        return;
+      }
+
+      // Key exists only in obj2
+      if (!(key in obj1)) {
+        differences[currentPath] = { oldValue: undefined, newValue: obj2[key], status: "added" };
+        return;
+      }
+
+      // Both have the key, check if values are different
+      if (typeof obj1[key] === "object" && obj1[key] !== null && typeof obj2[key] === "object" && obj2[key] !== null) {
+        // Recursively compare nested objects
+        const nestedDifferences = findDifferences(obj1[key], obj2[key], currentPath);
+        Object.assign(differences, nestedDifferences);
+      } else if (!isEqual(obj1[key], obj2[key])) {
+        differences[currentPath] = {
+          oldValue: obj1[key],
+          newValue: obj2[key],
+          status: "changed",
+        };
+      }
+    });
+
+    return differences;
+  };
+
+  const preprocessData = (data) => {
+    if (!data) return data;
+    const cloned = JSON.parse(JSON.stringify(data));
+
+    const traverseAndTransform = (obj) => {
+      if (!obj || typeof obj !== "object") return;
+
+      if ("prompt" in obj) {
+        obj.prompt = preprocessPrompt(obj.prompt);
+      }
+
+      Object.keys(obj).forEach((key) => {
+        if (key !== "prompt" && typeof obj[key] === "object") {
+          traverseAndTransform(obj[key]);
+        }
+      });
+    };
+
+    traverseAndTransform(cloned);
+    return cloned;
+  };
+
+  const alignPromptShapes = (a, b) => {
+    if (!a || !b || typeof a.prompt !== "object" || typeof b.prompt !== "object") return;
+    const allKeys = new Set([...Object.keys(a.prompt), ...Object.keys(b.prompt)]);
+    allKeys.forEach((key) => {
+      if (!(key in a.prompt)) a.prompt[key] = "";
+      if (!(key in b.prompt)) b.prompt[key] = "";
+    });
+  };
+
+  // Calculate differences using preprocessed data
+  const differences = useMemo(() => {
+    const processedOld = preprocessData(oldData);
+    const processedNew = preprocessData(newData);
+    alignPromptShapes(processedOld, processedNew);
+    return findDifferences(processedOld, processedNew);
+  }, [oldData, newData]);
+
+  // Flatten the differences structure for direct display
+  const flattenedDifferences = useMemo(() => {
+    return Object.entries(differences).map(([path, diff]) => {
+      return {
+        path,
+        ...diff,
+        displayPath: path.split(".").join(" › "),
+      };
+    });
+  }, [differences]);
+
+  // Format value for display
+  const formatValue = (value, key) => {
+    if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
+      return <span className="text-gray-400 italic">No Data Added</span>;
+    }
+
+    // Get the root key for special handling
+    const rootKey = key.split(".")[0];
+
+    // Handle API keys
+    if (rootKey === "apikey_object_id") {
+      if (typeof value === "object" && value !== null) {
+        return Object.entries(value).map(([service, id]) => {
+          const apiKey = apikeyData?.find((item) => item._id === id);
+          return (
+            <div key={service}>
+              {service}: {apiKey?.name || id}
+            </div>
+          );
+        });
+      }
+      return apikeyData?.find((item) => item._id === value)?.name || value;
+    }
+
+    // Handle function IDs
+    if (rootKey === "function_ids") {
+      if (Array.isArray(value) && value.length > 0) {
+        const functionItems = Object.values(functionData || {}).filter((item) => value.includes(item?._id));
+        if (functionItems.length > 0) {
+          return functionItems.map((item) => item?.title || item?._id).join(", ");
+        }
+      }
+      return JSON.stringify(value);
+    }
+
+    const formatPreToolLabel = (tool) => {
+      if (!tool || typeof tool !== "object") return String(tool);
+
+      if (tool.type === "custom_function") {
+        const functionId = tool?.config?.function_id;
+        const functionItem = functionId ? functionData?.[functionId] : null;
+        return functionItem?.title || functionItem?.name || functionId || "Custom Function";
+      }
+
+      if (typeof tool.type === "string" && tool.type.trim()) {
+        return tool.type;
+      }
+
+      return tool?.config?.function_id || tool?.name || "Pre Tool";
+    };
+
+    // Handle pre_tools arrays with a readable old/new breakdown
+    if (rootKey === "pre_tools") {
+      if (!Array.isArray(value)) {
+        return JSON.stringify(value);
+      }
+
+      return (
+        <div className="space-y-2">
+          {value.length === 0 ? (
+            <span className="text-gray-400 italic">No Data Added</span>
+          ) : (
+            value.map((tool, index) => (
+              <div key={index} className="rounded-md border border-base-300 bg-base-100 px-3 py-2 text-xs">
+                <div className="font-medium">{formatPreToolLabel(tool)}</div>
+                <div className="mt-1 text-base-content/70 break-all">
+                  {tool?.type === "custom_function" ? (
+                    <>
+                      function_id: {tool?.config?.function_id || "-"}
+                      {tool?.config?.script_id ? `, script_id: ${tool.config.script_id}` : ""}
+                    </>
+                  ) : (
+                    `type: ${tool?.type || "-"}`
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      );
+    }
+
+    // Handle tool_choice values (show tool title instead of tool id)
+    if (key.includes("tool_choice")) {
+      const resolveToolName = (toolId) => {
+        if (!toolId || typeof toolId !== "string") return toolId;
+        const matchedTool = Object.values(functionData || {}).find((item) => item?._id === toolId);
+        return matchedTool?.title || matchedTool?.name || toolId;
+      };
+
+      if (typeof value === "string") {
+        return resolveToolName(value);
+      }
+
+      if (Array.isArray(value)) {
+        return value.map((item) => (typeof item === "string" ? resolveToolName(item) : item)).join(", ");
+      }
+
+      if (value && typeof value === "object") {
+        const transformed = { ...value };
+        ["id", "tool_id", "function_id"].forEach((candidateKey) => {
+          if (typeof transformed[candidateKey] === "string") {
+            transformed[candidateKey] = resolveToolName(transformed[candidateKey]);
+          }
+        });
+        return (
+          <pre className="text-xs whitespace-pre-wrap break-all max-h-40 overflow-auto">
+            {JSON.stringify(transformed, null, 2)}
+          </pre>
+        );
+      }
+    }
+
+    // Handle document IDs
+    if (rootKey === "doc_ids") {
+      if (Array.isArray(value) && value.length > 0) {
+        const labels = value.map((docItem) => {
+          if (typeof docItem === "string") {
+            const kbItem = knowledgeBaseData?.find((item) => item?._id === docItem);
+            return kbItem?.title || kbItem?.name || docItem;
+          }
+          if (docItem && typeof docItem === "object") {
+            return (
+              docItem.name ||
+              docItem.title ||
+              docItem.resource_id ||
+              docItem._id ||
+              docItem.id ||
+              JSON.stringify(docItem)
+            );
+          }
+          return String(docItem);
+        });
+        return labels.join(", ");
+      }
+      return JSON.stringify(value);
+    }
+
+    // Handle objects and arrays with improved display
+    if (typeof value === "object" && value !== null) {
+      try {
+        // Handle arrays
+        if (Array.isArray(value)) {
+          return (
+            <div className="nested-array">
+              {value.map((item, index) => (
+                <div key={index} className="nested-array-item mb-2">
+                  <div className="text-xs text-gray-500 mb-1">Item {index + 1}:</div>
+                  <div className="pl-2 border-l-2 border-gray-300">{formatValue(item, `${key}[${index}]`)}</div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // Handle nested objects
+        return (
+          <div className="nested-object">
+            {Object.entries(value).map(([nestedKey, nestedValue]) => (
+              <div key={nestedKey} className="nested-object-item mb-2">
+                <div className="text-xs text-gray-500 mb-1">{DIFFERNCE_DATA_DISPLAY_NAME(nestedKey)}:</div>
+                <div className="pl-2 border-l-2 border-gray-300">{formatValue(nestedValue, `${key}.${nestedKey}`)}</div>
+              </div>
+            ))}
+          </div>
+        );
+      } catch {
+        // Fallback to JSON string if there's an error in the recursive rendering
+        return (
+          <pre className="text-xs whitespace-pre-wrap break-all max-h-40 overflow-auto">
+            {JSON.stringify(value, null, 2)}
+          </pre>
+        );
+      }
+    }
+
+    // Handle boolean values
+    if (typeof value === "boolean") {
+      return value ? <span className="text-green-500">true</span> : <span className="text-red-500">false</span>;
+    }
+
+    // Handle all other primitive values
+    return String(value);
+  };
+
+  const hasDifferences = Object.keys(differences).length > 0;
+
+  const categorizedDifferences = useMemo(() => {
+    const categories = {};
+
+    flattenedDifferences.forEach((diff) => {
+      let normalizedPath = diff.path;
+
+      // Show prompt changes under a dedicated Prompt section instead of Advanced Parameters.
+      if (normalizedPath === "configuration.prompt" || normalizedPath.startsWith("configuration.prompt.")) {
+        normalizedPath = normalizedPath.replace("configuration.", "");
+      }
+
+      // Check if this is a configuration key that should be excluded
+      const pathParts = normalizedPath.split(".");
+      if (pathParts[0] === "configuration" && pathParts.length > 1) {
+        const configKey = pathParts[1];
+        if (CONFIGURATION_KEYS_TO_EXCLUDE.includes(configKey)) return;
+      }
+
+      const isOldEmpty =
+        diff.oldValue === undefined ||
+        diff.oldValue === null ||
+        (Array.isArray(diff.oldValue) && diff.oldValue.length === 0);
+      const isNewEmpty =
+        diff.newValue === undefined ||
+        diff.newValue === null ||
+        (Array.isArray(diff.newValue) && diff.newValue.length === 0);
+
+      // Skip only when both sides are empty; keep added/removed/changed fields visible.
+      if (isOldEmpty && isNewEmpty) {
+        return;
+      }
+
+      const category = pathParts[0];
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push({
+        ...diff,
+        path: normalizedPath,
+      });
+    });
+    return categories;
+  }, [flattenedDifferences]);
+
+  return (
+    <div className="bg-base-100 overflow-auto">
+      {!hasDifferences ? (
+        <div className="alert alert-success">
+          <Check />
+          <span>No differences found between the data sets.</span>
+        </div>
+      ) : (
+        <React.Fragment>
+          <div className="divider"></div>
+          {Object.entries(categorizedDifferences).map(([category, items]) => (
+            <div key={category} className="mb-6">
+              <h4 className="font-semibold text-lg mb-3">{DIFFERNCE_DATA_DISPLAY_NAME(category)}</h4>
+              <div className="space-y-4">
+                {items.map(({ path, oldValue, newValue, status }) => {
+                  // Prompt sub-field: path is "prompt.role", "prompt.goal", "prompt.instruction",
+                  // "prompt.customPrompt", or any embed field under prompt
+                  const promptSubFieldKey = path.startsWith("prompt.") ? path.slice("prompt.".length) : null;
+                  const isPromptField = path === "prompt" || promptSubFieldKey !== null;
+                  const pathParts = path.split(".");
+                  const isConnectedAgentPath = pathParts[0] === "connected_agents";
+
+                  const resolveConnectedAgentName = () => {
+                    if (!isConnectedAgentPath) return "";
+
+                    const connectionKey = pathParts[1];
+                    if (bridgeIdToNameMap[connectionKey]) {
+                      return bridgeIdToNameMap[connectionKey];
+                    }
+
+                    if (typeof oldValue === "string" && bridgeIdToNameMap[oldValue]) {
+                      return bridgeIdToNameMap[oldValue];
+                    }
+                    if (typeof newValue === "string" && bridgeIdToNameMap[newValue]) {
+                      return bridgeIdToNameMap[newValue];
+                    }
+
+                    if (
+                      oldValue &&
+                      typeof oldValue === "object" &&
+                      oldValue.bridge_id &&
+                      bridgeIdToNameMap[oldValue.bridge_id]
+                    ) {
+                      return bridgeIdToNameMap[oldValue.bridge_id];
+                    }
+                    if (
+                      newValue &&
+                      typeof newValue === "object" &&
+                      newValue.bridge_id &&
+                      bridgeIdToNameMap[newValue.bridge_id]
+                    ) {
+                      return bridgeIdToNameMap[newValue.bridge_id];
+                    }
+
+                    return "";
+                  };
+                  const connectedAgentName = resolveConnectedAgentName();
+
+                  // Label: use PROMPT_SECTION_CONFIG label for known prompt sub-fields, else DIFFERNCE_DATA_DISPLAY_NAME
+                  const leafKey = pathParts.at(-1);
+                  const isFallbackModelPath = path === "settings.fall_back.model";
+                  const displayLabel =
+                    isConnectedAgentPath && connectedAgentName
+                      ? connectedAgentName
+                      : isFallbackModelPath
+                        ? "Fallback Model"
+                        : promptSubFieldKey && PROMPT_SECTION_CONFIG[promptSubFieldKey]?.label
+                          ? PROMPT_SECTION_CONFIG[promptSubFieldKey].label
+                          : DIFFERNCE_DATA_DISPLAY_NAME(leafKey);
+
+                  return (
+                    <div key={path} data-testid={`comparison-card-${path}`} className="card bg-base-200">
+                      <div className="card-body p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <h5 className="card-title text-sm">{displayLabel}</h5>
+                          {getStatusBadge(status)}
+                        </div>
+
+                        {isPromptField ? (
+                          // Use ComparisonCheck for prompt field
+                          <ComparisonCheck isFromPublishModal={true} oldContent={oldValue} newContent={newValue} />
+                        ) : (
+                          // Use regular grid display for other fields
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-xs text-gray-500 mb-1">Current Value:</div>
+                              <div className="bg-base-300 p-3 rounded text-sm break-all whitespace-pre-wrap overflow-hidden">
+                                {formatValue(oldValue, path)}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-xs text-gray-500 mb-1">Updated Value:</div>
+                              <div className="bg-base-300 p-3 rounded text-sm break-all whitespace-pre-wrap overflow-hidden">
+                                {formatValue(newValue, path)}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </React.Fragment>
+      )}
+    </div>
+  );
+};
+
+export default PublishVersionDataComparisonView;

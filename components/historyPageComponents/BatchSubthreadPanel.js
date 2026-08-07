@@ -1,0 +1,126 @@
+"use client";
+import { CheckCircle2, Clock3, AlertTriangle } from "lucide-react";
+import { BATCH_PROCESSING_STATUSES } from "@/utils/enums";
+import { useCustomSelector } from "@/customHooks/customSelector";
+import { formatRelativeTime } from "@/utils/utility";
+
+const getBatchStatusMeta = (status) => {
+  const statusLower = (status || "").toLowerCase();
+  if (statusLower === "completed") return { icon: CheckCircle2, className: "text-success" };
+  if (BATCH_PROCESSING_STATUSES.includes(statusLower)) return { icon: Clock3, className: "text-warning" };
+  return { icon: AlertTriangle, className: "text-error" };
+};
+
+const BatchSubthreadPanel = ({
+  thread,
+  subThreadIdFromURL,
+  parentThreadId,
+  selectedBatchMessageId,
+  onSelectBatch,
+  onSelectSubThread,
+}) => {
+  const { subThreads, subThreadsParentId } = useCustomSelector((state) => ({
+    subThreads: Array.isArray(state?.historyReducer?.subThreads) ? state.historyReducer.subThreads : [],
+    subThreadsParentId: state?.historyReducer?.subThreadsParentId,
+  }));
+
+  const activeSubThreads = subThreadsParentId === parentThreadId ? subThreads : [];
+
+  const batchMessages = Array.isArray(thread) ? thread.filter((msg) => msg?.batch_data?.batch_id) : [];
+  const showBatches = batchMessages.length > 0;
+  const showSubThreads = activeSubThreads.length > 1;
+  const isVisible = showBatches || showSubThreads;
+  const showBoth = showBatches && showSubThreads;
+  const panelWidth = showBoth ? 384 : 192;
+  const sortedSubThreads = [...activeSubThreads].sort(
+    (a, b) => new Date(b?.created_at || b?.updated_at || 0) - new Date(a?.created_at || a?.updated_at || 0)
+  );
+
+  const batchesColumn = showBatches && (
+    <div className="w-48 shrink-0 border-r border-base-300 last:border-r-0">
+      <div className="px-3 py-2 border-b border-base-300 text-xs font-semibold text-base-content/60 uppercase tracking-wider sticky top-0 bg-base-200 z-10 whitespace-nowrap">
+        Batch Values
+      </div>
+      <ul className="flex flex-col gap-1 p-2">
+        {batchMessages.map((msg, index) => {
+          const meta = getBatchStatusMeta(msg.batch_data.status);
+          const Icon = meta.icon;
+          const isActive = selectedBatchMessageId === msg.message_id;
+          const userVal = msg?.user || "";
+          const batchLabel = userVal
+            ? `Value ${index + 1} (${userVal.length > 18 ? userVal.slice(0, 18) + "..." : userVal})`
+            : `Value ${index + 1}`;
+          return (
+            <li
+              key={msg.message_id || index}
+              data-testid={`batch-item-${msg.message_id || index}`}
+              id={`batch-item-${msg.message_id || index}`}
+              onClick={() => onSelectBatch(msg.message_id)}
+              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs transition-colors duration-150 ${
+                isActive
+                  ? "bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40 shadow-sm"
+                  : "hover:bg-base-300 text-base-content"
+              }`}
+            >
+              <span className="font-medium truncate flex-1" title={userVal || undefined}>
+                {batchLabel}
+              </span>
+              <Icon size={13} className={isActive ? "text-blue-700 dark:text-base-100" : meta.className} />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+
+  const subThreadsColumn = showSubThreads && (
+    <div className="w-48 shrink-0">
+      <div className="px-3 py-2 border-b border-base-300 text-xs font-semibold text-base-content/60 uppercase tracking-wider sticky top-0 bg-base-200 z-10 whitespace-nowrap">
+        Sub Threads
+      </div>
+      <ul className="flex flex-col gap-1 p-2">
+        {sortedSubThreads.map((st) => {
+          const isActive = subThreadIdFromURL === st.sub_thread_id;
+          return (
+            <li
+              key={st.sub_thread_id}
+              data-testid={`subthread-item-${st.sub_thread_id}`}
+              id={`subthread-item-${st.sub_thread_id}`}
+              onClick={() => onSelectSubThread(st.sub_thread_id)}
+              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs transition-colors duration-150 ${
+                isActive
+                  ? "bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40 shadow-sm"
+                  : "hover:bg-base-300 text-base-content"
+              }`}
+            >
+              <span className="truncate flex-1">{st.display_name || st.sub_thread_id}</span>
+              {(st.updated_at || st.created_at) && (
+                <span
+                  className={`shrink-0 ${isActive ? "text-blue-700/70 dark:text-base-100/70" : "text-base-content/40"}`}
+                >
+                  {formatRelativeTime(st.updated_at || st.created_at)}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+
+  return (
+    <div
+      className="shrink-0 border-r border-base-300 bg-base-200 flex flex-row overflow-y-auto h-full transition-all duration-200"
+      style={{
+        width: isVisible ? `${panelWidth}px` : "0px",
+        minWidth: isVisible ? `${panelWidth}px` : "0px",
+        overflow: "hidden",
+      }}
+    >
+      {batchesColumn}
+      {subThreadsColumn}
+    </div>
+  );
+};
+
+export default BatchSubthreadPanel;

@@ -1,0 +1,331 @@
+import { useCustomSelector } from "@/customHooks/customSelector";
+import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
+import { AlertIcon } from "@/components/Icons";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { getServiceAction } from "@/store/action/serviceAction";
+import Protected from "@/components/Protected";
+import { getIconOfService, openModal, closeModal } from "@/utils/utility";
+import InfoTooltip from "@/components/InfoTooltip";
+import Dropdown from "@/components/UI/Dropdown";
+import { ChevronDownIcon, CircleAlert } from "lucide-react";
+import { MODAL_TYPE } from "@/utils/enums";
+import ConfirmationModal from "@/components/UI/ConfirmationModal";
+
+const ServiceDropdown = ({
+  params,
+  searchParams,
+  apiKeySectionRef,
+  promptTextAreaRef,
+  isEmbedUser,
+  isPublished = false,
+  isEditor = true,
+}) => {
+  // Determine if content is read-only (either published or user is not an editor)
+  const isReadOnly = isPublished || !isEditor;
+  const {
+    bridgeType,
+    service,
+    SERVICES,
+    DEFAULT_MODEL,
+    bridgeApikeyObjectId,
+    prompt,
+    bridgeApiKey,
+    shouldPromptShow,
+    showDefaultApikeys,
+    apiKeyObjectIdData,
+    configuration,
+    serviceModels,
+  } = useCustomSelector((state) => {
+    const versionData = state?.bridgeReducer?.bridgeVersionMapping?.[params?.id]?.[searchParams?.version];
+    const bridgeDataFromState = state?.bridgeReducer?.allBridgesMap?.[params?.id];
+    const modelReducer = state?.modelReducer?.serviceModels;
+
+    // Use bridgeData when isPublished=true, otherwise use versionData
+    const activeData = isPublished ? bridgeDataFromState : versionData;
+    const service = activeData?.service;
+    const serviceName = activeData?.service;
+    const modelTypeName = activeData?.configuration?.type?.toLowerCase();
+    const modelName = activeData?.configuration?.model;
+    const apiKeyObjectIdData = state.appInfoReducer.embedUserDetails?.apikey_object_id || {};
+    const showDefaultApikeys = state.appInfoReducer.embedUserDetails?.addDefaultApiKeys;
+    return {
+      SERVICES: state?.serviceReducer?.services,
+      DEFAULT_MODEL: state?.serviceReducer?.default_model,
+      bridgeType: state?.bridgeReducer?.allBridgesMap?.[params?.id]?.bridgeType,
+      service: service,
+      bridgeApikeyObjectId: activeData?.apikey_object_id || {},
+      prompt: isPublished ? bridgeDataFromState?.configuration?.prompt || "" : versionData?.configuration?.prompt || "",
+      bridgeApiKey: isPublished
+        ? bridgeDataFromState?.apikey_object_id?.[service]
+        : versionData?.apikey_object_id?.[service],
+      shouldPromptShow: modelReducer?.[serviceName]?.[modelTypeName]?.[modelName]?.validationConfig?.system_prompt,
+      apiKeyObjectIdData,
+      showDefaultApikeys,
+      configuration: activeData?.configuration,
+      serviceModels: state?.modelReducer?.serviceModels,
+    };
+  });
+
+  const [selectedService, setSelectedService] = useState(service);
+  const dispatch = useDispatch();
+
+  const resetBorder = (ref, selector) => {
+    if (ref?.current) {
+      const element = ref.current.querySelector(selector);
+      if (element) {
+        element.style.borderColor = "";
+      }
+    }
+  };
+
+  useEffect(() => {
+    const hasPrompt =
+      !shouldPromptShow ||
+      prompt !== "" ||
+      (promptTextAreaRef.current && promptTextAreaRef.current.querySelector("textarea").value.trim() !== "");
+    const hasApiKey = !!bridgeApiKey;
+
+    if (hasPrompt) {
+      resetBorder(promptTextAreaRef, "textarea");
+    }
+
+    if (hasApiKey) {
+      resetBorder(apiKeySectionRef, "select");
+    }
+  }, [bridgeApiKey, prompt, apiKeySectionRef, promptTextAreaRef]);
+  useEffect(() => {
+    if (service) {
+      setSelectedService(service);
+    }
+  }, [service]);
+
+  useEffect(() => {
+    if (!SERVICES || Object?.entries(SERVICES)?.length === 0) {
+      dispatch(getServiceAction({ orgid: params.orgid }));
+    }
+  }, [SERVICES]);
+
+  // Build options for global Dropdown
+  const serviceOptions = useMemo(() => {
+    let availableServices = [];
+    if (isEmbedUser && showDefaultApikeys) {
+      // Ensure apiKeyObjectIdData exists and is an object
+      if (apiKeyObjectIdData && typeof apiKeyObjectIdData === "object") {
+        availableServices = Object.keys(apiKeyObjectIdData)
+          .map((key) => {
+            const svc = SERVICES && Array.isArray(SERVICES) && SERVICES.find((s) => s && s.value === key);
+            return svc ? svc : { value: key, displayName: key };
+          })
+          .filter(Boolean);
+      }
+    } else {
+      // Ensure SERVICES is an array
+      availableServices = Array.isArray(SERVICES) ? SERVICES : [];
+    }
+    // Ensure availableServices is an array before mapping
+    if (!Array.isArray(availableServices)) {
+      availableServices = [];
+    }
+    return availableServices
+      .map((svc) => {
+        // Sanity checks
+        if (!svc || typeof svc !== "object") return null;
+        if (!svc.value) return null;
+
+        return {
+          value: svc.value,
+          label: (
+            <div className="flex items-center gap-2">
+              {getIconOfService(svc.value, 16, 16)}
+              <span>{svc.displayName || svc.value}</span>
+            </div>
+          ),
+        };
+      })
+      .filter(Boolean);
+  }, [SERVICES, isEmbedUser, showDefaultApikeys, apiKeyObjectIdData]);
+
+  const [pendingService, setPendingService] = useState(null);
+
+  const confirmServiceChange = useCallback(() => {
+    if (!pendingService) return;
+    const newService = pendingService;
+    const defaultModel = DEFAULT_MODEL?.[newService]?.model;
+    const hasApiKeyForNewService = !!bridgeApikeyObjectId?.[newService];
+    setSelectedService(newService);
+
+    const dataToSend = {
+      service: newService,
+      configuration: { model: defaultModel },
+    };
+    if (!hasApiKeyForNewService) {
+      dataToSend.auto_model_select = null;
+    }
+
+    dispatch(
+      updateBridgeVersionAction({
+        bridgeId: params.id,
+        versionId: searchParams?.version,
+        dataToSend,
+      })
+    );
+    setPendingService(null);
+    closeModal(MODAL_TYPE.JSON_SCHEMA_SERVICE_WARNING_MODAL);
+  }, [dispatch, params.id, searchParams?.version, DEFAULT_MODEL, bridgeApikeyObjectId, pendingService]);
+
+  const handleServiceChange = useCallback(
+    (serviceValue) => {
+      const newService = serviceValue;
+      const defaultModel = DEFAULT_MODEL?.[newService]?.model;
+
+      const hasJsonSchema =
+        configuration?.response_type?.type === "json_schema" ||
+        (configuration?.response_type?.json_schema && Object.keys(configuration.response_type.json_schema).length > 0);
+
+      // Find the group/type for defaultModel
+      let foundType = "chat";
+      const types = serviceModels?.[newService] || {};
+      for (const [type, models] of Object.entries(types)) {
+        if (models && models[defaultModel]) {
+          foundType = type;
+          break;
+        }
+      }
+
+      const modelInfo = serviceModels?.[newService]?.[foundType]?.[defaultModel];
+      const responseTypeParam = modelInfo?.configuration?.additional_parameters?.response_type;
+      const options = responseTypeParam?.options || [];
+      const supportsJsonSchema = options.some((opt) => {
+        const optVal = typeof opt === "object" ? opt.type || opt.value : opt;
+        return optVal === "json_schema";
+      });
+
+      if (hasJsonSchema && !supportsJsonSchema) {
+        setPendingService(newService);
+        openModal(MODAL_TYPE.JSON_SCHEMA_SERVICE_WARNING_MODAL);
+        return;
+      }
+
+      const hasApiKeyForNewService = !!bridgeApikeyObjectId?.[newService];
+      setSelectedService(newService);
+
+      const dataToSend = { service: newService, configuration: { model: defaultModel } };
+      if (!hasApiKeyForNewService) {
+        dataToSend.auto_model_select = null;
+      }
+
+      dispatch(
+        updateBridgeVersionAction({
+          bridgeId: params.id,
+          versionId: searchParams?.version,
+          dataToSend,
+        })
+      );
+    },
+    [dispatch, params.id, searchParams?.version, DEFAULT_MODEL, bridgeApikeyObjectId, configuration, serviceModels]
+  );
+
+  const isDisabled = bridgeType === "batch" && service === "openai";
+
+  const renderServiceDropdown = () => (
+    <Dropdown
+      testId="service-dropdown"
+      id="service-dropdown"
+      disabled={isReadOnly}
+      options={serviceOptions}
+      value={selectedService || ""}
+      onChange={handleServiceChange}
+      placeholder="Select service"
+      size="sm"
+      className={`flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 border-base-200 text-base-content h-8 min-w-[150px] ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      style={{ backgroundColor: "color-mix(in oklab, var(--color-white) 3%, transparent)" }}
+      menuClassName="w-full min-w-[200px]"
+      fullWidth={false}
+      renderTriggerContent={({ selectedOption }) => {
+        const currentValue = selectedService || selectedOption?.value;
+
+        if (!currentValue) {
+          return (
+            <span id="service-dropdown-placeholder" className="flex items-center gap-2 text-gray-100/60">
+              <span>Select service</span>
+            </span>
+          );
+        }
+
+        const serviceName = Array.isArray(SERVICES)
+          ? SERVICES.find((svc) => svc?.value === currentValue)?.displayName || currentValue
+          : currentValue;
+
+        return (
+          <div
+            data-testid="service-dropdown-trigger"
+            id="service-dropdown-trigger"
+            className="flex justify-between w-full items-center gap-2"
+          >
+            <span id="service-dropdown-selected" className="flex items-center gap-2">
+              <span
+                id="service-dropdown-icon-wrapper"
+                className="flex h-4 w-4 items-center justify-center rounded-md bg-base-200"
+              >
+                {getIconOfService(currentValue, 16, 16)}
+              </span>
+              <span id="service-dropdown-selected-name" className="text-base-content/70 text-xs">
+                {serviceName}
+              </span>
+            </span>
+            <ChevronDownIcon id="service-dropdown-chevron" size={16} className="ml-2 h-4 w-4 opacity-70" />
+          </div>
+        );
+      }}
+    />
+  );
+
+  return (
+    <div data-testid="service-dropdown-container" id="service-dropdown-container" className="space-y-4">
+      <div id="service-dropdown-form-control" className="form-control">
+        <div id="service-dropdown-wrapper" className="flex items-center gap-2 z-auto">
+          {isDisabled && (
+            <InfoTooltip id="service-dropdown-batch-warning" tooltipContent="Batch API is only applicable for OpenAI">
+              <AlertIcon id="service-dropdown-alert-icon" size={16} className="text-warning" />
+            </InfoTooltip>
+          )}
+          {renderServiceDropdown()}
+        </div>
+      </div>
+
+      <ConfirmationModal
+        modalType={MODAL_TYPE.JSON_SCHEMA_SERVICE_WARNING_MODAL}
+        title="Unsupported JSON Schema"
+        message={
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-base-content/80 leading-relaxed">
+              The default model for the newly selected service does not support <strong>JSON Schema</strong> response
+              format.
+            </p>
+            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg text-xs text-warning flex items-start gap-2.5">
+              <CircleAlert className="shrink-0 w-4 h-4 mt-0.5 text-warning" />
+              <span className="leading-normal">
+                The JSON schema will be automatically removed from the configuration if you proceed.
+              </span>
+            </div>
+            <p className="text-sm text-base-content/85">Are you sure you want to change the service?</p>
+          </div>
+        }
+        icon={<CircleAlert size={20} />}
+        iconClass="bg-warning/15 text-warning"
+        confirmText="Yes, Change Service"
+        cancelText="Cancel"
+        confirmButtonClass="btn-warning hover:opacity-90 text-black font-semibold border-none"
+        cancelButtonClass="btn-ghost"
+        onConfirm={confirmServiceChange}
+        onCancel={() => {
+          setPendingService(null);
+          closeModal(MODAL_TYPE.JSON_SCHEMA_SERVICE_WARNING_MODAL);
+        }}
+      />
+    </div>
+  );
+};
+
+export default Protected(React.memo(ServiceDropdown));

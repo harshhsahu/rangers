@@ -1,0 +1,256 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Restore pointer cursor on all interactive elements globally.
+   Tailwind v3 preflight removed the default cursor:pointer on buttons,
+   so we re-apply it here for buttons, links, role=button, summary,
+   labels tied to inputs, and any element marked with [onclick]. */
+@layer base {
+  button,
+  a,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  summary,
+  label[for],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"],
+  select,
+  [onclick] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  a[aria-disabled="true"],
+  [role="button"][aria-disabled="true"],
+  input:disabled,
+  select:disabled,
+  .btn-disabled,
+  .btn[disabled] {
+    cursor: not-allowed;
+  }
+}
+
+@layer utilities {
+  .group:hover .group-hover\:opacity-0 {
+    opacity: 0;
+  }
+  .group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .group:hover .group-hover\:opacity-0 {
+    opacity: 0;
+  }
+  .group:hover .group-hover\:opacity-100 {
+    opacity: 1;
+  }
+}
+
+/* Global Input and Textarea Styles - Theme Aware */
+@layer components {
+  .input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="url"],
+  input[type="tel"],
+  textarea {
+    @apply bg-base-100;
+  }
+
+  /* Override DaisyUI input classes specifically */
+  .input-bordered,
+  .input-sm,
+  .textarea,
+  .textarea-bordered {
+    @apply bg-base-100;
+  }
+}
+
+body {
+  @apply font-sans;
+}
+
+/* CodeMirror editor contrast in light theme */
+[data-theme="light"] .cm-editor {
+  border: 1px solid oklch(var(--b3));
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: oklch(var(--b2));
+}
+
+[data-theme="light"] .cm-editor .cm-gutters {
+  background: oklch(var(--b2));
+}
+
+/* Batch/subthread panel slide-in */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out forwards;
+}
+
+/* Chat streaming animations */
+@keyframes chunk-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes r-entry {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.r-entry {
+  animation: r-entry 0.3s ease forwards;
+}
+
+.r-chunk {
+  animation: chunk-fade-in var(--dur, 1.2s) cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  animation-delay: 0.12s;
+  opacity: 0;
+}
+
+.sm-chunk {
+  animation: chunk-fade-in 1.2s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  animation-delay: 0.12s;
+  opacity: 0;
+}
+
+.r-body {
+  transition:
+    max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease;
+}
+
+.r-body.open {
+  max-height: 9999px;
+  overflow-y: visible;
+  opacity: 1;
+}
+
+.r-body.closed {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#config-sidebar-content,
+#chatbot-testing-sidebar-content,
+#testing-sidebar-content,
+#rag-testing-sidebar-content {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#config-sidebar-content::-webkit-scrollbar,
+#chatbot-testing-sidebar-content::-webkit-scrollbar,
+#testing-sidebar-content::-webkit-scrollbar,
+#rag-testing-sidebar-content::-webkit-scrollbar {
+  display: none;
+}
+
+:root {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Hide scrollbar for Chrome, Safari, and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+#iframe-viasocket-embed-parent-container {
+  z-index: 999999;
+}
+
+#parentChatbot {
+  z-index: 1;
+}
+
+/* Responsive font sizing for mobile screens */
+@media (max-width: 640px) {
+  html,
+  body {
+    font-size: 87.5%;
+    /* Reduces to 14px if base is 16px */
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    /* 24px if base is 16px */
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    /* 20px if base is 16px */
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    /* 18px if base is 16px */
+  }
+
+  p,
+  span,
+  div,
+  input,
+  select,
+  textarea {
+    font-size: 0.875rem;
+    /* 14px if base is 16px */
+  }
+}
+
+/* Even smaller font size for very small screens */
+@media (max-width: 375px) {
+  html,
+  body {
+    font-size: 81.25%;
+    /* Reduces to 13px if base is 16px */
+  }
+}
