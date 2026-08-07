@@ -5,7 +5,11 @@ import { AddIcon } from "@/components/Icons";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import InfoTooltip from "@/components/InfoTooltip";
-import { CircleQuestionMark, Zap } from "lucide-react";
+import { CircleQuestionMark, MessageCircle, Zap } from "lucide-react";
+import { MODAL_TYPE } from "@/utils/enums";
+import { openModal } from "@/utils/utility";
+import TriggerChoiceModal from "@/components/modals/TriggerChoiceModal";
+import TelegramConnectModal from "@/components/modals/TelegramConnectModal";
 
 function getStatusClass(status) {
   switch (status?.toString().trim().toLowerCase()) {
@@ -19,22 +23,22 @@ function getStatusClass(status) {
       return "text-green-700 bg-green-100";
     case "rejected":
       return "text-gray-700 bg-gray-100";
-    // Add more cases as needed
     default:
       return "bg-gray-100";
   }
 }
 
-export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
+export default function TriggersList({ params, searchParams, isEmbedUser, isReadOnly }) {
   const dispatch = useDispatch();
-  const { triggerEmbedToken, triggerData, isViewer, bridgeType } = useCustomSelector((state) => ({
+  const versionId = searchParams?.version || searchParams?.get?.("version");
+  const { triggerEmbedToken, triggerData, bridgeType } = useCustomSelector((state) => ({
     triggerEmbedToken: state?.bridgeReducer?.org?.[params?.org_id]?.triggerEmbedToken,
     triggerData: state?.bridgeReducer?.org?.[params?.org_id]?.triggerData,
     bridgeType: state?.bridgeReducer?.allBridgesMap?.[params?.id]?.bridgeType,
-    isViewer: state?.userDetailsReducer?.organizations?.[params?.org_id]?.role_name === "Viewer" || false,
   }));
   const [triggers, setTriggers] = useState([]);
   const [authkey, setAuthkey] = useState("");
+  const [telegramChannel, setTelegramChannel] = useState(null);
 
   async function getAndSetAuthKey() {
     const keytoset = await getOrCreateNotificationAuthKey("gtwy_bridge_trigger");
@@ -51,12 +55,30 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
   }, [triggerData, params?.id]);
 
   useEffect(() => {
-    if (!isEmbedUser && !isViewer) getAndSetAuthKey();
-  }, [isEmbedUser, isViewer]);
+    if (!isEmbedUser) getAndSetAuthKey();
+  }, [isEmbedUser]);
+
+  // Load existing telegram channel for this version
+  useEffect(() => {
+    if (!versionId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+        const data = await res.json();
+        if (!cancelled && data?.success) setTelegramChannel(data.data || null);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [versionId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (isReadOnly || isEmbedUser || isViewer) return;
+    if (isReadOnly || isEmbedUser) return;
     if (!window?.openViasocket || !authkey || !triggerEmbedToken) return;
 
     const isTriggerType = bridgeType?.toString()?.toLowerCase() === "trigger";
@@ -66,10 +88,11 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
     if (sessionStorage.getItem(autoOpenKey) !== "1") return;
 
     sessionStorage.removeItem(autoOpenKey);
-    openTrigger();
-  }, [bridgeType, authkey, triggerEmbedToken, params?.id, isReadOnly, isEmbedUser, isViewer]);
+    openModal(MODAL_TYPE.TRIGGER_CHOICE_MODAL);
+  }, [bridgeType, authkey, triggerEmbedToken, params?.id, isReadOnly, isEmbedUser]);
 
   function openTrigger(triggerId) {
+    if (typeof window === "undefined" || !window.openViasocket) return;
     openViasocket(triggerId, {
       embedToken: triggerEmbedToken,
       meta: {
@@ -111,12 +134,10 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
       const existingIndex = prevTriggers.findIndex((trigger) => trigger.id === newTrigger.id);
 
       if (existingIndex !== -1) {
-        // Update existing trigger
         const updatedTriggers = [...prevTriggers];
         updatedTriggers[existingIndex] = { ...prevTriggers[existingIndex], ...newTrigger };
         return updatedTriggers;
       } else {
-        // Add new trigger to the beginning
         dispatch(updateTriggerDataReducer({ dataToSend: newTrigger, orgId: params?.org_id }));
         return [newTrigger, ...prevTriggers];
       }
@@ -124,8 +145,12 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
   }
 
   const activeTriggers = triggers?.filter((trigger) => trigger?.status !== "deleted") || [];
+  const hasTriggers = activeTriggers.length > 0 || Boolean(telegramChannel?.telegram?.botId);
 
-  const hasTriggers = activeTriggers.length > 0;
+  const openAddMenu = () => {
+    if (isReadOnly) return;
+    openModal(MODAL_TYPE.TRIGGER_CHOICE_MODAL);
+  };
 
   return (
     <div>
@@ -141,9 +166,9 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
             <button
               data-testid="triggers-add-button"
               id="triggers-add-button"
-              onClick={() => openTrigger()}
+              onClick={openAddMenu}
               className="btn btn-outline hover:bg-base-200 hover:text-base-content btn-xs gap-1"
-              disabled={isViewer}
+              disabled={isReadOnly}
             >
               <AddIcon className="w-3 h-3" />
               ADD
@@ -159,7 +184,7 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
               <button
                 data-testid="triggers-add-first-button"
                 id="triggers-add-first-button"
-                onClick={() => openTrigger()}
+                onClick={openAddMenu}
                 className="flex items-center justify-center gap-1 mt-3 text-base-content hover:text-base-content/80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full"
                 disabled={isReadOnly}
               >
@@ -171,6 +196,35 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
         ) : (
           <div className="w-full max-w-md">
             <div className="flex flex-col gap-2">
+              {telegramChannel?.telegram?.botId && (
+                <div
+                  data-testid="trigger-card-telegram"
+                  className="group flex items-center border border-base-200 cursor-pointer bg-base-100 relative min-h-[44px] w-full transition-colors duration-200"
+                  onClick={() => !isReadOnly && openModal(MODAL_TYPE.TELEGRAM_CONNECT_MODAL)}
+                >
+                  <div className="p-2 flex-1 flex items-center">
+                    <div className="flex items-center gap-2 w-full">
+                      <MessageCircle size={16} className="shrink-0 text-[#229ED9]" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-normal block truncate">Telegram Bot</span>
+                        <span className="text-[10px] text-base-content/50 font-mono">
+                          ID {telegramChannel.telegram.botId}
+                        </span>
+                      </div>
+                      <span
+                        className={`shrink-0 inline-block rounded-full capitalize px-2 py-0.5 text-[10px] font-medium ${
+                          telegramChannel.telegram.webhookSet
+                            ? "text-green-700 bg-green-100"
+                            : "text-yellow-700 bg-yellow-100"
+                        }`}
+                      >
+                        {telegramChannel.telegram.webhookSet ? "Active" : "Saved"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTriggers.map((trigger) => (
                 <div
                   data-testid={`trigger-card-${trigger?.id}`}
@@ -198,6 +252,14 @@ export default function TriggersList({ params, isEmbedUser, isReadOnly }) {
           </div>
         )}
       </div>
+
+      <TriggerChoiceModal onSelectCustom={() => openTrigger()} />
+      <TelegramConnectModal
+        versionId={versionId}
+        agentId={params?.id}
+        orgId={params?.org_id}
+        onSaved={(doc) => setTelegramChannel(doc)}
+      />
     </div>
   );
 }

@@ -26,7 +26,6 @@ import Protected from "./Protected";
 const DeleteModal = dynamic(() => import("./UI/DeleteModal"), { ssr: false });
 import useDeleteOperation from "@/customHooks/useDeleteOperation";
 const VariableCollectionSlider = dynamic(() => import("./sliders/VariableCollectionSlider"), { ssr: false });
-import AccessManagementModal from "./modals/AccessManagementModal";
 import AgentUsageLimitModal from "./modals/AgentUsageLimitModal";
 import AgentActionMenu from "@/components/agents/AgentActionMenu";
 import usePortalDropdown from "@/customHooks/usePortalDropdown";
@@ -75,11 +74,8 @@ const Navbar = ({ isEmbedUser, params }) => {
     bridgeName,
     savingStatus,
     showAgentName,
-    isAdminOrOwner,
     isUpdatingBridge,
   } = useCustomSelector((state) => {
-    const orgRole = state?.userDetailsReducer?.organizations?.[orgId]?.role_name;
-    const isAdminOrOwner = orgRole === "Admin" || orgRole === "Owner";
     const bridgeData =
       state?.bridgeReducer?.org?.[orgId]?.orgs?.find((bridge) => bridge._id === bridgeId) ||
       state.bridgeReducer.allBridgesMap[bridgeId] ||
@@ -103,8 +99,6 @@ const Navbar = ({ isEmbedUser, params }) => {
       bridgeName: state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.name || "",
       savingStatus: state?.bridgeReducer?.savingStatus || { status: null, timestamp: null },
       showAgentName: state?.appInfoReducer?.embedUserDetails?.showAgentName,
-      isAdminOrOwner,
-      currentOrgRole: orgRole || "",
       currentUser: state?.userDetailsReducer?.userDetails || {},
     };
   });
@@ -393,7 +387,6 @@ const Navbar = ({ isEmbedUser, params }) => {
       isArchived={isArchived === 0}
       isUpdatingBridge={isUpdatingBridge}
       isEmbedUser={isEmbedUser}
-      isAdminOrOwner={isAdminOrOwner}
       orgId={orgId}
       bridgeId={bridgeId}
       onSetSelectedAgent={setSelectedAgentForAccess}
@@ -692,7 +685,6 @@ const Navbar = ({ isEmbedUser, params }) => {
         isAsync={true}
       />
 
-      <AccessManagementModal agent={selectedAgentForAccess} />
       <AgentUsageLimitModal agent={selectedAgentForAccess} isEmbedUser={isEmbedUser} />
 
       {/* Portal components from hook */}

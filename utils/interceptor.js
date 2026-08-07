@@ -2,41 +2,49 @@ import axios from "axios";
 import { clearCookie, getFromCookies, setInCookies } from "./utility";
 export const rawAxios = axios.create();
 
+/**
+ * Same pattern as embed / AI-middleware-frontend:
+ * - MSG91 proxy APIs → proxy_auth_token
+ * - GTWY APIs → Authorization: local_token (JWT from internal-login / embed)
+ */
+function isProxyRequest(url = "") {
+  const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || "";
+  return (PROXY_URL && url.includes(PROXY_URL)) || url.includes("/api/c/");
+}
+
+function getAuthToken() {
+  // Embed + localhost prefer sessionStorage (same as embed layout)
+  if (typeof window !== "undefined") {
+    const fromSession = sessionStorage.getItem("local_token");
+    if (fromSession) return fromSession;
+  }
+  return getFromCookies("local_token");
+}
+
+function getProxyToken() {
+  if (typeof window !== "undefined") {
+    const fromSession = sessionStorage.getItem("proxy_token");
+    if (fromSession) return fromSession;
+  }
+  return getFromCookies("proxy_token");
+}
+
 axios.interceptors.request.use(
   async (config) => {
-    // Check if the request is going to PROXY_URL
-    const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL;
-    if (
-      config.url?.includes(PROXY_URL) ||
-      config.url?.includes("/api/c/") ||
-      config.url?.includes("/localToken") ||
-      config.url?.includes("/switchOrg")
-    ) {
-      // For PROXY_URL APIs, use proxy_auth_token
-      let proxyToken = sessionStorage.getItem("proxy_token")
-        ? sessionStorage.getItem("proxy_token")
-        : getFromCookies("proxy_token");
-      config.headers["proxy_auth_token"] = proxyToken;
+    const url = config.url || "";
+
+    if (isProxyRequest(url)) {
+      config.headers["proxy_auth_token"] = getProxyToken();
     } else {
-      // For other backend APIs, use local_token in Authorization header
-      let localToken = getFromCookies("local_token");
-      if (window.location.hostname.includes("embed") || window.location.hostname.includes("localhost")) {
-        localToken = sessionStorage.getItem("local_token") || localToken;
-      }
-      config.headers["Authorization"] = localToken;
+      config.headers["Authorization"] = getAuthToken();
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
 axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async function (error) {
     if (error?.response?.status === 401) {
       clearCookie();
@@ -55,14 +63,11 @@ axios.interceptors.response.use(
       }
     }
 
-    // Retry once on network errors (connection dropped after UI idle)
-    // Do NOT retry on timeout or server errors — AI calls can legitimately take 2-3 min
     if (!error?.response && !error?.config?._retry) {
       error.config._retry = true;
       return axios(error.config);
     }
 
-    // Handle network errors (no response from server)
     if (!error?.response) {
       error.isNetworkError = true;
       error.message = error.message || "Connection lost. Please check your internet connection.";

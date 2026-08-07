@@ -3,11 +3,11 @@ import CreateOrg from "@/components/CreateNewOrg";
 import Protected from "@/components/Protected";
 import ServiceInitializer from "@/components/organization/ServiceInitializer";
 import { ThemeManager } from "@/customHooks/useThemeManager";
-import { switchOrg, switchUser } from "@/config/index";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { setCurrentOrgIdAction } from "@/store/action/orgAction";
 import { setInCookies, getFromCookies, openModal } from "@/utils/utility";
 import { ensureOrgAndRedirect } from "@/utils/ensureOrgRedirect";
+import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { MODAL_TYPE } from "@/utils/enums";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
@@ -27,16 +27,11 @@ function Page() {
   const userDetails = useCustomSelector((state) => state.userDetailsReducer.userDetails);
 
   const handleSwitchOrg = useCallback(
-    async (id, name) => {
+    async (id) => {
       try {
-        const response = await switchOrg(id);
-        const localToken = await switchUser({ orgId: id, orgName: name });
-        setInCookies("local_token", localToken.token);
-        route.push(`/org/${id}/agents`);
+        await createAndStoreInternalJwt(id);
         dispatch(setCurrentOrgIdAction(id));
-        if (response.status !== 200) {
-          console.error("Failed to switch organization", response.data);
-        }
+        route.push(`/org/${id}/agents`);
       } catch (error) {
         console.error("Error switching organization", error);
       }

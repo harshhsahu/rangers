@@ -36,7 +36,6 @@ import usePortalDropdown from "@/customHooks/usePortalDropdown";
 import SearchItems from "@/components/UI/SearchItems";
 import AgentEmptyState from "@/components/AgentEmptyState";
 import DeleteModal from "@/components/UI/DeleteModal";
-import AccessManagementModal from "@/components/modals/AccessManagementModal";
 import ConfigureEnvironmentModal from "@/components/modals/ConfigureEnvironmentModal";
 import AgentUsageLimitModal from "@/components/modals/AgentUsageLimitModal";
 import useDeleteOperation from "@/customHooks/useDeleteOperation";
@@ -337,9 +336,6 @@ function Home({ params, searchParams, isEmbedUser }) {
     descriptions,
     showHistory,
     usageMetrics,
-    isAdminOrOwner,
-    currentOrgRole,
-    currentUser,
     linksData,
     users,
     modelsConfig,
@@ -347,10 +343,6 @@ function Home({ params, searchParams, isEmbedUser }) {
   } = useCustomSelector((state) => {
     const orgData = state.bridgeReducer.org[resolvedParams.org_id] || {};
     const user = state.userDetailsReducer.userDetails;
-    const orgRole = state?.userDetailsReducer?.organizations?.[resolvedParams.org_id]?.role_name;
-
-    // Check if user is admin or owner
-    const isAdminOrOwner = orgRole === "Admin" || orgRole === "Owner";
 
     return {
       allBridges: (orgData.orgs || []).slice().reverse(),
@@ -361,10 +353,7 @@ function Home({ params, searchParams, isEmbedUser }) {
       showHistory: state.appInfoReducer.embedUserDetails?.showHistory || false,
       usageMetrics: state.bridgeReducer.usageMetrics,
       users: state.orgReducer.users,
-      isAdminOrOwner,
       linksData: state.flowDataReducer.flowData.linksData || [],
-      currentUser: state.userDetailsReducer.userDetails,
-      currentOrgRole: orgRole || "Viewer",
       modelsConfig: state.appInfoReducer.embedUserDetails?.models || {},
       showDeleteAgentOption: state.appInfoReducer.embedUserDetails?.showDeleteAgentOption ?? false,
     };
@@ -1088,15 +1077,6 @@ function Home({ params, searchParams, isEmbedUser }) {
     handlePortalOpen(e.currentTarget, dropdownContent);
   };
   const EndComponent = ({ row }) => {
-    const isEditor =
-      (currentOrgRole === "Editor" &&
-        (row.users?.length === 0 ||
-          !row.users ||
-          (row.users?.length > 0 && row.users?.some((user) => user.id === currentUser.id)))) ||
-      (currentOrgRole === "Viewer" && row.users?.some((user) => user.id === currentUser.id)) ||
-      currentOrgRole === "Creator" ||
-      isAdminOrOwner;
-
     const handleDropdownClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1113,7 +1093,6 @@ function Home({ params, searchParams, isEmbedUser }) {
             isArchived={row?.status === 0}
             isUpdatingBridge={false}
             isEmbedUser={isEmbedUser}
-            isAdminOrOwner={isAdminOrOwner}
             orgId={resolvedParams.org_id}
             onClose={handlePortalCloseImmediate}
             onSetSelectedAgent={(agent) => {
@@ -1181,18 +1160,16 @@ function Home({ params, searchParams, isEmbedUser }) {
               </div>
             ) : null}
           </div>
-          {(isEditor || (isEmbedUser && showDeleteAgentOption)) && (
-            <div className="bg-transparent">
-              <div
-                role="button"
-                data-testid={`agent-action-dropdown-btn-${row._id}`}
-                className="hover:bg-base-200 rounded-lg p-3 cursor-pointer"
-                onClick={handleDropdownClick}
-              >
-                <EllipsisIcon className="rotate-90" size={16} />
-              </div>
+          <div className="bg-transparent">
+            <div
+              role="button"
+              data-testid={`agent-action-dropdown-btn-${row._id}`}
+              className="hover:bg-base-200 rounded-lg p-3 cursor-pointer"
+              onClick={handleDropdownClick}
+            >
+              <EllipsisIcon className="rotate-90" size={16} />
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -1497,7 +1474,6 @@ function Home({ params, searchParams, isEmbedUser }) {
 
         {/* Powered By Footer pinned to bottom */}
         {isEmbedUser && <PoweredByFooter />}
-        <AccessManagementModal agent={selectedAgentForAccess} />
         <ConfigureEnvironmentModal />
         <AgentUsageLimitModal agent={selectedAgentForAccess} isEmbedUser={isEmbedUser} />
 

@@ -5,7 +5,6 @@ import { ConfigurationProvider } from "./ConfigurationContext";
 import SetupView from "./SetupView";
 import Protected from "../Protected";
 import { Lock } from "lucide-react";
-import { useCustomSelector } from "@/customHooks/customSelector";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import useRtLayerEventHandler from "@/customHooks/useRtLayerEventHandler";
 
@@ -47,39 +46,8 @@ const ConfigurationPage = ({
 
   const configState = useConfigurationState(params, searchParams);
 
-  // Get user role to determine edit permissions
-  const { isAdminOrOwner, currentOrgRole, currentUser } = useCustomSelector((state) => {
-    const orgRole = state?.userDetailsReducer?.organizations?.[params.org_id]?.role_name;
-    const isAdminOrOwner = orgRole === "Admin" || orgRole === "Owner";
-
-    return {
-      isAdminOrOwner,
-      currentOrgRole: orgRole || "",
-      currentUser: state?.userDetailsReducer?.userDetails || {},
-    };
-  });
-
-  // Determine if user has edit permissions for this agent
-  const bridge = useCustomSelector((state) => state?.bridgeReducer?.allBridgesMap?.[params?.id]);
-  const isEditor = useMemo(() => {
-    // For embed users, only check agent access (not org role)
-    if (isEmbedUser) {
-      return true;
-    }
-
-    // Original logic for non-embed users
-    return (
-      (currentOrgRole === "Editor" &&
-        (bridge?.users?.length === 0 ||
-          !bridge?.users ||
-          (bridge?.users?.length > 0 && bridge?.users?.some((user) => user === currentUser.id)))) ||
-      (currentOrgRole === "Viewer" && bridge?.users?.some((user) => user === currentUser.id)) ||
-      currentOrgRole === "Creator" ||
-      isAdminOrOwner
-    );
-  }, [currentOrgRole, currentUser, bridge?.users, isAdminOrOwner, isEmbedUser]);
-  // }, [bridgeType, currentView, params.org_id, params.id, searchParams.version, router]);
-
+  // Any logged-in org user can edit — no role / members gate
+  const isEditor = true;
   const handleNavigation = useCallback(
     (target) => {
       // Update URL with view parameter while preserving existing query params
@@ -207,15 +175,15 @@ const ConfigurationPage = ({
     ]
   );
 
-  // Check if viewing published data or non-editor mode
+  // Check if viewing published data
   const [bannerState, setBannerState] = useState({
     showPublished: isPublished,
-    showNonEditor: !isEditor,
+    showNonEditor: false,
     animatingPublished: false,
     animatingNonEditor: false,
   });
   const prevIsPublished = useRef(isPublished);
-  const prevIsEditor = useRef(isEditor);
+  const prevIsEditor = useRef(true);
 
   // Handle banner animation when isPublished changes
   useEffect(() => {
@@ -274,23 +242,7 @@ const ConfigurationPage = ({
           </div>
         )}
 
-        {/* Non-Editor Banner - Sticky and close to navbar */}
-        {bannerState.showNonEditor && (
-          <div
-            data-testid="non-editor-banner"
-            id="non-editor-banner"
-            className={`sticky top-0 z-40 bg-primary/20 backdrop-blur-sm border-b border-primary/20 py-2 ${
-              bannerState.animatingNonEditor ? "animate-slide-out-to-navbar" : "animate-slide-in-from-navbar"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2 text-sm">
-              <Lock className="h-4 w-4 text-primary" />
-              <span className="text-base-content/80">
-                You don't have <span className="text-base-content font-medium">edit access</span> to update this agent.
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Non-Editor Banner removed — all org users can edit */}
         <div className="flex-1">
           <SetupView />
         </div>

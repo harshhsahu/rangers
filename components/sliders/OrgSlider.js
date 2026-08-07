@@ -1,4 +1,5 @@
-import { logoutUserFromMsg91, switchOrg, switchUser } from "@/config/index";
+import { logoutUserFromMsg91 } from "@/config/index";
+import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { setCurrentOrgIdAction } from "@/store/action/orgAction";
 import {
@@ -55,20 +56,12 @@ function OrgSlider() {
     }
   };
 
-  const handleSwitchOrg = async (id, name) => {
+  const handleSwitchOrg = async (id) => {
     const doSwitch = async () => {
       try {
-        const response = await switchOrg(id);
-        const localToken = await switchUser({
-          orgId: id,
-          orgName: name,
-        });
-        setInCookies("local_token", localToken.token);
+        await createAndStoreInternalJwt(id);
         router.push(`/org/${id}/agents`);
         dispatch(setCurrentOrgIdAction(id));
-        if (response.status !== 200) {
-          console.error("Failed to switch organization", response.data);
-        }
       } catch (error) {
         console.error("Error switching organization", error);
       }

@@ -1,12 +1,13 @@
 "use client";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { renderedOrganizations, setInCookies } from "@/utils/utility";
+import { renderedOrganizations } from "@/utils/utility";
 import React, { useState, useCallback, useEffect } from "react";
 import Protected from "@/components/Protected";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { Search, Building2, Shield, CheckCircle, Lock, User, Database, AlertCircle, ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { getClientInfo, switchOrg, verifyAuth, switchUser } from "@/config/index";
+import { getClientInfo, verifyAuth } from "@/config/index";
+import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { BuildingIcon } from "@/components/Icons";
 
 const Page = () => {
@@ -79,11 +80,9 @@ const Page = () => {
     [updateFormState]
   );
 
-  const handleSwitchOrg = useCallback(async (id, name) => {
+  const handleSwitchOrg = useCallback(async (id) => {
     try {
-      await switchOrg(id);
-      const localToken = await switchUser({ orgId: id, orgName: name });
-      setInCookies("local_token", localToken.token);
+      await createAndStoreInternalJwt(id);
     } catch (_error) {
       console.error("Error switching workspace", _error);
     }

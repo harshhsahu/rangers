@@ -52,23 +52,7 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
     const serviceLabel =
       (Array.isArray(services) ? services.find((s) => s?.value === serviceKey)?.displayName : "") || serviceKey;
 
-    // Check if user has editor permissions
-    const orgId = params?.org_id;
-    const currentOrgRole = state?.userDetailsReducer?.organizations?.[orgId]?.role_name || "Viewer";
-    const currentUser = state.userDetailsReducer.userDetails;
-    const agentUsers = bridgeDataFromState?.users || [];
-
-    // Determine if user is allowed to edit based on role and agent access
-    const isAdminOrOwner = currentOrgRole === "Admin" || currentOrgRole === "Owner";
-    // Updated canEdit condition
-    const canEdit =
-      (currentOrgRole === "Editor" &&
-        (agentUsers?.length === 0 ||
-          !agentUsers ||
-          (agentUsers?.length > 0 && agentUsers?.some((user) => user.id === currentUser?.id)))) ||
-      (currentOrgRole === "Viewer" && agentUsers?.some((user) => user === currentUser?.id)) ||
-      currentOrgRole === "Creator" ||
-      isAdminOrOwner;
+    // Any logged-in org user can edit/publish
 
     // Get embed user API key and default API keys flag if available
     const embedApiKey = state?.appInfoReducer?.embedUserDetails?.apikey_object_id;
@@ -80,7 +64,7 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
       bridgeData: bridgeDataFromState,
       agentList: state.bridgeReducer.org[params.org_id]?.orgs || [],
       allBridgesMap: state.bridgeReducer.allBridgesMap || {},
-      isEditor: isEmbedUser ? true : canEdit,
+      isEditor: true,
       activeService: serviceKey,
       hasApiKeyForActiveService: hasApiKey,
       activeServiceDisplayName: serviceLabel,
@@ -92,7 +76,7 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
   });
 
   // Flag to determine if the UI should be in read-only mode
-  const isReadOnly = !isEditor;
+  const isReadOnly = false;
 
   const isChatbotWithGpt5Nano = bridgeType === "chatbot" && modelName === "gpt-5-nano";
 

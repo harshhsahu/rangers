@@ -1,5 +1,4 @@
 "use client";
-import { loginUser, switchOrg, switchUser } from "@/config/index";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useLayoutEffect, useState } from "react";
 import { userDetails } from "@/store/action/userDetailsAction";
@@ -9,31 +8,15 @@ import ErrorPage from "@/app/not-found";
 import { getFromCookies, removeCookie, setInCookies } from "@/utils/utility";
 import { trackAuthEvent } from "@/utils/posthog";
 import { PROXY_SCRIPT_SRC } from "@/utils/enums";
+import { loginWithProxyAuthToken } from "@/utils/internalAuth";
+import { setCurrentOrgIdAction } from "@/store/action/orgAction";
 
-const handleUserDetailsAndSwitchOrg = async (url, dispatch, userDetails) => {
-  const userDetailsData = await dispatch(userDetails());
-  const companyRefId = extractCompanyRefId(url);
-  if (companyRefId) {
-    const company = userDetailsData?.c_companies?.find((company) => company.id == companyRefId);
-    await switchOrg(companyRefId);
-    const localToken = await switchUser({ orgId: companyRefId, orgName: company.name });
-    setInCookies("local_token", localToken.token);
-    return url;
-  } else {
-    const companyId = userDetailsData?.currentCompany?.id;
-    await switchOrg(companyId);
-    const localToken = await switchUser({ orgId: companyId, orgName: userDetailsData?.currentCompany?.name });
-    setInCookies("local_token", localToken.token);
-    return `/org/${companyId}/agents`;
-  }
-};
-
-const extractCompanyRefId = (url) => {
-  const regex = /\/org\/(\d+)\//; // This assumes the company_ref_id is between '/org/' and another '/'
-  const match = url.match(regex);
-  return match ? match[1] : null;
-};
-
+/**
+ * Same chain as public/gtwy.js embed:
+ * proxy_auth_token → internal-login (sign embed JWT + POST /api/embed/login)
+ * → store returned GTWY session token as local_token
+ * → call GTWY APIs with Authorization: local_token
+ */
 const WithAuth = (Children) => {
   return (props) => {
     const router = useRouter();
@@ -42,10 +25,6 @@ const WithAuth = (Children) => {
     const [loading, setLoading] = useState(true);
     const searchParams = useSearchParams();
     const proxy_auth_token = searchParams.get("proxy_auth_token");
-    // This effect is called only once when the component is mounted
-    // It checks if the user has already logged in or not
-    // If the user has logged in, it will redirect the user to the bridges page
-    // If the user has not logged in, it will redirect the user to the login page
 
     const isEmbedUser = useCustomSelector((state) => state.appInfoReducer.embedUserDetails.isEmbedUser);
 
@@ -54,54 +33,63 @@ const WithAuth = (Children) => {
         const proxyAuthToken = proxy_auth_token;
         const proxyToken = getFromCookies("proxy_token");
         let redirectionUrl = getFromCookies("previous_url") || "/org";
+
         if (isEmbedUser) {
-          const proxy_auth_token = sessionStorage.getItem("proxy_token");
           const org_id = sessionStorage.getItem("gtwy_org_id");
-          if (proxy_auth_token && org_id) {
+          if (sessionStorage.getItem("local_token") && org_id) {
             router.replace(`/org/${org_id}/agents`);
             return;
-          } else {
-            setLoading(false);
-            <ErrorPage />;
-            return;
           }
+          setLoading(false);
+          <ErrorPage />;
+          return;
         }
-        if (proxyToken) {
-          // Already authenticated — /org page will auto-redirect into a workspace
-          router.replace("/org");
+
+        // Already logged in — go to GTWY org from last embed/login
+        if (proxyToken && (getFromCookies("local_token") || sessionStorage.getItem("local_token"))) {
+          const gtwyOrg = sessionStorage.getItem("gtwy_org_id");
+          router.replace(gtwyOrg ? `/org/${gtwyOrg}/agents` : "/org");
           return;
         }
 
         if (proxyAuthToken) {
           setLoading(true);
-          setInCookies("proxy_token", proxyAuthToken);
 
-          const localToken = await loginUser({
-            userId: searchParams.get("user_ref_id"),
-            orgId: searchParams.get("company_ref_id"),
-            userName: "",
-            orgName: "",
-          });
-          setInCookies("local_token", localToken.token);
-          const finalRedirectUrl = await handleUserDetailsAndSwitchOrg(redirectionUrl, dispatch, userDetails);
-          trackAuthEvent("user_logged_in", {
-            user_id: searchParams.get("user_ref_id"),
-            org_id: searchParams.get("company_ref_id"),
-          });
-          const userDetailsData = await dispatch(userDetails());
-          if (userDetailsData && !userDetailsData?.meta?.newUser) {
-            router.replace("/org/onBoarding");
+          setInCookies("proxy_token", proxyAuthToken);
+          if (typeof sessionStorage !== "undefined") {
+            sessionStorage.setItem("proxy_token", proxyAuthToken);
+          }
+
+          // internal-login → embed JWT → GTWY /api/embed/login → session token
+          const auth = await loginWithProxyAuthToken(proxyAuthToken);
+          if (!auth?.token || !auth?.org_id) {
+            console.error("internal login / GTWY embed login failed");
+            setLoading(false);
             return;
           }
-          // Prefer landing in agents; if final URL was bare /org, keep it so page auto-creates/redirects
+
+          dispatch(setCurrentOrgIdAction(auth.org_id));
+          await dispatch(userDetails());
+
+          trackAuthEvent("user_logged_in", {
+            user_id: auth.user_id || searchParams.get("user_ref_id"),
+            org_id: auth.org_id,
+          });
+
+          const orgFromUrl = redirectionUrl?.match?.(/\/org\/(\d+)\//)?.[1];
+          const targetOrg = orgFromUrl || auth.org_id;
           const redirectTarget =
-            finalRedirectUrl === "/org" || finalRedirectUrl?.endsWith("/org") ? "/org" : finalRedirectUrl;
+            redirectionUrl && redirectionUrl !== "/org" && !redirectionUrl.endsWith("/org")
+              ? redirectionUrl
+              : `/org/${targetOrg}/agents`;
+
           router.replace(redirectTarget);
           removeCookie("previous_url");
           return;
-        } else {
-          setLoading(false);
         }
+
+        setLoading(false);
+
         const configuration = {
           referenceId: process.env.NEXT_PUBLIC_REFERENCEID,
           type: "authorization",
@@ -115,19 +103,18 @@ const WithAuth = (Children) => {
             console.error("failure reason", error);
           },
         };
-        // Load the login script from msg91
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.onload = () => {
           const checkInitVerification = setInterval(() => {
             if (typeof initVerification === "function") {
               clearInterval(checkInitVerification);
-              initVerification(configuration); // Initialize the login process
+              initVerification(configuration);
             }
           }, 100);
         };
         script.src = PROXY_SCRIPT_SRC;
-        document.body.appendChild(script); // Add the script to the page
+        document.body.appendChild(script);
       };
 
       runEffect(isEmbedUser);

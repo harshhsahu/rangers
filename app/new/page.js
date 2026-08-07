@@ -1,10 +1,10 @@
 "use client";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { openModal, renderedOrganizations, setInCookies } from "@/utils/utility";
+import { openModal, renderedOrganizations } from "@/utils/utility";
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import Protected from "@/components/Protected";
-import { switchOrg, switchUser } from "@/config/index";
+import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { toast } from "react-toastify";
 import { setCurrentOrgIdAction } from "@/store/action/orgAction";
 import { createBridgeAction, createAgentFromTemplateAction } from "@/store/action/bridgeAction";
@@ -88,19 +88,8 @@ function Page() {
         const resolvedBridgeName = isTemplateFlow ? templateBridgeName : bridgeName;
         const resolvedSlugName = isTemplateFlow ? templateBridgeName : slugName || bridgeName;
         updateFormState({ isLoading: true });
-        const response = await switchOrg(selectedOrg.id);
-
-        const { token } = await switchUser({
-          orgId: selectedOrg.id,
-          orgName: selectedOrg.name,
-        });
-        setInCookies("local_token", token);
-
+        await createAndStoreInternalJwt(selectedOrg.id);
         await dispatch(setCurrentOrgIdAction(selectedOrg.id));
-
-        if (response.status !== 200) {
-          throw new Error("Failed to switch organization");
-        }
 
         const bridgeData = {
           service: formState.selectedService,

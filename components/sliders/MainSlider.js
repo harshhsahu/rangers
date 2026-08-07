@@ -5,7 +5,8 @@ import { useDispatch } from "react-redux";
 import { ChevronDown, LogOut, ChevronRight, ChevronLeft, User, AlignJustify, ArrowLeft, Keyboard } from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { logoutUserFromMsg91, switchOrg, switchUser } from "@/config/index";
+import { logoutUserFromMsg91 } from "@/config/index";
+import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { truncate } from "@/components/historyPageComponents/AssistFile";
 import { clearCookie, getFromCookies, openModal, closeModal, setInCookies } from "@/utils/utility";
@@ -25,7 +26,6 @@ import {
   ITEM_ICONS,
   NAV_SECTIONS,
 } from "@/utils/mainSliderHelper";
-import InviteUserModal from "../modals/InviteuserModal";
 import { logoutUser } from "../../config/authApi";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import ConfirmationModal from "@/components/UI/ConfirmationModal";
@@ -131,8 +131,12 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   /** Logout handler */
   const handleLogout = useCallback(async () => {
     try {
-      if (getFromCookies("local_token")) {
-        await logoutUser(getFromCookies("local_token")); // Blacklist token
+      try {
+        const token = getFromCookies("local_token") || sessionStorage.getItem("local_token");
+        if (token) await logoutUser(token);
+      } catch (e) {
+        // ACCESS_KEY JWT may not blacklist on GTWY — continue logout
+        console.warn("GTWY logout skipped:", e?.message || e);
       }
       await logoutUserFromMsg91({
         headers: { proxy_auth_token: getFromCookies("proxy_token") ?? "" },
@@ -267,10 +271,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
       const doSwitch = async () => {
         try {
-          await switchOrg(id);
-          const localToken = await switchUser({ orgId: id, orgName: name });
-          setInCookies("local_token", localToken.token);
-
+          await createAndStoreInternalJwt(id);
           router.push(`/org/${id}/agents`);
           dispatch(setCurrentOrgIdAction(id));
           if (isMobile) setIsMobileVisible(false);
@@ -349,17 +350,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
           setIsOrgDropdownOpen(false);
           if (isMobile) setIsMobileVisible(false);
           guardedNavigate(`/org/${orgId}/workspaceSetting`);
-        },
-      },
-      {
-        id: "Members",
-        label: "Members",
-        icon: ITEM_ICONS.invite,
-        onClick: () => {
-          setIsOrgDropdownExpanded(false);
-          setIsOrgDropdownOpen(false);
-          if (isMobile) setIsMobileVisible(false);
-          guardedNavigate(`/org/${orgId}/invite`);
         },
       },
       {
@@ -872,7 +862,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         <BridgeSlider />
         <TutorialModal />
         <DemoModal speakToUs />
-        <InviteUserModal />
 
         {/* Unsaved prompt changes guard modal */}
         <ConfirmationModal

@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import ErrorPage from "@/app/not-found";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Protected from "@/components/Protected";
-import { getSingleMessage, switchOrg, switchUser } from "@/config/index";
+import { getSingleMessage } from "@/config/index";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { ThemeManager, useThemeManager } from "@/customHooks/useThemeManager";
 import { getAllApikeyAction } from "@/store/action/apiKeyAction";
@@ -22,6 +22,7 @@ import { getAllKnowBaseDataAction } from "@/store/action/knowledgeBaseAction";
 import { updateUserMetaOnboarding, updateOrgMetaAction, getUsersAction } from "@/store/action/orgAction";
 import { getServiceAction } from "@/store/action/serviceAction";
 import { getFromCookies, removeCookie, setInCookies } from "@/utils/utility";
+import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, use } from "react";
 import { useDispatch } from "react-redux";
@@ -165,25 +166,11 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
           );
         }
 
-        // Single call to update user meta with all data
+        // Single call to update user meta with all data (no onboarding init)
         const updatedUser = {
           ...currentUser,
           meta: {
-            // If meta is null, initialize onboarding, otherwise use existing meta
-            ...(currentUser?.meta === null
-              ? {
-                  onboarding: {
-                    bridgeCreation: true,
-                    FunctionCreation: true,
-                    knowledgeBase: true,
-                    Addvariables: true,
-                    AdvanceParameter: true,
-                    PauthKey: true,
-                    CompleteBridgeSetup: true,
-                    TestCasesSetup: true,
-                  },
-                }
-              : currentUserMeta),
+            ...(currentUserMeta || {}),
             // Add UTM params if they exist
             ...utmParams,
             ...paramsUpdate,
@@ -202,7 +189,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
         }
 
         const data =
-          currentUserMeta === null || Object.keys(utmParams).length > 0 || Object.keys(paramsUpdate).length > 0
+          Object.keys(utmParams).length > 0 || Object.keys(paramsUpdate).length > 0
             ? await dispatch(updateUserMetaOnboarding(currentUser.id, updatedUser))
             : null;
         if (data?.data?.status) {
@@ -223,7 +210,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
         ? alertingEmbedToken
         : "",
     isEmbedUser,
-    currrentOrgDetail?.role_name === "Viewer"
+    false
   );
 
   useRtLayerEventHandler();
@@ -232,6 +219,12 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
     const validateOrg = async () => {
       try {
         if (!organizations) {
+          return;
+        }
+        // Accept org from GTWY embed/login even if it isn't in MSG91 company list
+        const gtwyOrgId = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("gtwy_org_id") : null;
+        if (gtwyOrgId && String(gtwyOrgId) === String(resolvedParams?.org_id)) {
+          setIsValidOrg(true);
           return;
         }
         const orgExists = organizations[resolvedParams?.org_id];
@@ -273,7 +266,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
       dispatch(getAllKnowBaseDataAction(resolvedParams?.org_id));
       dispatch(getPrebuiltToolsAction());
       if (!isEmbedUser) {
-        currrentOrgDetail?.role_name != "Viewer" && dispatch(getAllAuthData(resolvedParams?.org_id));
+        dispatch(getAllAuthData(resolvedParams?.org_id));
         dispatch(getAllIntegrationDataAction(resolvedParams.org_id));
         dispatch(getPrebuiltPromptsAction());
         dispatch(getUsersAction());
@@ -284,17 +277,13 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
 
   useEffect(() => {
     const onFocus = async () => {
-      if (isValidOrg && !isEmbedUser) {
+      if (isValidOrg && !isEmbedUser && resolvedParams?.org_id) {
         const orgId = getFromCookies("current_org_id");
-        if (orgId !== resolvedParams?.org_id) {
-          await switchOrg(resolvedParams?.org_id);
-          const currentOrg = organizations[resolvedParams?.org_id];
-          const localToken = await switchUser({ orgId: resolvedParams?.org_id, orgName: currentOrg?.name });
-          setInCookies("local_token", localToken.token);
+        if (orgId !== resolvedParams.org_id) {
+          await createAndStoreInternalJwt(resolvedParams.org_id);
         }
       }
     };
-    // Only add focus listener for non-embed users
     if (!isEmbedUser) {
       window.addEventListener("focus", onFocus);
     }
@@ -303,7 +292,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
         window.removeEventListener("focus", onFocus);
       }
     };
-  }, [isValidOrg, resolvedParams]);
+  }, [isValidOrg, resolvedParams, isEmbedUser]);
   const docstarScriptId = "docstar-main-script";
   const docstarScriptSrc = "https://techdoc.walkover.in/scriptProd.js";
   useEffect(() => {

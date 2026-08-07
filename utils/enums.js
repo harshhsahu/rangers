@@ -121,6 +121,8 @@ export const MODAL_TYPE = {
   JSON_SCHEMA_VISUAL_BUILDER: "json-schema-visual-builder",
   JSON_SCHEMA_AI_BUILDER: "json-schema-ai-builder",
   JSON_SCHEMA_FULLSCREEN: "json-schema-fullscreen",
+  TRIGGER_CHOICE_MODAL: "TRIGGER_CHOICE_MODAL",
+  TELEGRAM_CONNECT_MODAL: "TELEGRAM_CONNECT_MODAL",
 };
 
 export const API_KEY_MODAL_INPUT = ["name", "apikey", "apikey_limit"];
