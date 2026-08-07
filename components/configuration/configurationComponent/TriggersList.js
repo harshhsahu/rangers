@@ -257,7 +257,9 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
         versionId={versionId}
         agentId={params?.id}
         orgId={params?.org_id}
+        channel={telegramChannel}
         onSaved={(doc) => setTelegramChannel(doc)}
+        onDeleted={() => setTelegramChannel(null)}
       />
     </div>
   );

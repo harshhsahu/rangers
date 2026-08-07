@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getChannelDetailsCollection } from "@/lib/mongo";
-import { encryptSecret, maskSecret } from "@/lib/crypto";
+import { encryptSecret, maskSecret, decryptSecret } from "@/lib/crypto";
 
 export const runtime = "nodejs";
 
@@ -116,6 +116,42 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("telegram setup error:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/telegram/setup?version_id=...
+ * Clears Telegram webhook (best-effort) and removes the channel document.
+ */
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const version_id = searchParams.get("version_id");
+    if (!version_id) {
+      return NextResponse.json({ success: false, error: "version_id is required" }, { status: 400 });
+    }
+
+    const collection = await getChannelDetailsCollection();
+    const existing = await collection.findOne({ version_id });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: "Channel not found" }, { status: 404 });
+    }
+
+    // Best-effort: remove webhook from Telegram using decrypted token
+    try {
+      const token = decryptSecret(existing?.telegram?.botToken);
+      if (token) {
+        await fetch(`https://api.telegram.org/bot${token}/deleteWebhook`, { method: "POST" });
+      }
+    } catch (err) {
+      console.warn("telegram deleteWebhook skipped:", err?.message || err);
+    }
+
+    const result = await collection.deleteOne({ version_id });
+    return NextResponse.json({ success: true, deleted: result.deletedCount });
+  } catch (error) {
+    console.error("telegram setup DELETE error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
