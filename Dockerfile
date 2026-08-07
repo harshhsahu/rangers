@@ -1,7 +1,13 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts; fi
+# --legacy-peer-deps: @cloudflare/next-on-pages pins @cloudflare/workers-types@^4,
+# while the wrangler it pulls in wants ^5. Neither is used by the Cloud Run build.
+RUN if [ -f package-lock.json ]; then \
+      npm ci --ignore-scripts --legacy-peer-deps; \
+    else \
+      npm install --ignore-scripts --legacy-peer-deps; \
+    fi
 
 FROM node:22-alpine AS builder
 WORKDIR /app
