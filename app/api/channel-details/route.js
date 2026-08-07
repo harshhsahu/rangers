@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getChannelDetailsCollection } from "@/lib/mongo";
+import { encryptSecret, maskSecret } from "@/lib/crypto";
 
 export const runtime = "nodejs";
 
@@ -8,36 +9,42 @@ function jsonError(message, status = 400) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
+function sanitizeChannel(doc) {
+  if (!doc) return doc;
+  if (!doc.telegram) return doc;
+  return {
+    ...doc,
+    telegram: {
+      ...doc.telegram,
+      botToken: maskSecret(doc.telegram.botToken),
+    },
+  };
+}
+
 /**
- * GET /api/channel-details?version_id=... | ?botId=... | ?id=...
+ * GET /api/channel-details?version_id=... | ?id=...
  * GET /api/channel-details  → list all
  */
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const versionId = searchParams.get("version_id");
-    const botId = searchParams.get("botId");
     const id = searchParams.get("id");
     const collection = await getChannelDetailsCollection();
 
     if (id) {
       if (!ObjectId.isValid(id)) return jsonError("Invalid id");
       const doc = await collection.findOne({ _id: new ObjectId(id) });
-      return NextResponse.json({ success: true, data: doc });
+      return NextResponse.json({ success: true, data: sanitizeChannel(doc) });
     }
 
     if (versionId) {
       const doc = await collection.findOne({ version_id: versionId });
-      return NextResponse.json({ success: true, data: doc });
-    }
-
-    if (botId) {
-      const doc = await collection.findOne({ "telegram.botId": String(botId) });
-      return NextResponse.json({ success: true, data: doc });
+      return NextResponse.json({ success: true, data: sanitizeChannel(doc) });
     }
 
     const docs = await collection.find({}).sort({ updated_at: -1 }).limit(200).toArray();
-    return NextResponse.json({ success: true, data: docs });
+    return NextResponse.json({ success: true, data: docs.map(sanitizeChannel) });
   } catch (error) {
     console.error("channel-details GET error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -46,7 +53,7 @@ export async function GET(request) {
 
 /**
  * POST /api/channel-details
- * Body: { telegram: { botToken, botId }, version_id, agent_id?, org_id? }
+ * Body: { telegram: { botToken }, version_id, agent_id?, org_id? }
  */
 export async function POST(request) {
   try {
@@ -57,14 +64,12 @@ export async function POST(request) {
     if (!version_id) return jsonError("version_id is required");
     if (!telegram?.botToken) return jsonError("telegram.botToken is required");
 
-    const botId = telegram.botId || String(telegram.botToken).split(":")[0];
     const collection = await getChannelDetailsCollection();
     const now = new Date();
 
     const doc = {
       telegram: {
-        botToken: telegram.botToken,
-        botId: String(botId),
+        botToken: encryptSecret(telegram.botToken),
         webhookUrl: telegram.webhookUrl || null,
         webhookSet: Boolean(telegram.webhookSet),
       },
@@ -76,10 +81,11 @@ export async function POST(request) {
     };
 
     const { created_at, ...setFields } = doc;
+    // Replacing whole `telegram` drops legacy botId — no $unset (conflicts with $set telegram)
     await collection.updateOne({ version_id }, { $set: setFields, $setOnInsert: { created_at } }, { upsert: true });
 
     const saved = await collection.findOne({ version_id });
-    return NextResponse.json({ success: true, data: saved || doc });
+    return NextResponse.json({ success: true, data: sanitizeChannel(saved || doc) });
   } catch (error) {
     console.error("channel-details POST error:", error);
     if (error?.code === 11000) {
@@ -91,7 +97,6 @@ export async function POST(request) {
 
 /**
  * PUT /api/channel-details
- * Body: { version_id | id, telegram?, agent_id?, org_id? }
  */
 export async function PUT(request) {
   try {
@@ -109,10 +114,10 @@ export async function PUT(request) {
 
     const update = { updated_at: new Date() };
     if (body.telegram) {
-      update.telegram = {
-        ...body.telegram,
-        botId: body.telegram.botId || String(body.telegram.botToken || "").split(":")[0],
-      };
+      const next = { ...body.telegram };
+      delete next.botId;
+      if (next.botToken) next.botToken = encryptSecret(next.botToken);
+      update.telegram = next;
     }
     if (body.agent_id !== undefined) update.agent_id = body.agent_id;
     if (body.org_id !== undefined) update.org_id = body.org_id;
@@ -120,7 +125,7 @@ export async function PUT(request) {
     const result = await collection.findOneAndUpdate(filter, { $set: update }, { returnDocument: "after" });
     const saved = result?.value || result;
     if (!saved) return jsonError("Channel not found", 404);
-    return NextResponse.json({ success: true, data: saved });
+    return NextResponse.json({ success: true, data: sanitizeChannel(saved) });
   } catch (error) {
     console.error("channel-details PUT error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

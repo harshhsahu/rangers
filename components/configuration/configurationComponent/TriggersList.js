@@ -145,7 +145,8 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
   }
 
   const activeTriggers = triggers?.filter((trigger) => trigger?.status !== "deleted") || [];
-  const hasTriggers = activeTriggers.length > 0 || Boolean(telegramChannel?.telegram?.botId);
+  const hasTelegram = Boolean(telegramChannel?.telegram?.botToken);
+  const hasTriggers = activeTriggers.length > 0 || hasTelegram;
 
   const openAddMenu = () => {
     if (isReadOnly) return;
@@ -196,7 +197,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
         ) : (
           <div className="w-full max-w-md">
             <div className="flex flex-col gap-2">
-              {telegramChannel?.telegram?.botId && (
+              {hasTelegram && (
                 <div
                   data-testid="trigger-card-telegram"
                   className="group flex items-center border border-base-200 cursor-pointer bg-base-100 relative min-h-[44px] w-full transition-colors duration-200"
@@ -207,9 +208,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
                       <MessageCircle size={16} className="shrink-0 text-[#229ED9]" />
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-normal block truncate">Telegram Bot</span>
-                        <span className="text-[10px] text-base-content/50 font-mono">
-                          ID {telegramChannel.telegram.botId}
-                        </span>
+                        <span className="text-[10px] text-base-content/50">Connected</span>
                       </div>
                       <span
                         className={`shrink-0 inline-block rounded-full capitalize px-2 py-0.5 text-[10px] font-medium ${

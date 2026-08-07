@@ -1,26 +1,32 @@
 import { NextResponse } from "next/server";
 import { getChannelDetailsCollection } from "@/lib/mongo";
+import { encryptSecret, maskSecret } from "@/lib/crypto";
 
 export const runtime = "nodejs";
 
-function extractBotId(botToken) {
-  return String(botToken || "").split(":")[0];
-}
-
-function buildWebhookUrl({ botId, versionId }) {
+function buildWebhookUrl(versionId) {
   const base = (process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || "").replace(/\/$/, "");
   if (!base) return null;
-  return `${base}/api/telegram/webhook?botId=${encodeURIComponent(botId)}&version_id=${encodeURIComponent(versionId)}`;
+  return `${base}/api/telegram/webhook?version_id=${encodeURIComponent(versionId)}`;
+}
+
+function sanitizeChannel(doc) {
+  if (!doc?.telegram) return doc;
+  return {
+    ...doc,
+    telegram: {
+      ...doc.telegram,
+      botToken: maskSecret(doc.telegram.botToken),
+    },
+  };
 }
 
 /**
  * POST /api/telegram/setup
- * Saves bot token for a version and attempts Telegram setWebhook.
  * Body: { botToken, version_id, agent_id?, org_id? }
  *
- * NOTE: setWebhook requires a publicly reachable HTTPS URL.
- * Localhost will save the channel but webhook registration may fail until
- * TELEGRAM_WEBHOOK_BASE_URL points to a public tunnel (e.g. ngrok).
+ * Webhook URL query params:
+ *   - version_id  → agent version this bot is bound to
  */
 export async function POST(request) {
   try {
@@ -43,16 +49,14 @@ export async function POST(request) {
       );
     }
 
-    const botId = extractBotId(botToken);
-    const webhookUrl = buildWebhookUrl({ botId, versionId: version_id });
+    const webhookUrl = buildWebhookUrl(version_id);
     const now = new Date();
+    const encryptedToken = encryptSecret(botToken);
 
-    // 1) Persist channel details (one bot per version)
     const collection = await getChannelDetailsCollection();
     const channelDoc = {
       telegram: {
-        botToken,
-        botId,
+        botToken: encryptedToken,
         webhookUrl,
         webhookSet: false,
       },
@@ -62,6 +66,7 @@ export async function POST(request) {
       updated_at: now,
     };
 
+    // $set on whole `telegram` replaces the object (drops legacy botId) — do not also $unset telegram.botId
     await collection.updateOne(
       { version_id },
       {
@@ -71,7 +76,6 @@ export async function POST(request) {
       { upsert: true }
     );
 
-    // 2) Register Telegram webhook (may fail on localhost — keep flow clean)
     let webhookResult = null;
     let webhookError = null;
     if (webhookUrl && !webhookUrl.includes("localhost") && webhookUrl.startsWith("https://")) {
@@ -101,9 +105,10 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      data: saved || channelDoc,
+      data: sanitizeChannel(saved || channelDoc),
       webhook: {
         url: webhookUrl,
+        params: { version_id },
         registered: Boolean(webhookResult?.ok),
         result: webhookResult,
         message: webhookError,

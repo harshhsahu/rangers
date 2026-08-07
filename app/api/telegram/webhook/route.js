@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getChannelDetailsCollection } from "@/lib/mongo";
+import { decryptSecret } from "@/lib/crypto";
 
 export const runtime = "nodejs";
 
@@ -83,7 +84,6 @@ async function getGtwyCompletion({ versionId, userText, threadId }) {
 export async function POST(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const botId = searchParams.get("botId");
     const versionId = searchParams.get("version_id");
     const update = await request.json().catch(() => ({}));
 
@@ -95,23 +95,21 @@ export async function POST(request) {
       return NextResponse.json({ ok: true, skipped: true });
     }
 
-    const collection = await getChannelDetailsCollection();
-    let channel = null;
+    if (!versionId) {
+      console.error("[telegram webhook] missing version_id");
+      return NextResponse.json({ ok: true, error: "missing_version_id" });
+    }
 
-    if (versionId) channel = await collection.findOne({ version_id: versionId });
-    if (!channel && botId) channel = await collection.findOne({ "telegram.botId": String(botId) });
+    const collection = await getChannelDetailsCollection();
+    const channel = await collection.findOne({ version_id: versionId });
 
     if (!channel?.telegram?.botToken || !channel?.version_id) {
-      console.error("[telegram webhook] channel not found", { botId, versionId });
+      console.error("[telegram webhook] channel not found", { versionId });
       return NextResponse.json({ ok: true, error: "channel_not_found" });
     }
 
-    if (botId && String(channel.telegram.botId) !== String(botId)) {
-      console.error("[telegram webhook] botId mismatch", { botId, stored: channel.telegram.botId });
-      return NextResponse.json({ ok: true, error: "bot_mismatch" });
-    }
-
-    const botToken = channel.telegram.botToken;
+    // botToken is AES-GCM encrypted at rest; legacy plaintext still decrypts as-is
+    const botToken = decryptSecret(channel.telegram.botToken);
     const threadId = `tg_${chatId}`;
 
     // Show typing indicator (good UX, single call, no repeat risk)
