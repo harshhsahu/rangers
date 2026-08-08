@@ -83,36 +83,12 @@ export const improvePrompt = async (variables) => {
   }
 };
 
-// AI Assistant Tools APIs
-export const getPrebuiltPrompts = async () => {
-  try {
-    const getPrebuiltPrompts = await axios.get(`${URL}/api/prebuilt_prompt`);
-    return getPrebuiltPrompts?.data?.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
+// AI Assistant Tools APIs — /api/prebuilt_prompt network calls removed
+export const getPrebuiltPrompts = async () => [];
 
-export const updatePrebuiltPrompt = async (dataToSend) => {
-  try {
-    const response = await axios.put(`${URL}/api/prebuilt_prompt`, dataToSend);
-    return response?.data?.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
+export const updatePrebuiltPrompt = async () => null;
 
-export const resetPrebuiltPrompt = async (dataToSend) => {
-  try {
-    const response = await axios.post(`${URL}/api/prebuilt_prompt/reset`, dataToSend);
-    return response?.data?.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
+export const resetPrebuiltPrompt = async () => null;
 
 // Functions Management APIs
 export const getAllFunctionsApi = async () => {
@@ -389,12 +365,5 @@ export const generateRichUITemplate = async (data) => {
   }
 };
 
-export const createRichUiTemplateApi = async (data) => {
-  try {
-    const response = await axios.post(`${URL}/api/rich_ui_templates`, data);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    throw new Error(error);
-  }
-};
+// /api/rich_ui_templates network calls removed
+export const createRichUiTemplateApi = async () => ({ data: null });

@@ -17,7 +17,6 @@ import {
   updateApiAction,
   updateBridgeVersionAction,
 } from "@/store/action/bridgeAction";
-import { getRichUiTemplatesAction } from "@/store/action/richUiTemplateAction";
 import { getAllKnowBaseDataAction } from "@/store/action/knowledgeBaseAction";
 import { updateUserMetaOnboarding, updateOrgMetaAction, getUsersAction } from "@/store/action/orgAction";
 import { getServiceAction } from "@/store/action/serviceAction";
@@ -38,11 +37,8 @@ import { cleanVariablesPathByFields } from "@/utils/variableValidation";
 import { userDetails } from "@/store/action/userDetailsAction";
 import { storeMarketingRefUserAction } from "@/store/action/marketingRefAction";
 import { getAllIntegrationDataAction } from "@/store/action/integrationAction";
-import { getPrebuiltPromptsAction } from "@/store/action/prebuiltPromptAction";
 import { useEmbedScriptLoader } from "@/customHooks/embedScriptLoader";
 import ServiceInitializer from "@/components/organization/ServiceInitializer";
-import { getAllAuthData } from "@/store/action/authkeyAction";
-import { getAllChatBotAction } from "@/store/action/chatBotAction";
 
 const Navbar = dynamic(() => import("@/components/Navbar"), { loading: () => <LoadingSpinner /> });
 const MainSlider = dynamic(() => import("@/components/sliders/MainSlider"), { loading: () => <LoadingSpinner /> });
@@ -102,7 +98,6 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
   }));
   useEffect(() => {
     if (!isEmbedUser) {
-      dispatch(getAllChatBotAction(resolvedParams.org_id));
       dispatch(getTutorialDataAction());
     }
     if (pathName.endsWith("agents")) {
@@ -266,12 +261,9 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
       dispatch(getAllKnowBaseDataAction(resolvedParams?.org_id));
       dispatch(getPrebuiltToolsAction());
       if (!isEmbedUser) {
-        dispatch(getAllAuthData(resolvedParams?.org_id));
         dispatch(getAllIntegrationDataAction(resolvedParams.org_id));
-        dispatch(getPrebuiltPromptsAction());
         dispatch(getUsersAction());
       }
-      dispatch(getRichUiTemplatesAction(resolvedParams.org_id));
     }
   }, [isValidOrg, dispatch, resolvedParams?.org_id]);
 

@@ -1,6 +1,2 @@
-import axios from "axios";
-
-// Get all rich UI templates
-export const getRichUiTemplates = async () => {
-  return await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/rich_ui_templates/`);
-};
+// Get all rich UI templates — /api/rich_ui_templates network calls removed
+export const getRichUiTemplates = async () => ({ data: { data: [] } });

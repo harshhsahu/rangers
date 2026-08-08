@@ -3,20 +3,18 @@ import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
 import { MODAL_TYPE } from "@/utils/enums";
 import useTutorialVideos from "@/hooks/useTutorialVideos";
 import { generateRandomID, getToolName, openModal, closeModal, trimPropertyNames } from "@/utils/utility";
-import { buildJsonSchemaResponseType, generateCombinedSchema, isEmptyJsonSchema } from "@/utils/defaultJsonSchemas";
-import { ChevronDownIcon, ChevronUpIcon, SettingsIcon } from "@/components/Icons";
+import { buildJsonSchemaResponseType, isEmptyJsonSchema } from "@/utils/defaultJsonSchemas";
+import { ChevronDownIcon, ChevronUpIcon } from "@/components/Icons";
 import JsonSchemaModal from "@/components/modals/JsonSchemaModal";
 import JsonSchemaBuilderModal from "@/components/modals/JsonSchemaBuilderModal";
 import React, { useEffect, useState, useCallback, useRef, useSyncExternalStore } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 import OnBoarding from "@/components/OnBoarding";
 import TutorialSuggestionToast from "@/components/TutorialSuggestoinToast";
 import InfoTooltip from "@/components/InfoTooltip";
 import { setThreadIdForVersionReducer } from "@/store/reducer/bridgeReducer";
-import { Check, CircleQuestionMark, CircleX, ExternalLink } from "lucide-react";
-import RenderNode from "@/components/richUI/RenderNode";
+import { CircleQuestionMark, CircleX } from "lucide-react";
 import FullscreenEditorModal, { FullscreenEditorButton } from "@/components/modals/FullscreenEditorModal";
 import { useConfigurationContext } from "../ConfigurationContext";
 import CodeMirror from "@uiw/react-codemirror";
@@ -55,7 +53,6 @@ const AdvancedParameters = ({
     showSuggestion: false,
   });
   const [messages, setMessages] = useState([]);
-  const [activeWidgetButtons, setActiveWidgetButtons] = useState([]);
   const [jsonSchemaFullscreen, setJsonSchemaFullscreen] = useState(false);
   const [jsonSchemaError, setJsonSchemaError] = useState(null);
   const [jsonSchemaErrorExpanded, setJsonSchemaErrorExpanded] = useState(false);
@@ -64,7 +61,6 @@ const AdvancedParameters = ({
   const lastSubmittedSchemaRef = useRef(null);
   const dropdownContainerRef = useRef(null);
   const dispatch = useDispatch();
-  const router = useRouter();
   const { actualTheme } = useThemeManager();
 
   // Pending action ref for unsaved-prompt guard on response_type changes
@@ -104,7 +100,6 @@ const AdvancedParameters = ({
     connected_agents,
     modelInfoData,
     bridge,
-    richUiWidgets,
     showResponseType,
     orgBridges,
     allBridgesMap,
@@ -146,7 +141,6 @@ const AdvancedParameters = ({
       connected_agents: isPublished ? bridgeDataFromState?.connected_agents : versionData?.connected_agents,
       modelInfoData,
       bridge: activeData,
-      richUiWidgets: state?.richUiTemplateReducer?.templates || [],
       showResponseType: state.appInfoReducer.embedUserDetails.showResponseType,
       orgBridges,
       allBridgesMap,
@@ -445,111 +439,6 @@ const AdvancedParameters = ({
     [dispatch, params?.id, searchParams?.version]
   );
 
-  // State for selected widgets (indices)
-  const [selectedWidgets, setSelectedWidgets] = useState([]);
-
-  useEffect(() => {
-    if (configuration?.response_type?.template_id && Array.isArray(configuration.response_type.template_id)) {
-      setSelectedWidgets(configuration.response_type.template_id);
-    } else {
-      setSelectedWidgets([]);
-    }
-  }, [configuration?.response_type?.template_id]);
-
-  const widgetHasButton = useCallback((widgetObj) => {
-    const template = widgetObj?.ui || widgetObj?.template_format;
-    if (!template) return false;
-    const search = (node) => {
-      if (!node || typeof node !== "object") return false;
-      if (Array.isArray(node)) return node.some(search);
-      if (node.type === "Button") return true;
-      if (Array.isArray(node.children)) return node.children.some(search);
-      return false;
-    };
-    return search(template);
-  }, []);
-
-  // filterWidgetId: when provided, only returns actionData nodes from the anyOf entry
-  // whose widget_id.enum[0] matches this id (i.e. only this widget's nodes).
-  const extractActionDataNodesFromSchema = useCallback((schemaNode, filterWidgetId = null) => {
-    const nodes = [];
-
-    const search = (node, path = []) => {
-      if (!node || typeof node !== "object") return;
-
-      // Traverse anyOf / oneOf / allOf so combined schemas are handled
-      for (const combinator of ["anyOf", "oneOf", "allOf"]) {
-        if (Array.isArray(node[combinator])) {
-          node[combinator].forEach((subNode, index) => {
-            // If filtering by widget, skip anyOf entries that belong to a different widget
-            if (
-              filterWidgetId &&
-              subNode?.properties?.widget_id?.enum?.[0] !== undefined &&
-              subNode.properties.widget_id.enum[0] !== filterWidgetId
-            ) {
-              return;
-            }
-            search(subNode, [...path, combinator, index]);
-          });
-        }
-      }
-
-      if (node.type === "object" && node.properties) {
-        const actionKey = node.properties.actionData
-          ? "actionData"
-          : node.properties.action_data
-            ? "action_data"
-            : null;
-
-        if (actionKey && node.properties[actionKey].properties?.data) {
-          let label = "action";
-          for (let i = path.length - 1; i >= 0; i--) {
-            const seg = path[i];
-            if (typeof seg === "string" && !["properties", "items", "anyOf", "oneOf", "allOf"].includes(seg)) {
-              label = seg;
-              break;
-            }
-          }
-          nodes.push({ key: path.join("."), label, actionDataKey: actionKey, path });
-        }
-
-        // Also detect inline action-type pattern: a property that is an object with
-        // { type (string enum of action types), value, data } — e.g. applyActionType, cancelActionType
-        Object.entries(node.properties).forEach(([k, v]) => {
-          if (
-            v?.type === "object" &&
-            v?.properties?.type?.enum?.length > 0 &&
-            v?.properties?.data &&
-            v?.properties?.value !== undefined
-          ) {
-            nodes.push({
-              key: [...path, "properties", k].join("."),
-              label: k,
-              actionDataKey: k,
-              path: [...path, "properties", k],
-              isInlineActionType: true,
-            });
-          }
-        });
-
-        Object.entries(node.properties).forEach(([k, v]) => {
-          search(v, [...path, "properties", k]);
-        });
-      } else if (node.type === "array" && node.items) {
-        search(node.items, [...path, "items"]);
-      }
-    };
-
-    const rootSchema = schemaNode?.schema || schemaNode;
-    if (rootSchema) search(rootSchema);
-
-    const seen = new Set();
-    return nodes.filter((n) => {
-      if (seen.has(n.key)) return false;
-      seen.add(n.key);
-      return true;
-    });
-  }, []);
   // Helper function to render parameter fields
   const renderParameterField = (
     key,
@@ -726,9 +615,7 @@ const AdvancedParameters = ({
                   value={(() => {
                     if (key === "response_type") {
                       // Handle response_type specifically
-                      if (configuration?.[key]?.is_template) {
-                        return "widget";
-                      } else if (configuration?.[key]?.type) {
+                      if (configuration?.[key]?.type) {
                         return configuration?.[key]?.type;
                       } else if (configuration?.[key] === "default") {
                         return "default";
@@ -745,28 +632,7 @@ const AdvancedParameters = ({
                     const selectedValue = e.target.value;
                     if (key === "response_type") {
                       guardedResponseTypeAction(() => {
-                        if (selectedValue === "widget") {
-                          // Use generateCombinedSchema with empty array to get normal schema without anyOf
-                          const defaultSchema = generateCombinedSchema([], richUiWidgets);
-                          const updatedDataToSend = {
-                            configuration: {
-                              response_type: {
-                                type: "json_schema",
-                                json_schema: defaultSchema, // Use normal schema without anyOf when no widgets selected
-                                is_template: true,
-                                template_id: [], // Clear existing template IDs
-                              },
-                            },
-                          };
-                          dispatch(
-                            updateBridgeVersionAction({
-                              bridgeId: params?.id,
-                              versionId: searchParams?.version,
-                              dataToSend: { ...updatedDataToSend },
-                            })
-                          );
-                          return;
-                        } else if (selectedValue === "json_schema") {
+                        if (selectedValue === "json_schema") {
                           setObjectFieldValue(null);
                           dispatchResponseTypeUpdate(buildJsonSchemaResponseType({ is_template: false }), {
                             localOnly: true,
@@ -809,422 +675,286 @@ const AdvancedParameters = ({
                       {typeof option === "object" ? option?.displayName || option?.type || option?.value : option}
                     </option>
                   ))}
-                  {key === "response_type" &&
-                    !isEmbedUser &&
-                    options?.some((opt) => {
-                      const optType = typeof opt === "object" ? opt?.type || opt?.value : opt;
-                      return optType === "json_schema";
-                    }) && <option value="widget">Widget</option>}
                 </select>
 
-                {/* Widget UI - Only show if response_type is widget (is_template = true) */}
-                {key === "response_type" && configuration?.[key]?.is_template && (
-                  <div className="mb-3 p-3 bg-base-200 rounded-lg mt-2">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium">Available Widgets:</div>
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-ghost gap-1 text-primary"
-                          onClick={() => router.push(`/org/${params?.org_id}/widgets`)}
-                          title="Manage Widgets"
-                        >
-                          <ExternalLink size={12} />
-                          Manage
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 overflow-x-auto pb-2">
-                      {richUiWidgets.map((widgetObj) => {
-                        const widgetName = widgetObj.name || `Widget`;
-                        const isSelected = selectedWidgets.includes(widgetObj._id);
-
-                        return (
-                          <div
-                            key={widgetObj._id}
-                            className={`flex flex-col gap-2 p-3 rounded-lg border cursor-pointer transition-colors min-w-[280px] flex-shrink-0 ${isSelected ? "bg-primary/10 border-primary" : "bg-base-100 border-base-200 hover:bg-base-200"}`}
-                            onClick={() => {
-                              if (isReadOnly) return;
-
-                              // Update selected widgets
-                              const newSelectedWidgets = selectedWidgets.includes(widgetObj._id)
-                                ? selectedWidgets.filter((id) => id !== widgetObj._id)
-                                : [...selectedWidgets, widgetObj._id];
-
-                              setSelectedWidgets(newSelectedWidgets);
-
-                              // Apply changes immediately
-                              const combinedSchema = generateCombinedSchema(newSelectedWidgets, richUiWidgets);
-
-                              if (combinedSchema) {
-                                const updatedDataToSend = {
-                                  configuration: {
-                                    response_type: {
-                                      type: "json_schema",
-                                      json_schema: combinedSchema,
-                                      is_template: true,
-                                      template_id: newSelectedWidgets,
-                                    },
-                                  },
-                                };
-
-                                dispatch(
-                                  updateBridgeVersionAction({
-                                    bridgeId: params?.id,
-                                    versionId: searchParams?.version,
-                                    dataToSend: { ...updatedDataToSend },
-                                  })
-                                );
-
-                                toast.success(`Updated widgets (${newSelectedWidgets.length} selected)`);
-                              }
-                            }}
-                          >
-                            {/* Content Preview */}
-                            <div className="relative w-full h-40 bg-base-100 rounded border border-base-300 overflow-hidden pointer-events-none mb-2">
-                              {widgetObj.ui || widgetObj.template_format ? (
-                                <div className="absolute inset-0 w-full h-full overflow-hidden p-2">
-                                  <div className="transform scale-[0.5] origin-top-left w-[200%]">
-                                    <RenderNode node={widgetObj.ui || widgetObj.template_format} />
-                                  </div>
-                                </div>
-                              ) : widgetObj.html ? (
-                                <div className="absolute inset-0 w-full h-full overflow-hidden">
-                                  <div
-                                    className="transform scale-[0.5] origin-top-left w-[200%]"
-                                    dangerouslySetInnerHTML={{ __html: widgetObj.html }}
-                                  />
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-center h-full text-base-content/40 text-xs">
-                                  No Preview
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex items-center justify-between w-full mt-1">
-                              <span className="text-sm font-medium capitalize truncate">{widgetName}</span>
-                              <div className="flex items-center gap-2">
-                                {isSelected && widgetHasButton(widgetObj) && (
-                                  <span
-                                    className="cursor-pointer text-primary hover:opacity-80 transition-opacity"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      guardedResponseTypeAction(() => {
-                                        const actionNodes = extractActionDataNodesFromSchema(
-                                          configuration?.response_type?.json_schema,
-                                          widgetObj._id
-                                        );
-                                        setActiveWidgetButtons(actionNodes);
-                                        openModal(MODAL_TYPE.BUTTON_SCHEMA_BUILDER);
-                                      });
-                                    }}
-                                    title="Configure Button Payload Schema"
-                                  >
-                                    <SettingsIcon size={14} />
-                                  </span>
-                                )}
-                                {isSelected && <Check className="w-5 h-5 text-primary shrink-0" />}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {/* Button Schema Builder Modal */}
-                    <JsonSchemaBuilderModal
-                      params={params}
-                      searchParams={searchParams}
-                      isReadOnly={isReadOnly}
-                      schemaKey="json_schema"
-                      modalId={MODAL_TYPE.BUTTON_SCHEMA_BUILDER}
-                      title="Configure Button Payload Schema"
-                      hideName
-                      widgetButtons={activeWidgetButtons}
-                    />
-                  </div>
-                )}
                 {/* JSON Schema textarea and modal - positioned below the key/label */}
-                {field === "select" &&
-                  !isDefaultValue &&
-                  configuration?.[key]?.type === "json_schema" &&
-                  !configuration?.[key]?.is_template && (
+                {field === "select" && !isDefaultValue && configuration?.[key]?.type === "json_schema" && (
+                  <div
+                    id={`advanced-param-json-schema-${key}`}
+                    data-testid={`advanced-param-json-schema-section-${key}`}
+                    className="mt-3 space-y-2"
+                  >
                     <div
-                      id={`advanced-param-json-schema-${key}`}
-                      data-testid={`advanced-param-json-schema-section-${key}`}
-                      className="mt-3 space-y-2"
+                      id={`advanced-param-json-schema-header-${key}`}
+                      data-testid={`advanced-param-json-schema-header-${key}`}
+                      className="flex justify-between items-center"
                     >
                       <div
-                        id={`advanced-param-json-schema-header-${key}`}
-                        data-testid={`advanced-param-json-schema-header-${key}`}
-                        className="flex justify-between items-center"
+                        className="flex gap-2 mt-4 ml-auto items-center"
+                        data-testid={`advanced-param-json-schema-actions-${key}`}
                       >
-                        <div
-                          className="flex gap-2 mt-4 ml-auto items-center"
-                          data-testid={`advanced-param-json-schema-actions-${key}`}
+                        <span
+                          data-testid={`advanced-param-json-schema-build-visually-${key}`}
+                          className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
+                          onClick={() => {
+                            guardedResponseTypeAction(() => {
+                              openModal(MODAL_TYPE.JSON_SCHEMA_BUILDER);
+                            });
+                          }}
                         >
-                          <span
-                            data-testid={`advanced-param-json-schema-build-visually-${key}`}
-                            className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
-                            onClick={() => {
-                              guardedResponseTypeAction(() => {
-                                openModal(MODAL_TYPE.JSON_SCHEMA_BUILDER);
-                              });
-                            }}
-                          >
-                            Build Visually
-                          </span>
-                          <span className="text-xs text-base-content/50">|</span>
-                          <span
-                            data-testid={`advanced-param-json-schema-build-ai-${key}`}
-                            className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
-                            onClick={() => {
-                              guardedResponseTypeAction(() => {
-                                openModal(MODAL_TYPE.JSON_SCHEMA);
-                              });
-                            }}
-                          >
-                            Build with AI
-                          </span>
-                          <span className="text-xs text-base-content/50">|</span>
-                          <FullscreenEditorButton
-                            data-testid={`advanced-param-json-schema-fullscreen-${key}`}
-                            tooltip="Open JSON schema in fullscreen"
-                            className=""
-                            onClick={() => {
-                              setJsonSchemaFullscreen(true);
-                            }}
-                          />
-                        </div>
+                          Build Visually
+                        </span>
+                        <span className="text-xs text-base-content/50">|</span>
+                        <span
+                          data-testid={`advanced-param-json-schema-build-ai-${key}`}
+                          className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
+                          onClick={() => {
+                            guardedResponseTypeAction(() => {
+                              openModal(MODAL_TYPE.JSON_SCHEMA);
+                            });
+                          }}
+                        >
+                          Build with AI
+                        </span>
+                        <span className="text-xs text-base-content/50">|</span>
+                        <FullscreenEditorButton
+                          data-testid={`advanced-param-json-schema-fullscreen-${key}`}
+                          tooltip="Open JSON schema in fullscreen"
+                          className=""
+                          onClick={() => {
+                            setJsonSchemaFullscreen(true);
+                          }}
+                        />
                       </div>
+                    </div>
 
-                      <div className="relative" data-testid={`advanced-param-json-schema-editor-wrapper-${key}`}>
-                        {hasUnsavedChanges && (
-                          <div
-                            className="absolute inset-0 z-10 cursor-text"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              guardedResponseTypeAction(() => {});
-                            }}
-                          />
-                        )}
-                        {jsonSchemaError && (
-                          <div
-                            className="flex flex-col gap-1 mb-1.5 text-error"
-                            data-testid={`advanced-param-json-schema-error-${key}`}
-                          >
-                            <div className="flex items-start gap-1.5">
-                              <CircleX className="h-3.5 w-3.5 mt-0.5 shrink-0 text-error" />
-                              <div className="flex-1">
-                                <div className="flex items-start gap-1">
-                                  <div
-                                    ref={errorTextRef}
-                                    className={`text-xs text-error whitespace-pre-wrap break-words ${!jsonSchemaErrorExpanded ? "line-clamp-1" : ""}`}
-                                  >
-                                    {jsonSchemaError}
-                                  </div>
-                                  {!jsonSchemaErrorExpanded && isErrorTruncated && (
-                                    <button
-                                      onClick={() => setJsonSchemaErrorExpanded(true)}
-                                      className="text-xs text-error underline shrink-0 hover:opacity-80 whitespace-nowrap"
-                                    >
-                                      more
-                                    </button>
-                                  )}
+                    <div className="relative" data-testid={`advanced-param-json-schema-editor-wrapper-${key}`}>
+                      {hasUnsavedChanges && (
+                        <div
+                          className="absolute inset-0 z-10 cursor-text"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            guardedResponseTypeAction(() => {});
+                          }}
+                        />
+                      )}
+                      {jsonSchemaError && (
+                        <div
+                          className="flex flex-col gap-1 mb-1.5 text-error"
+                          data-testid={`advanced-param-json-schema-error-${key}`}
+                        >
+                          <div className="flex items-start gap-1.5">
+                            <CircleX className="h-3.5 w-3.5 mt-0.5 shrink-0 text-error" />
+                            <div className="flex-1">
+                              <div className="flex items-start gap-1">
+                                <div
+                                  ref={errorTextRef}
+                                  className={`text-xs text-error whitespace-pre-wrap break-words ${!jsonSchemaErrorExpanded ? "line-clamp-1" : ""}`}
+                                >
+                                  {jsonSchemaError}
                                 </div>
-                                {jsonSchemaErrorExpanded && (
+                                {!jsonSchemaErrorExpanded && isErrorTruncated && (
                                   <button
-                                    onClick={() => setJsonSchemaErrorExpanded(false)}
-                                    className="text-xs text-error underline hover:opacity-80 whitespace-nowrap"
+                                    onClick={() => setJsonSchemaErrorExpanded(true)}
+                                    className="text-xs text-error underline shrink-0 hover:opacity-80 whitespace-nowrap"
                                   >
-                                    less
+                                    more
                                   </button>
                                 )}
                               </div>
+                              {jsonSchemaErrorExpanded && (
+                                <button
+                                  onClick={() => setJsonSchemaErrorExpanded(false)}
+                                  className="text-xs text-error underline hover:opacity-80 whitespace-nowrap"
+                                >
+                                  less
+                                </button>
+                              )}
                             </div>
                           </div>
-                        )}
-                        <div
-                          data-testid={`advanced-param-json-schema-editor-border-${key}`}
-                          className={`w-full text-xs font-mono rounded overflow-hidden border transition-colors duration-200 ${
-                            jsonSchemaError ? "border-red-600" : "border-base-300"
-                          }`}
-                        >
-                          <CodeMirror
-                            id={`advanced-param-json-schema-textarea-${key}`}
-                            value={getJsonSchemaEditorValue(key)}
-                            extensions={[json(), linter(jsonParseLinter()), lintGutter()]}
-                            theme={actualTheme}
-                            editable={!isReadOnly}
-                            onChange={(val) => {
-                              setObjectFieldValue(val);
-                              // Clear error when user modifies the schema
-                              if (jsonSchemaError) setJsonSchemaError(null);
-                            }}
-                            onBlur={async () => {
-                              try {
-                                const currentValueToParse = getJsonSchemaEditorValue(key).trim();
-                                if (!currentValueToParse) {
-                                  if (!isEmptyJsonSchema(configuration?.response_type?.json_schema)) {
-                                    dispatchResponseTypeUpdate(
-                                      buildJsonSchemaResponseType({
-                                        is_template: configuration?.response_type?.is_template ?? false,
-                                        template_id: configuration?.response_type?.template_id,
-                                      })
-                                    );
-                                  }
-                                  setObjectFieldValue(null);
-                                  lastSubmittedSchemaRef.current = null;
-                                  return;
-                                }
-                                const parsedValue = JSON.parse(currentValueToParse);
-
-                                const trimmedValue = {
-                                  ...parsedValue,
-                                  name: parsedValue.name?.trim(),
-                                  schema: parsedValue.schema
-                                    ? {
-                                        ...parsedValue.schema,
-                                        properties: trimPropertyNames(parsedValue.schema.properties),
-                                      }
-                                    : parsedValue.schema,
-                                };
-
-                                if (isEmptyJsonSchema(trimmedValue)) {
-                                  return;
-                                }
-
-                                // Skip API call if schema hasn't changed since last successful submission
-                                const schemaKey = JSON.stringify(trimmedValue);
-                                if (lastSubmittedSchemaRef.current === schemaKey) {
-                                  return;
-                                }
-
-                                const result = await handleSelectChange(
-                                  { target: { value: "json_schema" } },
-                                  key,
-                                  defaultValue,
-                                  trimmedValue,
-                                  true
-                                );
-
-                                if (result?.success === false) {
-                                  setJsonSchemaErrorExpanded(false);
-                                  setJsonSchemaError(
-                                    result?.error ||
-                                      result?.message ||
-                                      "Invalid JSON schema. Please check the schema and try again."
+                        </div>
+                      )}
+                      <div
+                        data-testid={`advanced-param-json-schema-editor-border-${key}`}
+                        className={`w-full text-xs font-mono rounded overflow-hidden border transition-colors duration-200 ${
+                          jsonSchemaError ? "border-red-600" : "border-base-300"
+                        }`}
+                      >
+                        <CodeMirror
+                          id={`advanced-param-json-schema-textarea-${key}`}
+                          value={getJsonSchemaEditorValue(key)}
+                          extensions={[json(), linter(jsonParseLinter()), lintGutter()]}
+                          theme={actualTheme}
+                          editable={!isReadOnly}
+                          onChange={(val) => {
+                            setObjectFieldValue(val);
+                            // Clear error when user modifies the schema
+                            if (jsonSchemaError) setJsonSchemaError(null);
+                          }}
+                          onBlur={async () => {
+                            try {
+                              const currentValueToParse = getJsonSchemaEditorValue(key).trim();
+                              if (!currentValueToParse) {
+                                if (!isEmptyJsonSchema(configuration?.response_type?.json_schema)) {
+                                  dispatchResponseTypeUpdate(
+                                    buildJsonSchemaResponseType({
+                                      is_template: configuration?.response_type?.is_template ?? false,
+                                      template_id: configuration?.response_type?.template_id,
+                                    })
                                   );
-                                } else {
-                                  lastSubmittedSchemaRef.current = schemaKey;
-                                  setJsonSchemaError(null);
                                 }
-                              } catch (error) {
-                                const errorMessage =
-                                  error?.response?.data?.message ||
-                                  error?.response?.data ||
-                                  error?.message ||
-                                  "Invalid JSON schema. Please fix the syntax and try again.";
+                                setObjectFieldValue(null);
+                                lastSubmittedSchemaRef.current = null;
+                                return;
+                              }
+                              const parsedValue = JSON.parse(currentValueToParse);
+
+                              const trimmedValue = {
+                                ...parsedValue,
+                                name: parsedValue.name?.trim(),
+                                schema: parsedValue.schema
+                                  ? {
+                                      ...parsedValue.schema,
+                                      properties: trimPropertyNames(parsedValue.schema.properties),
+                                    }
+                                  : parsedValue.schema,
+                              };
+
+                              if (isEmptyJsonSchema(trimmedValue)) {
+                                return;
+                              }
+
+                              // Skip API call if schema hasn't changed since last successful submission
+                              const schemaKey = JSON.stringify(trimmedValue);
+                              if (lastSubmittedSchemaRef.current === schemaKey) {
+                                return;
+                              }
+
+                              const result = await handleSelectChange(
+                                { target: { value: "json_schema" } },
+                                key,
+                                defaultValue,
+                                trimmedValue,
+                                true
+                              );
+
+                              if (result?.success === false) {
                                 setJsonSchemaErrorExpanded(false);
                                 setJsonSchemaError(
-                                  typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage)
+                                  result?.error ||
+                                    result?.message ||
+                                    "Invalid JSON schema. Please check the schema and try again."
                                 );
+                              } else {
+                                lastSubmittedSchemaRef.current = schemaKey;
+                                setJsonSchemaError(null);
                               }
-                            }}
-                            className="w-full"
-                            minHeight="128px"
-                          />
-                        </div>
-                      </div>
-                      <FullscreenEditorModal
-                        modalId={MODAL_TYPE.FULLSCREEN_JSON_SCHEMA}
-                        title="JSON Schema"
-                        value={getJsonSchemaEditorValue(key)}
-                        isOpen={jsonSchemaFullscreen}
-                        onClose={() => setJsonSchemaFullscreen(false)}
-                        onSave={async (finalVal) => {
-                          try {
-                            const parsedValue = JSON.parse(String(finalVal).trim());
-                            const trimmedValue = {
-                              ...parsedValue,
-                              name: parsedValue.name?.trim(),
-                              schema: parsedValue.schema
-                                ? {
-                                    ...parsedValue.schema,
-                                    properties: trimPropertyNames(parsedValue.schema.properties),
-                                  }
-                                : parsedValue.schema,
-                            };
-                            setObjectFieldValue(JSON.stringify(parsedValue, undefined, 4));
-                            setJsonSchemaError(null);
-                            const result = await handleSelectChange(
-                              { target: { value: "json_schema" } },
-                              key,
-                              defaultValue,
-                              trimmedValue,
-                              true
-                            );
-                            if (result?.success === false) {
+                            } catch (error) {
+                              const errorMessage =
+                                error?.response?.data?.message ||
+                                error?.response?.data ||
+                                error?.message ||
+                                "Invalid JSON schema. Please fix the syntax and try again.";
                               setJsonSchemaErrorExpanded(false);
                               setJsonSchemaError(
-                                result?.error ||
-                                  result?.message ||
-                                  "Invalid JSON schema. Please check the schema and try again."
+                                typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage)
                               );
-                              toast.error("Invalid JSON schema");
-                              return false;
                             }
-                            setJsonSchemaError(null);
-                            return true;
-                          } catch (error) {
-                            console.error(error);
-                            const errorMessage =
-                              error?.response?.data?.message ||
-                              error?.response?.data ||
-                              error?.message ||
-                              "Invalid JSON schema. Please fix the syntax and try again.";
+                          }}
+                          className="w-full"
+                          minHeight="128px"
+                        />
+                      </div>
+                    </div>
+                    <FullscreenEditorModal
+                      modalId={MODAL_TYPE.FULLSCREEN_JSON_SCHEMA}
+                      title="JSON Schema"
+                      value={getJsonSchemaEditorValue(key)}
+                      isOpen={jsonSchemaFullscreen}
+                      onClose={() => setJsonSchemaFullscreen(false)}
+                      onSave={async (finalVal) => {
+                        try {
+                          const parsedValue = JSON.parse(String(finalVal).trim());
+                          const trimmedValue = {
+                            ...parsedValue,
+                            name: parsedValue.name?.trim(),
+                            schema: parsedValue.schema
+                              ? {
+                                  ...parsedValue.schema,
+                                  properties: trimPropertyNames(parsedValue.schema.properties),
+                                }
+                              : parsedValue.schema,
+                          };
+                          setObjectFieldValue(JSON.stringify(parsedValue, undefined, 4));
+                          setJsonSchemaError(null);
+                          const result = await handleSelectChange(
+                            { target: { value: "json_schema" } },
+                            key,
+                            defaultValue,
+                            trimmedValue,
+                            true
+                          );
+                          if (result?.success === false) {
                             setJsonSchemaErrorExpanded(false);
                             setJsonSchemaError(
-                              typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage)
+                              result?.error ||
+                                result?.message ||
+                                "Invalid JSON schema. Please check the schema and try again."
                             );
                             toast.error("Invalid JSON schema");
                             return false;
                           }
-                        }}
-                        placeholder="Enter JSON schema..."
-                        disabled={isReadOnly || hasUnsavedChanges}
-                        mono
-                        isJson
-                        onAttemptEdit={
-                          !isReadOnly && hasUnsavedChanges
-                            ? () => {
-                                guardedResponseTypeAction(() => {});
-                              }
-                            : undefined
+                          setJsonSchemaError(null);
+                          return true;
+                        } catch (error) {
+                          console.error(error);
+                          const errorMessage =
+                            error?.response?.data?.message ||
+                            error?.response?.data ||
+                            error?.message ||
+                            "Invalid JSON schema. Please fix the syntax and try again.";
+                          setJsonSchemaErrorExpanded(false);
+                          setJsonSchemaError(
+                            typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage)
+                          );
+                          toast.error("Invalid JSON schema");
+                          return false;
                         }
-                      />
-                      <JsonSchemaBuilderModal params={params} searchParams={searchParams} isReadOnly={isReadOnly} />
-                      <JsonSchemaModal
-                        params={params}
-                        searchParams={searchParams}
-                        messages={messages}
-                        setMessages={setMessages}
-                        thread_id={thread_id}
-                        onResetThreadId={() => {
-                          const newId = generateRandomID();
-                          setThreadId(newId);
-                          setThreadIdForVersionReducer &&
-                            dispatch(
-                              setThreadIdForVersionReducer({
-                                bridgeId: params?.id,
-                                versionId: searchParams?.version,
-                                thread_id: newId,
-                              })
-                            );
-                        }}
-                      />
-                    </div>
-                  )}
+                      }}
+                      placeholder="Enter JSON schema..."
+                      disabled={isReadOnly || hasUnsavedChanges}
+                      mono
+                      isJson
+                      onAttemptEdit={
+                        !isReadOnly && hasUnsavedChanges
+                          ? () => {
+                              guardedResponseTypeAction(() => {});
+                            }
+                          : undefined
+                      }
+                    />
+                    <JsonSchemaBuilderModal params={params} searchParams={searchParams} isReadOnly={isReadOnly} />
+                    <JsonSchemaModal
+                      params={params}
+                      searchParams={searchParams}
+                      messages={messages}
+                      setMessages={setMessages}
+                      thread_id={thread_id}
+                      onResetThreadId={() => {
+                        const newId = generateRandomID();
+                        setThreadId(newId);
+                        setThreadIdForVersionReducer &&
+                          dispatch(
+                            setThreadIdForVersionReducer({
+                              bridgeId: params?.id,
+                              versionId: searchParams?.version,
+                              thread_id: newId,
+                            })
+                          );
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
             {/* Slider input */}

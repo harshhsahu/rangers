@@ -56,68 +56,14 @@ export const switchUser = async (dataToSend) => {
   }
 };
 
-// Auth Key Management APIs
-export const allAuthKey = async (name = null) => {
-  try {
-    let url = `${PROXY_URL}/api/c/authkey`;
+// Auth Key Management APIs — /api/c/authkey network calls removed
+export const allAuthKey = async () => ({ data: [] });
 
-    // If name is provided, add it as a query parameter
-    if (name) {
-      url += `?name=${encodeURIComponent(name)}`;
-    }
+export const createAuthKey = async () => ({ data: null });
 
-    const response = await axios(url);
-    return response?.data?.data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
+export const deleteAuthkey = async () => undefined;
 
-export const createAuthKey = async (dataToSend) => {
-  try {
-    return await axios.post(`${PROXY_URL}/api/c/authkey`, dataToSend);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-export const deleteAuthkey = async (id) => {
-  try {
-    await axios.delete(`${PROXY_URL}/api/c/authkey/${id}`);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-export const getOrCreateNotificationAuthKey = async (name) => {
-  try {
-    // First, get the notification auth key by name
-    const notificationAuthKeys = await allAuthKey(name);
-
-    // Check if the notification auth key exists
-    const notificationAuthKey = notificationAuthKeys?.data?.length > 0 ? notificationAuthKeys?.data[0] : null;
-
-    if (notificationAuthKey) {
-      // If it exists, return it
-      return notificationAuthKey;
-    } else {
-      // If it doesn't exist, create it
-      const dataToSend = {
-        name: name,
-        throttle_limit: "60:800",
-        temporary_throttle_limit: "60:600",
-        temporary_throttle_time: "30",
-      };
-
-      const response = await createAuthKey(dataToSend);
-      return response?.data;
-    }
-  } catch (error) {
-    console.error("Error in getOrCreateNotificationAuthKey:", error);
-    throw error;
-  }
-};
+export const getOrCreateNotificationAuthKey = async () => null;
 
 // User Management APIs
 export const updateUser = async ({ user_id, user }) => {
