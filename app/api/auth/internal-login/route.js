@@ -60,12 +60,12 @@ async function gtwyEmbedLogin(embedJwt) {
 
 /**
  * POST /api/auth/internal-login
- * Body: { proxy_auth_token, userOrgId? }
+ * Body fields: proxy_auth_token, optional userOrgId.
  *
- * 1) getDetails(proxy) → current user org id
- * 2) Sign embed JWT { org_id, folder_id, user_id: orgId } with ACCESS_KEY
- * 3) Call GTWY /api/embed/login with that JWT
- * 4) Return GTWY session token (use this for all GTWY APIs)
+ * 1) getDetails(proxy) to resolve current user org id
+ * 2) Sign embed JWT with org_id, folder_id, user_id using ACCESS_KEY
+ * 3) Call GTWY embed login with that JWT
+ * 4) Return GTWY session token for subsequent GTWY APIs
  */
 export async function POST(request) {
   try {

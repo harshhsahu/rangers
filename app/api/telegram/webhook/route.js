@@ -78,12 +78,8 @@ function extractAssistantText(gtwyResponse) {
 
 /**
  * Resolve image URLs from GTWY payloads.
- *
- * Streaming `done` event (from formatters):
- *   { event: "done", response: { data: { image_urls: [{ permanent_url, image_url }] } } }
- *
- * History / some API shapes put images at root:
- *   { llm_urls: [{ permanent_url, type: "image" }] }
+ * Streaming done events expose image_urls under response.data.
+ * History / API shapes may put llm_urls at the root.
  */
 function resolveUrl(item) {
   if (!item) return null;

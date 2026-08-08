@@ -50,7 +50,6 @@ const CommandPalette = ({ isEmbedUser }) => {
   const [collapsedSearchCategories, setCollapsedSearchCategories] = useState(new Set());
 
   const filterParam = searchParams.get("filter");
-  const typeParam = searchParams.get("type");
 
   const orgId = useMemo(() => getOrgIdFromPath(pathname), [pathname]);
 

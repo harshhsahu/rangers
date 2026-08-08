@@ -21,7 +21,7 @@ import { getRichUiTemplatesAction } from "@/store/action/richUiTemplateAction";
 import { getAllKnowBaseDataAction } from "@/store/action/knowledgeBaseAction";
 import { updateUserMetaOnboarding, updateOrgMetaAction, getUsersAction } from "@/store/action/orgAction";
 import { getServiceAction } from "@/store/action/serviceAction";
-import { getFromCookies, removeCookie, setInCookies } from "@/utils/utility";
+import { getFromCookies, removeCookie } from "@/utils/utility";
 import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, use } from "react";

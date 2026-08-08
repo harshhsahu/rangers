@@ -53,7 +53,7 @@ export async function GET(request) {
 
 /**
  * POST /api/channel-details
- * Body: { telegram: { botToken }, version_id, agent_id?, org_id? }
+ * Body fields: telegram.botToken, version_id, optional agent_id and org_id.
  */
 export async function POST(request) {
   try {

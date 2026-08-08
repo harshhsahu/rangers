@@ -7,7 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutUserFromMsg91 } from "@/config/index";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { truncate } from "@/components/historyPageComponents/AssistFile";
-import { clearCookie, getFromCookies, openModal, closeModal, setInCookies } from "@/utils/utility";
+import { clearCookie, getFromCookies, openModal, closeModal } from "@/utils/utility";
 import TutorialModal from "@/components/modals/TutorialModal";
 import DemoModal from "../modals/DemoModal";
 import { MODAL_TYPE } from "@/utils/enums";

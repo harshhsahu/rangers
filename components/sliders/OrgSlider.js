@@ -8,7 +8,6 @@ import {
   getFromCookies,
   openModal,
   closeModal,
-  setInCookies,
   toggleSidebar,
 } from "@/utils/utility";
 import {
