@@ -1,17 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useDispatch } from "react-redux";
 import { ChevronDown, LogOut, ChevronRight, ChevronLeft, User, AlignJustify, ArrowLeft, Keyboard } from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutUserFromMsg91 } from "@/config/index";
-import { createAndStoreInternalJwt } from "@/utils/internalAuth";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { truncate } from "@/components/historyPageComponents/AssistFile";
 import { clearCookie, getFromCookies, openModal, closeModal, setInCookies } from "@/utils/utility";
-import { setCurrentOrgIdAction } from "@/store/action/orgAction";
-import OrgSlider from "./OrgSlider";
 import TutorialModal from "@/components/modals/TutorialModal";
 import DemoModal from "../modals/DemoModal";
 import { MODAL_TYPE } from "@/utils/enums";
@@ -39,7 +35,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const dispatch = useDispatch();
 
   const pathParts = pathname.split("?")[0].split("/");
   const orgId = orgIdFromHeader || pathParts[2];
@@ -50,7 +45,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     currrentOrgDetail: state?.userDetailsReducer?.organizations?.[orgId],
     allBridges: state.bridgeReducer?.org?.[orgId]?.orgs || [],
   }));
-  const orgName = useMemo(() => organizations?.[orgId]?.name || "Organization", [organizations, orgId]);
   // When on org list page, orgId can be undefined; use first org for menu links
   const targetOrgId = orgId || (organizations && Object.keys(organizations)[0]);
   const getInitials = (name = "") => {
@@ -193,10 +187,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         }
       }
 
-      // Close org dropdown on outside click
+      // Close account dropdown on outside click
       if (isOrgDropdownExpanded) {
-        const orgDropdown = e.target.closest(".org-dropdown-container");
-        if (!orgDropdown) {
+        const accountDropdown = e.target.closest(".account-dropdown-container");
+        if (!accountDropdown) {
           setIsOrgDropdownExpanded(false);
         }
       }
@@ -262,36 +256,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
       setIsOrgDropdownExpanded((prev) => !prev);
     }
   };
-
-  const handleSwitchOrg = useCallback(
-    async (id, name) => {
-      if (!id || !name) {
-        return;
-      }
-
-      const doSwitch = async () => {
-        try {
-          await createAndStoreInternalJwt(id);
-          router.push(`/org/${id}/agents`);
-          dispatch(setCurrentOrgIdAction(id));
-          if (isMobile) setIsMobileVisible(false);
-          setIsOrgDropdownExpanded(false);
-          setIsOrgDropdownOpen(false);
-        } catch (error) {
-          console.error("Error switching organization", error);
-        }
-      };
-
-      if (unsavedPromptGuard.hasUnsavedChanges) {
-        pendingNavRef.current = doSwitch;
-        openModal(MODAL_TYPE.UNSAVED_CHANGES_MODAL);
-        return;
-      }
-
-      doSwitch();
-    },
-    [dispatch, router, isMobile]
-  );
 
   const handleOrgHover = () => {
     if (!showSidebarContent) {
@@ -386,7 +350,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
           ) : (
             <div className="shrink-0 w-9 h-9 bg-primary flex items-center justify-center cursor-pointer">
               <span className="text-primary-content font-semibold text-sm">
-                {getInitials(userdetailsfromOrg?.name || userdetails?.name || orgName)}
+                {getInitials(userdetailsfromOrg?.name || userdetails?.name || "U")}
               </span>
             </div>
           )}
@@ -418,7 +382,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         </div>
       </>
     );
-  }, [userdetails, handleLogout, openDetails, userdetailsfromOrg, orgName]);
+  }, [userdetails, handleLogout, openDetails, userdetailsfromOrg]);
 
   /* ------------------------------------------------------------------------ */
   /*                                  Render                                  */
@@ -533,31 +497,31 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
           {/* -------------------------- NAVIGATION -------------------------- */}
           <div className="flex flex-col h-full">
-            {/* Header section */}
+            {/* Header section — account menu (no org switcher) */}
             <div className="p-2 border-b border-base-300 relative">
-              {/* Organization */}
               {pathParts.length >= 4 && (
                 <div
-                  className="relative org-dropdown-container"
+                  className="relative account-dropdown-container"
                   onMouseEnter={handleOrgHover}
                   onMouseLeave={handleOrgLeave}
                 >
                   <button
-                    id="main-slider-org-dropdown-button"
+                    id="main-slider-account-dropdown-button"
                     onClick={handleOrgClick}
                     className="w-full flex items-center gap-3 py-2 hover:bg-base-200 transition-colors"
                   >
-                    {/* First letter avatar */}
                     <div className="shrink-0 w-8 h-8 bg-primary flex items-center justify-center">
                       <span className="text-primary-content font-semibold text-sm">
-                        {orgName.charAt(0).toUpperCase()}
+                        {getInitials(userdetailsfromOrg?.name || userdetails?.name || "U")}
                       </span>
                     </div>
                     {showSidebarContent && (
                       <>
                         <div className="flex-1 text-left overflow-hidden">
-                          <div className="font-semibold text-sm truncate">{truncate(orgName, 20)}</div>
-                          <div className="text-xs text-base-content/60">Organization</div>
+                          <div className="font-semibold text-sm truncate">
+                            {truncate(userdetails?.name || userdetailsfromOrg?.name || "Account", 20)}
+                          </div>
+                          <div className="text-xs text-base-content/60 truncate">{userdetails?.email || "Account"}</div>
                         </div>
                         <ChevronDown
                           size={16}
@@ -567,12 +531,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     )}
                   </button>
 
-                  {/* Dropdown for collapsed sidebar */}
                   {isOrgDropdownOpen && !showSidebarContent && (
                     <div
                       className="absolute left-full top-0 ml-2 bg-base-100 border border-base-300 shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2"
                       onMouseEnter={() => {
-                        // Clear timeout when hovering over dropdown
                         if (orgDropdownTimeout) {
                           clearTimeout(orgDropdownTimeout);
                           setOrgDropdownTimeout(null);
@@ -584,7 +546,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     </div>
                   )}
 
-                  {/* Expanded dropdown for full sidebar - positioned from left edge */}
                   {isOrgDropdownExpanded && showSidebarContent && (
                     <div className="absolute top-0 left-0 mt-2 bg-base-100 border border-base-300 shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2">
                       {renderOrganizationDropdown()}
@@ -858,7 +819,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         {/* ------------------------------------------------------------------ */}
         {/*                               MODALS                               */}
         {/* ------------------------------------------------------------------ */}
-        <OrgSlider />
         <BridgeSlider />
         <TutorialModal />
         <DemoModal speakToUs />
