@@ -13,14 +13,15 @@ function buildWebhookUrl(versionId) {
 }
 
 function sanitizeChannel(doc) {
-  if (!doc?.telegram) return doc;
-  return {
-    ...doc,
-    telegram: {
-      ...doc.telegram,
-      botToken: maskSecret(doc.telegram.botToken),
-    },
-  };
+  if (!doc) return doc;
+  const out = { ...doc };
+  if (out.telegram?.botToken) {
+    out.telegram = { ...out.telegram, botToken: maskSecret(out.telegram.botToken) };
+  }
+  if (out.discord?.botToken) {
+    out.discord = { ...out.discord, botToken: maskSecret(out.discord.botToken) };
+  }
+  return out;
 }
 
 /**
@@ -152,7 +153,8 @@ export async function POST(request) {
 
 /**
  * DELETE /api/telegram/setup?version_id=...
- * Clears Telegram webhook + commands (best-effort) and removes the channel document.
+ * Clears Telegram webhook + commands (best-effort) and removes only the telegram field
+ * (keeps discord on the same channel document if present).
  */
 export async function DELETE(request) {
   try {
@@ -183,8 +185,15 @@ export async function DELETE(request) {
       console.warn("telegram deleteWebhook skipped:", err?.message || err);
     }
 
-    const result = await collection.deleteOne({ version_id });
-    return NextResponse.json({ success: true, deleted: result.deletedCount });
+    await collection.updateOne({ version_id }, { $unset: { telegram: "" }, $set: { updated_at: new Date() } });
+
+    const after = await collection.findOne({ version_id });
+    if (after && !after.telegram && !after.discord) {
+      const result = await collection.deleteOne({ version_id });
+      return NextResponse.json({ success: true, deleted: result.deletedCount });
+    }
+
+    return NextResponse.json({ success: true, deleted: 0, unset: "telegram" });
   } catch (error) {
     console.error("telegram setup DELETE error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

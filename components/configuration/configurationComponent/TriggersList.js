@@ -5,11 +5,12 @@ import { AddIcon } from "@/components/Icons";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import InfoTooltip from "@/components/InfoTooltip";
-import { CircleQuestionMark, MessageCircle, Zap } from "lucide-react";
+import { CircleQuestionMark, MessageCircle, MessageSquare, Zap } from "lucide-react";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import TriggerChoiceModal from "@/components/modals/TriggerChoiceModal";
 import TelegramConnectModal from "@/components/modals/TelegramConnectModal";
+import DiscordConnectModal from "@/components/modals/DiscordConnectModal";
 
 function getStatusClass(status) {
   switch (status?.toString().trim().toLowerCase()) {
@@ -38,7 +39,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
   }));
   const [triggers, setTriggers] = useState([]);
   const [authkey, setAuthkey] = useState("");
-  const [telegramChannel, setTelegramChannel] = useState(null);
+  const [channelDoc, setChannelDoc] = useState(null);
 
   async function getAndSetAuthKey() {
     const keytoset = await getOrCreateNotificationAuthKey("gtwy_bridge_trigger");
@@ -58,7 +59,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
     if (!isEmbedUser) getAndSetAuthKey();
   }, [isEmbedUser]);
 
-  // Load existing telegram channel for this version
+  // Load existing channel details (telegram + discord) for this version
   useEffect(() => {
     if (!versionId) return;
     let cancelled = false;
@@ -66,7 +67,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
       try {
         const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
         const data = await res.json();
-        if (!cancelled && data?.success) setTelegramChannel(data.data || null);
+        if (!cancelled && data?.success) setChannelDoc(data.data || null);
       } catch (e) {
         console.error(e);
       }
@@ -145,12 +146,17 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
   }
 
   const activeTriggers = triggers?.filter((trigger) => trigger?.status !== "deleted") || [];
-  const hasTelegram = Boolean(telegramChannel?.telegram?.botToken);
-  const hasTriggers = activeTriggers.length > 0 || hasTelegram;
+  const hasTelegram = Boolean(channelDoc?.telegram?.botToken);
+  const hasDiscord = Boolean(channelDoc?.discord?.botToken);
+  const hasTriggers = activeTriggers.length > 0 || hasTelegram || hasDiscord;
 
   const openAddMenu = () => {
     if (isReadOnly) return;
     openModal(MODAL_TYPE.TRIGGER_CHOICE_MODAL);
+  };
+
+  const mergeChannel = (doc) => {
+    setChannelDoc((prev) => ({ ...(prev || {}), ...(doc || {}) }));
   };
 
   return (
@@ -211,9 +217,34 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
                     <span className="font-mono text-[9.5px] text-soft">Connected</span>
                   </div>
                   <span
-                    className={`ml-auto shrink-0 inline-block rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${telegramChannel.telegram.webhookSet ? "bg-acc text-acc-ink" : "bg-cool text-ink"}`}
+                    className={`ml-auto shrink-0 inline-block rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${
+                      channelDoc.telegram.webhookSet ? "bg-acc text-acc-ink" : "bg-cool text-ink"
+                    }`}
                   >
-                    {telegramChannel.telegram.webhookSet ? "Active" : "Saved"}
+                    {channelDoc.telegram.webhookSet ? "Active" : "Saved"}
+                  </span>
+                </div>
+              )}
+
+              {hasDiscord && (
+                <div
+                  data-testid="trigger-card-discord"
+                  className="group flex items-center gap-[9px] rounded-[9px] border-2 border-stroke cursor-pointer bg-card px-[10px] py-[6px] min-h-[44px] w-full transition-colors duration-200 hover:bg-paper"
+                  onClick={() => !isReadOnly && openModal(MODAL_TYPE.DISCORD_CONNECT_MODAL)}
+                >
+                  <div className="grid h-5 w-5 flex-none place-items-center rounded-[6px] border-[1.5px] border-stroke bg-acc">
+                    <MessageSquare size={12} className="shrink-0 text-acc-ink" />
+                  </div>
+                  <div className="flex flex-1 flex-col min-w-0">
+                    <span className="text-[12.5px] font-bold block truncate text-ink">Discord Bot</span>
+                    <span className="font-mono text-[9.5px] text-soft">Connected · DMs</span>
+                  </div>
+                  <span
+                    className={`ml-auto shrink-0 inline-block rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${
+                      channelDoc.discord.gatewayConnected ? "bg-acc text-acc-ink" : "bg-cool text-ink"
+                    }`}
+                  >
+                    {channelDoc.discord.gatewayConnected ? "Active" : "Saved"}
                   </span>
                 </div>
               )}
@@ -249,9 +280,31 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
         versionId={versionId}
         agentId={params?.id}
         orgId={params?.org_id}
-        channel={telegramChannel}
-        onSaved={(doc) => setTelegramChannel(doc)}
-        onDeleted={() => setTelegramChannel(null)}
+        channel={channelDoc}
+        onSaved={(doc) => mergeChannel(doc)}
+        onDeleted={() =>
+          setChannelDoc((prev) => {
+            if (!prev) return null;
+            const next = { ...prev };
+            delete next.telegram;
+            return next.discord ? next : null;
+          })
+        }
+      />
+      <DiscordConnectModal
+        versionId={versionId}
+        agentId={params?.id}
+        orgId={params?.org_id}
+        channel={channelDoc}
+        onSaved={(doc) => mergeChannel(doc)}
+        onDeleted={() =>
+          setChannelDoc((prev) => {
+            if (!prev) return null;
+            const next = { ...prev };
+            delete next.discord;
+            return next.telegram ? next : null;
+          })
+        }
       />
     </div>
   );

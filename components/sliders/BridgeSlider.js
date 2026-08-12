@@ -14,7 +14,7 @@ function BridgeSlider() {
   const path = pathName.split("?")[0].split("/");
 
   const bridgesList = useCustomSelector((state) => state.bridgeReducer.org[path[2]]?.orgs) || [];
-  const defaultBridgeType = searchParams?.get("type")?.toLowerCase() === "chatbot" ? "chatbot" : "api";
+  const defaultBridgeType = searchParams?.get("type")?.toLowerCase() === "chatbot" ? "chatbot" : "trigger";
 
   const [filteredBridgesList, setFilteredBridgesList] = useState(bridgesList);
   // Filter out deleted agents (agents with deletedAt property)

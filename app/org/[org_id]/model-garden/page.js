@@ -185,7 +185,7 @@ const ModelGardenPage = ({ params }) => {
       {/* Main Content: Inner Sidebar + Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Inner Sidebar - Service List */}
-        <div className="w-56 border-r-2 border-stroke flex flex-col bg-base-100 overflow-y-auto shrink-0">
+        <div className="w-56 border-r-2 border-stroke flex flex-col bg-base-100 overflow-hidden shrink-0">
           <div className="p-3 border-b-2 border-stroke">
             <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Services</h3>
           </div>

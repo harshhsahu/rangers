@@ -1244,7 +1244,7 @@ function Home({ params, searchParams, isEmbedUser }) {
               flagKey={"bridgeCreation"}
             />
           )}
-          <CreateNewBridge orgid={resolvedParams.org_id} defaultBridgeType="api" allowBridgeTypeSelect />
+          <CreateNewBridge orgid={resolvedParams.org_id} defaultBridgeType="trigger" />
           {!typeFilteredBridges.length && isLoading && <LoadingSpinner />}
           <input autoComplete="off" id="my-drawer-2" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content flex flex-col items-start justify-start">
@@ -1254,7 +1254,7 @@ function Home({ params, searchParams, isEmbedUser }) {
                   <AgentEmptyState
                     orgid={resolvedParams.org_id}
                     isEmbedUser={isEmbedUser}
-                    defaultBridgeType="api"
+                    defaultBridgeType="trigger"
                     title={pageHeaderContent.title}
                     description={pageHeaderContent.description}
                     docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}

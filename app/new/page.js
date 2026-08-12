@@ -18,7 +18,7 @@ const INITIAL_FORM_STATE = {
   bridgeName: "",
   selectedOrg: null,
   searchQuery: "",
-  bridgeType: "api",
+  bridgeType: "trigger",
   selectedService: "openai",
   selectedModel: "gpt-4o",
   selectedModelType: "chat",

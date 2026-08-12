@@ -343,10 +343,10 @@ const CustomTable = ({
         <table
           data-testid="custom-table-view"
           id="custom-table-view"
-          className={`table ${tableClass} bg-card overflow-visible relative z-50 border-collapse rounded-[16px]`}
+          className={`table ${tableClass} overflow-visible relative z-50 border-collapse rounded-[16px]`}
           style={{ tableLayout: "auto", width: "100%" }}
         >
-          <thead className="bg-paper text-soft">
+          <thead className="bg-paper text-soft [&>tr>th:first-child]:rounded-tl-[14px] [&>tr>th:last-child]:rounded-tr-[14px]">
             <tr>
               {showRowSelection && (
                 <th className="px-4 py-2 text-left">
@@ -397,14 +397,14 @@ const CustomTable = ({
               )}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="[&>tr:last-child>td:first-child]:rounded-bl-[14px] [&>tr:last-child>td:last-child]:rounded-br-[14px]">
             {sortedData?.length > 0 ? (
               sortedData?.map((row, index) => (
                 <tr
                   data-testid={`custom-table-row-${row.id || row?._id || index}`}
                   id={`custom-table-row-${row.id || row?._id || index}`}
                   key={row.id || row?._id || index}
-                  className={`border-b border-dashed border-line hover:bg-paper transition-colors z-40 cursor-pointer group ${row.isLoading ? "opacity-60 cursor-wait" : ""}`}
+                  className={`border-b border-dashed border-line last:border-b-0 hover:bg-paper transition-colors z-40 cursor-pointer group ${row.isLoading ? "opacity-60 cursor-wait" : ""}`}
                   onClick={() =>
                     handleRowClick(
                       keysToExtractOnRowClick.reduce((acc, key) => {

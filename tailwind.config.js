@@ -238,28 +238,21 @@ module.exports = {
           "--ai-config-section-bg": "#1A1611",
           "--final-response-bg": "#241C14",
         },
-        /* Ink scrollbar — matches the design's clipped hard thumb */
+        /* Scrollbars are hidden everywhere — scrolling (wheel, trackpad, keys,
+           programmatic scrollTo) is untouched, only the visible bar is gone. */
         "::-webkit-scrollbar": {
-          width: "12px",
-          height: "12px",
+          width: "0px",
+          height: "0px",
         },
         "::-webkit-scrollbar-track": {
           background: "transparent",
         },
         "::-webkit-scrollbar-thumb": {
-          background: "var(--ink)",
-          border: "3px solid transparent",
-          backgroundClip: "content-box",
-          borderRadius: "99px",
+          background: "transparent",
         },
-        "::-webkit-scrollbar-thumb:hover": {
-          background: "var(--acc)",
-          border: "3px solid transparent",
-          backgroundClip: "content-box",
-        },
-        "*": {
-          scrollbarWidth: "thin",
-          scrollbarColor: "var(--ink) transparent",
+        "html, body, *": {
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         },
       });
 

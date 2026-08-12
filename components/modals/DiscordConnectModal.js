@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
-import { MessageCircle, Eye, EyeOff, Loader2, Trash2 } from "lucide-react";
+import { MessageSquare, Eye, EyeOff, Loader2, Trash2 } from "lucide-react";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
 import { toast } from "react-toastify";
 
 /**
- * Connect / manage Telegram bot for an agent version.
+ * Connect / manage Discord bot for an agent version (DMs only, v1).
  * Token is stored encrypted — never shown after save.
  */
-const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDeleted }) => {
-  const isConnected = Boolean(channel?.telegram?.botToken);
+const DiscordConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDeleted }) => {
+  const isConnected = Boolean(channel?.discord?.botToken);
   const [botToken, setBotToken] = useState("");
   const [showToken, setShowToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,17 +23,17 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
     if (busy) return;
     setBotToken("");
     setShowToken(false);
-    closeModal(MODAL_TYPE.TELEGRAM_CONNECT_MODAL);
+    closeModal(MODAL_TYPE.DISCORD_CONNECT_MODAL);
   }, [busy]);
 
   const handleSave = useCallback(async () => {
     const token = botToken.trim();
     if (!token) {
-      toast.error("Please enter your Telegram bot token");
+      toast.error("Please enter your Discord bot token");
       return;
     }
-    if (!token.includes(":")) {
-      toast.error("Invalid token format. Paste the full token from @BotFather");
+    if (token.length < 50) {
+      toast.error("Invalid token. Paste the full bot token from the Discord Developer Portal");
       return;
     }
     if (!versionId) {
@@ -43,7 +43,7 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
 
     setIsSaving(true);
     try {
-      const res = await fetch("/api/telegram/setup", {
+      const res = await fetch("/api/discord/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,19 +55,22 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
-        throw new Error(data?.error || "Failed to save Telegram bot");
+        throw new Error(data?.error || "Failed to save Discord bot");
       }
 
-      toast.success("Telegram bot connected");
-      if (data?.webhook?.message && !data?.webhook?.registered) {
-        toast.info(data.webhook.message, { autoClose: 6000 });
+      toast.success("Discord bot connected");
+      if (data?.gateway?.message && !data?.gateway?.connected) {
+        toast.info(data.gateway.message, { autoClose: 6000 });
+      }
+      if (data?.commands?.message) {
+        toast.info(data.commands.message, { autoClose: 6000 });
       }
       setBotToken("");
-      closeModal(MODAL_TYPE.TELEGRAM_CONNECT_MODAL);
+      closeModal(MODAL_TYPE.DISCORD_CONNECT_MODAL);
       onSaved?.(data?.data);
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Failed to connect Telegram");
+      toast.error(error.message || "Failed to connect Discord");
     } finally {
       setIsSaving(false);
     }
@@ -78,24 +81,24 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
       toast.error("Missing agent version id");
       return;
     }
-    if (!window.confirm("Disconnect this Telegram bot from this agent version?")) return;
+    if (!window.confirm("Disconnect this Discord bot from this agent version?")) return;
 
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/telegram/setup?version_id=${encodeURIComponent(versionId)}`, {
+      const res = await fetch(`/api/discord/setup?version_id=${encodeURIComponent(versionId)}`, {
         method: "DELETE",
       });
       const data = await res.json();
       if (!res.ok || !data?.success) {
-        throw new Error(data?.error || "Failed to disconnect Telegram");
+        throw new Error(data?.error || "Failed to disconnect Discord");
       }
-      toast.success("Telegram bot disconnected");
+      toast.success("Discord bot disconnected");
       setBotToken("");
-      closeModal(MODAL_TYPE.TELEGRAM_CONNECT_MODAL);
+      closeModal(MODAL_TYPE.DISCORD_CONNECT_MODAL);
       onDeleted?.();
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Failed to disconnect Telegram");
+      toast.error(error.message || "Failed to disconnect Discord");
     } finally {
       setIsDeleting(false);
     }
@@ -103,15 +106,15 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
 
   return (
     <Modal
-      MODAL_ID={MODAL_TYPE.TELEGRAM_CONNECT_MODAL}
-      title={isConnected ? "Telegram Bot" : "Connect Telegram"}
+      MODAL_ID={MODAL_TYPE.DISCORD_CONNECT_MODAL}
+      title={isConnected ? "Discord Bot" : "Connect Discord"}
       description={
         isConnected
           ? "Bot is linked to this agent version. The token is encrypted and cannot be viewed."
-          : "Paste your bot token from @BotFather. One bot is linked per agent version."
+          : "Paste your Discord bot token. One bot is linked per agent version. DMs only for now."
       }
-      icon={<MessageCircle size={16} className="text-[#229ED9]" />}
-      widthClass="w-[min(480px,92vw)]"
+      icon={<MessageSquare size={16} className="text-[#5865F2]" />}
+      widthClass="w-[min(520px,92vw)]"
       onClose={handleClose}
       footer={
         isConnected ? (
@@ -148,34 +151,53 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-medium">Connection</span>
               <span
-                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${channel?.telegram?.webhookSet ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100"}`}
+                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  channel?.discord?.gatewayConnected ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100"
+                }`}
               >
-                {channel?.telegram?.webhookSet ? "Active" : "Saved"}
+                {channel?.discord?.gatewayConnected ? "Gateway active" : "Saved"}
               </span>
             </div>
             <p className="text-xs text-base-content/60">
               Token is stored encrypted and is never shown again. Disconnect to remove it, then connect a new token if
-              needed.
+              needed. Reply to DMs with the bot (share a server with it first).
             </p>
           </div>
         ) : (
           <>
             <div className="rounded-lg border-2 border-stroke bg-base-200/40 p-3 text-xs text-base-content/70 leading-relaxed">
-              <p className="font-medium text-base-content mb-2">How to get your Telegram bot token</p>
+              <p className="font-medium text-base-content mb-2">How to get your Discord bot token</p>
               <ol className="list-decimal list-inside space-y-1.5">
                 <li>
-                  Open Telegram and search for <span className="font-medium text-base-content">@BotFather</span>.
+                  Open the{" "}
+                  <a
+                    href="https://discord.com/developers/applications"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="link link-primary"
+                  >
+                    Discord Developer Portal
+                  </a>{" "}
+                  and click <span className="font-medium text-base-content">New Application</span>.
                 </li>
                 <li>
-                  Send <span className="font-medium text-base-content">/newbot</span> (or{" "}
-                  <span className="font-medium text-base-content">/token</span> for an existing bot) and follow the
-                  prompts.
+                  Open <span className="font-medium text-base-content">Bot</span> →{" "}
+                  <span className="font-medium text-base-content">Reset Token</span> /{" "}
+                  <span className="font-medium text-base-content">Copy</span> the bot token.
                 </li>
                 <li>
-                  Copy the token BotFather sends (looks like{" "}
-                  <code className="text-[10px]">123456:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw</code>).
+                  Under Privileged Gateway Intents, enable{" "}
+                  <span className="font-medium text-base-content">Message Content Intent</span>.
                 </li>
-                <li>Paste it below and click Save &amp; Connect.</li>
+                <li>
+                  Open <span className="font-medium text-base-content">OAuth2 → URL Generator</span>, select scope{" "}
+                  <span className="font-medium text-base-content">bot</span>, permissions{" "}
+                  <span className="font-medium text-base-content">Send Messages</span>,{" "}
+                  <span className="font-medium text-base-content">Read Message History</span>,{" "}
+                  <span className="font-medium text-base-content">Attach Files</span>,{" "}
+                  <span className="font-medium text-base-content">Embed Links</span>. Invite the bot to a server.
+                </li>
+                <li>DM the bot (you must share a server with it first), then paste the token below.</li>
               </ol>
             </div>
 
@@ -189,7 +211,7 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
                   type={showToken ? "text" : "password"}
                   value={botToken}
                   onChange={(e) => setBotToken(e.target.value)}
-                  placeholder="123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw"
+                  placeholder="Paste Discord bot token"
                   className="input input-bordered input-sm w-full pr-10 text-xs font-mono"
                   disabled={busy}
                 />
@@ -213,4 +235,4 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
   );
 };
 
-export default TelegramConnectModal;
+export default DiscordConnectModal;

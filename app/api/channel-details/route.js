@@ -11,14 +11,14 @@ function jsonError(message, status = 400) {
 
 function sanitizeChannel(doc) {
   if (!doc) return doc;
-  if (!doc.telegram) return doc;
-  return {
-    ...doc,
-    telegram: {
-      ...doc.telegram,
-      botToken: maskSecret(doc.telegram.botToken),
-    },
-  };
+  const out = { ...doc };
+  if (out.telegram?.botToken) {
+    out.telegram = { ...out.telegram, botToken: maskSecret(out.telegram.botToken) };
+  }
+  if (out.discord?.botToken) {
+    out.discord = { ...out.discord, botToken: maskSecret(out.discord.botToken) };
+  }
+  return out;
 }
 
 /**

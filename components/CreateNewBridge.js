@@ -98,11 +98,14 @@ function AgentCreateAiLoading({ stepIndex }) {
   );
 }
 
-function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "api", allowBridgeTypeSelect = false }) {
+function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "trigger", allowBridgeTypeSelect = false }) {
   const [state, setState] = useState(buildInitialState);
-  const [selectedBridgeType, setSelectedBridgeType] = useState(
-    defaultBridgeType?.toLowerCase() === "chatbot" ? "chatbot" : "api"
-  );
+  const [selectedBridgeType, setSelectedBridgeType] = useState(() => {
+    const t = defaultBridgeType?.toLowerCase();
+    if (t === "chatbot") return "chatbot";
+    if (t === "api") return "api";
+    return "trigger";
+  });
   const textAreaPurposeRef = useRef();
   const dispatch = useDispatch();
   const router = useRouter();
@@ -113,11 +116,13 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "api", allowB
   const { SERVICES } = useCustomSelector((state) => ({
     SERVICES: state?.serviceReducer?.services,
   }));
-  const bridgeTypeForContext = useMemo(
-    () =>
-      allowBridgeTypeSelect ? selectedBridgeType : defaultBridgeType?.toLowerCase() === "chatbot" ? "chatbot" : "api",
-    [allowBridgeTypeSelect, selectedBridgeType, defaultBridgeType]
-  );
+  const bridgeTypeForContext = useMemo(() => {
+    if (allowBridgeTypeSelect) return selectedBridgeType;
+    const t = defaultBridgeType?.toLowerCase();
+    if (t === "chatbot") return "chatbot";
+    if (t === "api") return "api";
+    return "trigger";
+  }, [allowBridgeTypeSelect, selectedBridgeType, defaultBridgeType]);
 
   const [aiStepIndex, setAiStepIndex] = useState(0);
 

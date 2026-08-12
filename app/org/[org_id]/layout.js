@@ -534,7 +534,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <main
                 className={`${hasFolders ? (pathName.includes("analytics") ? "pl-0" : "pr-2 pl-0") : "px-2"} h-full ${path.length > 4 && !isFocus && !pathName.includes("orchestratal_model") ? "max-h-[calc(100vh-2rem)]" : ""} ${!pathName.includes("history") ? "overflow-y-auto" : "overflow-y-hidden"}`}
               >
@@ -570,7 +570,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
           )}
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <LoadingSpinner />

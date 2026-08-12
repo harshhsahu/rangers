@@ -7,7 +7,7 @@ import Protected from "./Protected";
 import useTutorialVideos from "@/hooks/useTutorialVideos";
 import { useCustomSelector } from "@/customHooks/customSelector";
 
-const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "api", title, description, docLink }) => {
+const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "trigger", title, description, docLink }) => {
   const { getApiAgentCreationVideo, getChatbotAgentCreationVideo } = useTutorialVideos();
   const { tutorialData } = useCustomSelector((state) => ({
     tutorialData: state.flowDataReducer?.flowData?.tutorialData || [],
