@@ -18,8 +18,8 @@
   }
 }
 
-/* Performance optimizations for devices with limited hardware */
-@media (max-width: 768px) and (max-device-memory: 2GB) {
+/* Performance optimizations for smaller viewports (max-device-memory unsupported by bundler) */
+@media (max-width: 768px) {
   .sidebar {
     transition-duration: 150ms !important;
     transition-timing-function: ease-out !important;
@@ -44,8 +44,8 @@
   transform: translate3d(0, 0, 0);
 }
 
-/* Disable expensive effects on low-end devices */
-@media (max-width: 768px) and (max-device-memory: 1GB) {
+/* Disable expensive effects on small viewports (max-device-memory unsupported by bundler) */
+@media (max-width: 768px) {
   .sidebar {
     box-shadow: none !important;
     border-radius: 0 !important;
@@ -98,8 +98,8 @@
   will-change: auto !important;
 }
 
-/* Very aggressive optimizations for extremely low-end devices */
-@media (max-width: 768px) and (max-device-memory: 1GB) {
+/* Aggressive small-viewport optimizations (max-device-memory unsupported by bundler) */
+@media (max-width: 768px) {
   .sidebar {
     transition: width 80ms linear !important;
     transform: none !important;

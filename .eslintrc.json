@@ -46,7 +46,15 @@
       {
         "unusedExports": true,
         "missingExports": false,
-        "ignoreExports": ["app/**/*", "components/**/*", "hooks/**/*", "customHooks/**/*", "store/**/*", "utils/**/*"]
+        "ignoreExports": [
+          "app/**/*",
+          "components/**/*",
+          "hooks/**/*",
+          "customHooks/**/*",
+          "store/**/*",
+          "utils/**/*",
+          "lib/**/*"
+        ]
       }
     ],
     // Prevent leaving commented-out code in the repo

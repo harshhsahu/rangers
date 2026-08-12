@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getChannelDetailsCollection } from "@/lib/mongo";
-import { decryptSecret } from "@/lib/crypto";
+import { decryptSecret, maskSecret } from "@/lib/crypto";
 import { TelegramStreamUpdater } from "@/lib/telegramStreamUpdater";
 
 export const runtime = "nodejs";
 
 const TELEGRAM_TEXT_LIMIT = 4096;
 const DRAFT_CHUNK_THRESHOLD = Number(process.env.TELEGRAM_DRAFT_CHUNK_THRESHOLD) || 1000;
+const NEW_THREAD_COMMANDS = new Set(["/new_thread", "/newthread"]);
 
 /** Draft/preview only — Telegram hard-caps a single message at 4096. */
 function truncateTelegramText(text) {
@@ -123,12 +124,23 @@ function extractImageUrls(parsed) {
 }
 
 async function telegramApi(botToken, method, body) {
-  const res = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
+  const url = `https://api.telegram.org/bot${botToken}/${method}`;
+  console.log("[tg] telegram API →", method, JSON.stringify(body || {}));
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return res.json().catch(() => ({}));
+  const data = await res.json().catch(() => ({}));
+  // Log full Telegram response (mask token if it ever appears)
+  const logged = JSON.stringify(data);
+  console.log(
+    "[tg] telegram API ←",
+    method,
+    `http=${res.status}`,
+    botToken && logged.includes(botToken) ? logged.split(botToken).join(maskSecret(botToken)) : logged
+  );
+  return data;
 }
 
 async function sendDraft(botToken, chatId, draftId, text) {
@@ -173,6 +185,282 @@ async function sendPhoto(botToken, chatId, photoUrl, caption) {
   return telegramApi(botToken, "sendPhoto", body);
 }
 
+function chatThreadKey(chatId) {
+  return String(chatId);
+}
+
+/** Mask bot token inside Telegram file URLs before logging. */
+function maskTelegramFileUrl(url, botToken) {
+  if (!url) return url;
+  const token = String(botToken || "");
+  if (token && url.includes(token)) {
+    return url.split(token).join(maskSecret(token));
+  }
+  // Fallback: redact /file/bot<token>/ even if token unknown
+  return String(url).replace(/\/file\/bot([^/]+)\//, (_m, t) => `/file/bot${maskSecret(t)}/`);
+}
+
+function maskGtwyPayloadForLog(payload, botToken) {
+  try {
+    const clone = JSON.parse(JSON.stringify(payload || {}));
+    const maskVal = (v) => (typeof v === "string" ? maskTelegramFileUrl(v, botToken) : v);
+    for (const key of ["image_url", "audio_url", "video_url", "file_url", "youtube_url"]) {
+      if (clone[key]) clone[key] = maskVal(clone[key]);
+    }
+    if (clone.video_data && typeof clone.video_data === "object") {
+      clone.video_data = {
+        ...clone.video_data,
+        uri: maskVal(clone.video_data.uri),
+        file_uri: maskVal(clone.video_data.file_uri),
+        name: maskVal(clone.video_data.name),
+      };
+    }
+    if (Array.isArray(clone.user_urls)) {
+      clone.user_urls = clone.user_urls.map((item) =>
+        item && typeof item === "object" ? { ...item, url: maskVal(item.url) } : maskVal(item)
+      );
+    }
+    if (Array.isArray(clone.files)) {
+      clone.files = clone.files.map((item) => maskVal(item));
+    }
+    return clone;
+  } catch {
+    return { error: "failed_to_mask_payload" };
+  }
+}
+
+async function getTelegramFileUrl(botToken, fileId) {
+  if (!fileId) throw new Error("getFile failed: missing file_id");
+  const res = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${encodeURIComponent(fileId)}`);
+  const data = await res.json().catch(() => ({}));
+  console.log("[tg] telegram API ← getFile", {
+    http: res.status,
+    ok: data?.ok,
+    file_path: data?.result?.file_path || null,
+    file_size: data?.result?.file_size ?? null,
+    description: data?.description || null,
+  });
+  if (!data?.ok || !data?.result?.file_path) {
+    const desc = data?.description || "getFile failed";
+    const err = new Error(/too big|file is too big/i.test(desc) ? "FILE_TOO_BIG" : desc);
+    err.telegramDescription = desc;
+    throw err;
+  }
+  return `https://api.telegram.org/file/bot${botToken}/${data.result.file_path}`;
+}
+
+/**
+ * Detect inbound Telegram media (do not use nested thumbnail file_ids).
+ */
+function extractIncomingMedia(message) {
+  // PHOTO — array of resolutions, always use the LAST (largest/best quality)
+  if (message?.photo?.length) {
+    const largest = message.photo[message.photo.length - 1];
+    return { type: "photo", fileId: largest.file_id, caption: message.caption || "" };
+  }
+
+  // VIDEO — use video.file_id, NOT video.thumbnail.file_id or video.thumb.file_id
+  if (message?.video) {
+    return {
+      type: "video",
+      fileId: message.video.file_id,
+      mime: message.video.mime_type,
+      fileName: message.video.file_name,
+      caption: message.caption || "",
+    };
+  }
+
+  // VOICE NOTE (the round mic-recorded bubble)
+  if (message?.voice) {
+    return {
+      type: "voice",
+      fileId: message.voice.file_id,
+      mime: message.voice.mime_type,
+      caption: message.caption || "",
+    };
+  }
+
+  // AUDIO FILE (uploaded mp3/music file, has title/performer metadata)
+  if (message?.audio) {
+    return {
+      type: "audio",
+      fileId: message.audio.file_id,
+      mime: message.audio.mime_type,
+      fileName: message.audio.title || message.audio.file_name,
+      caption: message.caption || "",
+    };
+  }
+
+  // DOCUMENT — covers PDFs and any generic file upload
+  if (message?.document) {
+    return {
+      type: "document",
+      fileId: message.document.file_id,
+      mime: message.document.mime_type,
+      fileName: message.document.file_name,
+      caption: message.caption || "",
+    };
+  }
+
+  // VIDEO NOTE (circular video bubble)
+  if (message?.video_note) {
+    return { type: "video_note", fileId: message.video_note.file_id, caption: "" };
+  }
+
+  return null;
+}
+
+/**
+ * Build GTWY completion media fields.
+ * Image/audio → user_urls only (do NOT send files: [] — Python treats [] as falsy and
+ * copies all user_urls into files, which breaks OpenAI with .oga/.ogg).
+ * PDF → user_urls type pdf + files: [url].
+ * Video direct CDN URLs are NOT supported.
+ */
+function buildGtwyMediaFields(media, mediaUrl) {
+  if (!media || !mediaUrl) return {};
+
+  if (media.type === "photo") {
+    return {
+      user_urls: [{ url: mediaUrl, type: "image", source: "user" }],
+    };
+  }
+
+  if (media.type === "voice" || media.type === "audio") {
+    return {
+      user_urls: [{ url: mediaUrl, type: "audio", source: "user" }],
+    };
+  }
+
+  if (media.type === "document") {
+    const mime = String(media.mime || "");
+    const name = String(media.fileName || "");
+    if (mime.startsWith("image/")) {
+      return { user_urls: [{ url: mediaUrl, type: "image", source: "user" }] };
+    }
+    if (mime.startsWith("audio/") || /\.(ogg|oga|mp3|wav|m4a|opus)$/i.test(name)) {
+      return { user_urls: [{ url: mediaUrl, type: "audio", source: "user" }] };
+    }
+    if (mime.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(name)) {
+      return { unsupportedVideo: true };
+    }
+    return {
+      user_urls: [{ url: mediaUrl, type: "pdf", source: "user" }],
+      files: [mediaUrl],
+    };
+  }
+
+  if (media.type === "video" || media.type === "video_note") {
+    return { unsupportedVideo: true };
+  }
+
+  return {};
+}
+
+function defaultThreadId(chatId) {
+  return `tg_${chatId}`;
+}
+
+function createFreshThreadId(chatId) {
+  const suffix = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  return `tg_${chatId}_${suffix}`;
+}
+
+function resolveStoredThreadId(channel, chatId) {
+  const stored = channel?.telegram?.chatThreads?.[chatThreadKey(chatId)];
+  return stored || defaultThreadId(chatId);
+}
+
+async function resetChatThread(collection, versionId, chatId) {
+  const threadId = createFreshThreadId(chatId);
+  await collection.updateOne(
+    { version_id: versionId },
+    {
+      $set: {
+        [`telegram.chatThreads.${chatThreadKey(chatId)}`]: threadId,
+        updated_at: new Date(),
+      },
+    }
+  );
+  return threadId;
+}
+
+function parseSlashCommand(text) {
+  const raw = String(text || "").trim();
+  if (!raw.startsWith("/")) return null;
+  // /new_thread@BotName → /new_thread
+  const token = raw.split(/\s+/)[0] || "";
+  const cmd = token.split("@")[0].toLowerCase();
+  return cmd || null;
+}
+
+/** Safe summary of inbound Telegram update for debug logs. */
+function summarizeTelegramUpdate(update) {
+  const message = update?.message || update?.edited_message || update?.channel_post || null;
+  if (!message) {
+    return {
+      update_id: update?.update_id,
+      keys: update && typeof update === "object" ? Object.keys(update) : [],
+    };
+  }
+
+  const photo = Array.isArray(message.photo)
+    ? message.photo.map((p) => ({
+        file_id: p?.file_id,
+        width: p?.width,
+        height: p?.height,
+        file_size: p?.file_size,
+      }))
+    : null;
+
+  return {
+    update_id: update?.update_id,
+    message_id: message.message_id,
+    chat: { id: message.chat?.id, type: message.chat?.type, title: message.chat?.title },
+    from: { id: message.from?.id, username: message.from?.username },
+    text: message.text ?? null,
+    caption: message.caption ?? null,
+    has: {
+      photo: Boolean(photo?.length),
+      voice: Boolean(message.voice),
+      audio: Boolean(message.audio),
+      video: Boolean(message.video),
+      video_note: Boolean(message.video_note),
+      document: Boolean(message.document),
+      sticker: Boolean(message.sticker),
+    },
+    photo,
+    voice: message.voice
+      ? { file_id: message.voice.file_id, duration: message.voice.duration, mime_type: message.voice.mime_type }
+      : null,
+    audio: message.audio
+      ? {
+          file_id: message.audio.file_id,
+          duration: message.audio.duration,
+          mime_type: message.audio.mime_type,
+          file_name: message.audio.file_name,
+        }
+      : null,
+    video: message.video
+      ? {
+          file_id: message.video.file_id,
+          duration: message.video.duration,
+          width: message.video.width,
+          height: message.video.height,
+          mime_type: message.video.mime_type,
+        }
+      : null,
+    document: message.document
+      ? {
+          file_id: message.document.file_id,
+          file_name: message.document.file_name,
+          mime_type: message.document.mime_type,
+          file_size: message.document.file_size,
+        }
+      : null,
+  };
+}
+
 /**
  * GTWY SSE — onDelta is sync (must not await Telegram).
  * Skips `reasoning` events. onStart keeps Thinking… alive (does not clear it).
@@ -192,6 +480,8 @@ function extractGtwyErrorMessage(data, status, rawText = "") {
 
   const fromFields =
     pick(data?.error) ||
+    pick(data?.error?.error) ||
+    (typeof data?.error?.message === "string" ? data.error.message.trim() : null) ||
     pick(data?.message) ||
     pick(data?.detail) ||
     pick(data?.msg) ||
@@ -212,19 +502,22 @@ function extractGtwyErrorMessage(data, status, rawText = "") {
   return `GTWY failed (${status})`;
 }
 
-async function streamGtwyCompletion({ versionId, userText, threadId, onDelta, onStart }) {
+async function streamGtwyCompletion({ versionId, userText, threadId, extraFields, botToken, onDelta, onStart }) {
   const pythonUrl = (process.env.NEXT_PUBLIC_PYTHON_SERVER_URL || "").replace(/\/$/, "");
   const pauthkey = process.env.GTWY_PAUTH_KEY || process.env.ACCESS_KEY;
   if (!pythonUrl) throw new Error("NEXT_PUBLIC_PYTHON_SERVER_URL is not set");
   if (!pauthkey) throw new Error("GTWY_PAUTH_KEY is not set");
 
   const payload = {
-    user: userText,
+    user: userText || "",
     version_id: versionId,
     response_type: "text",
     stream: true,
+    ...(extraFields || {}),
   };
   if (threadId) payload.thread_id = String(threadId);
+
+  console.log("[tg] GTWY payload", JSON.stringify(maskGtwyPayloadForLog(payload, botToken)));
 
   const response = await fetch(`${pythonUrl}/api/v2/model/chat/completion`, {
     method: "POST",
@@ -333,11 +626,15 @@ export async function POST(request) {
     const versionId = searchParams.get("version_id");
     const update = await request.json().catch(() => ({}));
 
+    // Log everything Telegram sends (file_ids only — no bot-token URLs yet)
+    console.log("[tg] webhook raw update", JSON.stringify(update));
+    console.log("[tg] webhook summary", summarizeTelegramUpdate(update));
+
     const message = update?.message || update?.edited_message;
     const chatId = message?.chat?.id;
-    const userText = message?.text;
 
-    if (!userText || chatId == null) {
+    if (chatId == null) {
+      console.log("[tg] skipped: no chatId", { versionId, update_id: update?.update_id });
       return NextResponse.json({ ok: true, skipped: true });
     }
 
@@ -355,10 +652,101 @@ export async function POST(request) {
     }
 
     const botToken = decryptSecret(channel.telegram.botToken);
-    const threadId = `tg_${chatId}`;
+
+    // /new_thread — rotate GTWY thread_id only (do not delete Telegram messages)
+    const slash = parseSlashCommand(message?.text);
+    if (slash && NEW_THREAD_COMMANDS.has(slash)) {
+      const previousThreadId = resolveStoredThreadId(channel, chatId);
+      const threadId = await resetChatThread(collection, versionId, chatId);
+      console.log("[tg] new_thread", { chatId, versionId, previousThreadId, threadId });
+      await sendMessage(botToken, chatId, "New thread started. Previous conversation context has been cleared.");
+      return NextResponse.json({
+        ok: true,
+        new_thread: true,
+        thread_id: threadId,
+      });
+    }
+
+    const userText = message?.text || "";
+    const media = extractIncomingMedia(message || {});
+
+    if (!userText && !media) {
+      console.log("[tg] skipped: no text/caption/attachment", {
+        chatId,
+        update_id: update?.update_id,
+      });
+      return NextResponse.json({ ok: true, skipped: true });
+    }
+
+    let mediaUrl = null;
+    let extraFields = {};
+    if (media) {
+      console.log("[tg] media received", {
+        type: media.type,
+        chatId,
+        mime: media.mime || null,
+        fileName: media.fileName || null,
+      });
+
+      // GTWY does not accept direct downloadable Telegram video URLs via user_urls
+      if (media.type === "video" || media.type === "video_note") {
+        console.warn("[tg] video skipped — direct video URLs not supported by GTWY user_urls");
+        await sendMessage(
+          botToken,
+          chatId,
+          "Sorry, Telegram video files aren't supported yet. Please send a YouTube link, or an image / voice note / audio / PDF."
+        );
+        return NextResponse.json({ ok: true, skipped: true, reason: "video_not_supported" });
+      }
+
+      try {
+        mediaUrl = await getTelegramFileUrl(botToken, media.fileId);
+        console.log("[tg] media resolved", {
+          type: media.type,
+          chatId,
+          urlMasked: mediaUrl.replace(botToken, "***"),
+        });
+      } catch (err) {
+        console.error("[tg] getFile failed", {
+          type: media?.type,
+          error: err.message,
+          desc: err.telegramDescription || null,
+        });
+        const msg =
+          err.message === "FILE_TOO_BIG"
+            ? "Sorry, that file is too large for Telegram (max 20MB). Please send a smaller file."
+            : "Sorry, I couldn't process that file. Please try again.";
+        await sendMessage(botToken, chatId, msg);
+        return NextResponse.json({ ok: true, error: "getFile_failed" });
+      }
+
+      extraFields = buildGtwyMediaFields(media, mediaUrl);
+      if (extraFields.unsupportedVideo) {
+        await sendMessage(
+          botToken,
+          chatId,
+          "Sorry, Telegram video files aren't supported yet. Please send a YouTube link, or an image / voice note / audio / PDF."
+        );
+        return NextResponse.json({ ok: true, skipped: true, reason: "video_not_supported" });
+      }
+    }
+
+    // Caption for media, else text. Audio with no caption needs a prompt for GTWY.
+    const userMessage = media
+      ? media.caption || userText || (media.type === "voice" || media.type === "audio" ? "Transcribe this" : "")
+      : userText;
+
+    const threadId = resolveStoredThreadId(channel, chatId);
     const draftId = Math.abs(Number(update?.update_id) || Date.now()) % 2147483646 || 1;
 
-    console.log("[tg] HIT", { chatId, versionId, draftId, chunkThreshold: DRAFT_CHUNK_THRESHOLD });
+    console.log("[tg] HIT", {
+      chatId,
+      versionId,
+      draftId,
+      chunkThreshold: DRAFT_CHUNK_THRESHOLD,
+      hasAttachment: Boolean(media),
+      attachmentKind: media?.type || null,
+    });
 
     const probe = await sendDraft(botToken, chatId, draftId, "");
     if (!probe?.ok) {
@@ -378,8 +766,10 @@ export async function POST(request) {
     try {
       const result = await streamGtwyCompletion({
         versionId: channel.version_id,
-        userText,
+        userText: userMessage,
         threadId,
+        extraFields,
+        botToken,
         // Refresh Thinking… on start — do not clear the loader
         onStart: () => {
           if (probe?.ok) {
@@ -395,23 +785,40 @@ export async function POST(request) {
     } catch (err) {
       const errMsg = String(err?.message || err || "").trim();
       console.error("[tg] GTWY error", errMsg);
-      // Prefer real GTWY error text; dummy only if nothing useful
-      replyText = errMsg || "Sorry, something went wrong generating a response.";
+      // Don't dump raw HTTP/JSON errors into Telegram chat
+      if (/unsupported_file/i.test(errMsg)) {
+        replyText =
+          "Sorry, this agent couldn't process that audio file. Use a Gemini / Deepgram / Mistral model for voice, or send an image or PDF.";
+      } else if (/^HTTP \d+/i.test(errMsg) || errMsg.trim().startsWith("{")) {
+        replyText = "Sorry, something went wrong generating a response.";
+      } else {
+        replyText = errMsg || "Sorry, something went wrong generating a response.";
+      }
     }
 
     const FALLBACK_MSG = "Sorry, I could not generate a response.";
-    const finalText = stripReasoning(replyText || "").trim();
+    // Never echo Telegram CDN / uploaded file URLs back to the user (text or media)
+    const stripTelegramFileUrls = (text) =>
+      String(text || "")
+        .replace(/https?:\/\/api\.telegram\.org\/file\/bot\S+/gi, "")
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    const finalText = stripTelegramFileUrls(stripReasoning(replyText || ""));
+    const outboundImages = (images || []).filter(
+      (url) => typeof url === "string" && url && !/api\.telegram\.org\/file\/bot/i.test(url)
+    );
     const stats = probe?.ok
-      ? await streamer.finish(finalText || (images.length ? " " : FALLBACK_MSG))
+      ? await streamer.finish(finalText || (outboundImages.length ? " " : FALLBACK_MSG))
       : (streamer.stop(), { sentCount: 0, text: finalText });
 
     // Images → sendPhoto; long text goes as follow-up messages (split at 4096)
-    if (images.length > 0) {
-      for (let i = 0; i < images.length; i++) {
-        const photoRes = await sendPhoto(botToken, chatId, images[i], undefined);
+    if (outboundImages.length > 0) {
+      for (let i = 0; i < outboundImages.length; i++) {
+        const photoRes = await sendPhoto(botToken, chatId, outboundImages[i], undefined);
         if (!photoRes?.ok) {
           console.error("[tg] sendPhoto failed", photoRes?.description);
-          await sendMessage(botToken, chatId, images[i]);
+          // Do not send the raw URL as text
         }
       }
       if (finalText) {
@@ -426,14 +833,15 @@ export async function POST(request) {
       drafts: stats.sentCount,
       chars: finalText.length,
       parts: splitTelegramText(finalText || "…").length,
-      images: images.length,
+      images: outboundImages.length,
+      skippedTelegramFileUrls: (images?.length || 0) - outboundImages.length,
     });
 
     return NextResponse.json({
       ok: true,
       drafts: stats.sentCount,
       chars: finalText.length,
-      images: images.length,
+      images: outboundImages.length,
     });
   } catch (error) {
     console.error("[tg] FATAL", error);

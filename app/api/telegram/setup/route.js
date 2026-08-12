@@ -4,6 +4,8 @@ import { encryptSecret, maskSecret, decryptSecret } from "@/lib/crypto";
 
 export const runtime = "nodejs";
 
+const DEFAULT_BOT_COMMANDS = [{ command: "new_thread", description: "Start a new thread" }];
+
 function buildWebhookUrl(versionId) {
   const base = (process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || "").replace(/\/$/, "");
   if (!base) return null;
@@ -23,7 +25,7 @@ function sanitizeChannel(doc) {
 
 /**
  * POST /api/telegram/setup
- * Body: { botToken, version_id, agent_id?, org_id? }
+ * Body: { botToken, version_id, agent_id?, org_id?, commands? }
  *
  * Webhook URL query params:
  *   - version_id  → agent version this bot is bound to
@@ -54,11 +56,14 @@ export async function POST(request) {
     const encryptedToken = encryptSecret(botToken);
 
     const collection = await getChannelDetailsCollection();
+    const existing = await collection.findOne({ version_id });
     const channelDoc = {
       telegram: {
         botToken: encryptedToken,
         webhookUrl,
         webhookSet: false,
+        // Keep per-chat GTWY thread map across re-setup
+        ...(existing?.telegram?.chatThreads ? { chatThreads: existing.telegram.chatThreads } : {}),
       },
       version_id,
       agent_id,
@@ -101,6 +106,26 @@ export async function POST(request) {
         "Webhook not registered yet — set TELEGRAM_WEBHOOK_BASE_URL to a public HTTPS URL (e.g. ngrok) and re-save.";
     }
 
+    // Best-effort slash-command menu (do not fail setup)
+    let commandsResult = null;
+    let commandsError = null;
+    try {
+      const commands = Array.isArray(body?.commands) && body.commands.length > 0 ? body.commands : DEFAULT_BOT_COMMANDS;
+      const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/setMyCommands`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commands }),
+      });
+      commandsResult = await tgRes.json().catch(() => ({}));
+      if (!commandsResult?.ok) {
+        commandsError = commandsResult?.description || "Telegram setMyCommands failed";
+        console.warn("telegram setMyCommands skipped:", commandsError);
+      }
+    } catch (err) {
+      commandsError = err.message;
+      console.warn("telegram setMyCommands skipped:", err?.message || err);
+    }
+
     const saved = await collection.findOne({ version_id });
 
     return NextResponse.json({
@@ -113,6 +138,11 @@ export async function POST(request) {
         result: webhookResult,
         message: webhookError,
       },
+      commands: {
+        registered: Boolean(commandsResult?.ok),
+        result: commandsResult,
+        message: commandsError,
+      },
     });
   } catch (error) {
     console.error("telegram setup error:", error);
@@ -122,7 +152,7 @@ export async function POST(request) {
 
 /**
  * DELETE /api/telegram/setup?version_id=...
- * Clears Telegram webhook (best-effort) and removes the channel document.
+ * Clears Telegram webhook + commands (best-effort) and removes the channel document.
  */
 export async function DELETE(request) {
   try {
@@ -138,11 +168,16 @@ export async function DELETE(request) {
       return NextResponse.json({ success: false, error: "Channel not found" }, { status: 404 });
     }
 
-    // Best-effort: remove webhook from Telegram using decrypted token
+    // Best-effort: remove webhook + commands from Telegram using decrypted token
     try {
       const token = decryptSecret(existing?.telegram?.botToken);
       if (token) {
         await fetch(`https://api.telegram.org/bot${token}/deleteWebhook`, { method: "POST" });
+        try {
+          await fetch(`https://api.telegram.org/bot${token}/deleteMyCommands`, { method: "POST" });
+        } catch (err) {
+          console.warn("telegram deleteMyCommands skipped:", err?.message || err);
+        }
       }
     } catch (err) {
       console.warn("telegram deleteWebhook skipped:", err?.message || err);
