@@ -6,9 +6,7 @@ export function UserPromptUI({ text, onClick }) {
   return (
     <div
       data-testid="user-prompt-ui"
-      className={`space-y-2 bg-base-100 flex flex-col items-center justify-center border-primary ${
-        isClickable ? "cursor-pointer" : ""
-      }`}
+      className={`space-y-2 bg-base-100 flex flex-col items-center justify-center border-primary ${isClickable ? "cursor-pointer" : ""}`}
       onClick={onClick}
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : undefined}
@@ -34,7 +32,7 @@ export function UserPromptUI({ text, onClick }) {
       </div>
       <div
         data-testid="userprompt-preview"
-        className="border border-base-300 hover:border-success p-3 hover:bg-success/10 cursor-pointer transition-all"
+        className="border-2 border-stroke hover:border-success p-3 hover:bg-success/10 cursor-pointer transition-all"
       >
         <p data-testid="userprompt-preview-text" className="text-sm text-base-content/80 line-clamp-3">
           {text}

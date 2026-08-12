@@ -55,13 +55,13 @@ const BatchResponseFormat = () => {
 const Section = ({ title, caption, children }) => (
   <div className="flex items-start flex-col justify-center">
     <h3 className="text-lg font-semibold">{title}</h3>
-    <p className="text-sm text-gray-600 block">{caption}</p>
+    <p className="text-sm text-soft block">{caption}</p>
     {children}
   </div>
 );
 
 const CodeSnippet = ({ code, language = "bash", id }) => (
-  <div data-testid={id} id={id} className="relative rounded-lg overflow-hidden border border-base-300">
+  <div data-testid={id} id={id} className="relative rounded-lg overflow-hidden border-2 border-stroke">
     <CodeBlock className={`language-${language}`}>{code}</CodeBlock>
   </div>
 );

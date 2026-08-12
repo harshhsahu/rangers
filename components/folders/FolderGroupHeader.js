@@ -31,9 +31,7 @@ export const FolderGroupHeader = ({ folderId, folderName, count, onMoveResource 
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => toggleGroupCollapse(folderId)}
-      className={`flex items-center justify-between px-4 py-3 bg-base-300/60 hover:bg-base-300 rounded-lg cursor-pointer transition-all duration-200 select-none border border-transparent ${
-        isDragOver ? "border-primary bg-primary/10 shadow-sm scale-[1.01]" : ""
-      }`}
+      className={`flex items-center justify-between px-4 py-3 bg-base-300/60 hover:bg-base-300 rounded-lg cursor-pointer transition-all duration-200 select-none border border-transparent ${isDragOver ? "border-primary bg-primary/10 shadow-sm scale-[1.01]" : ""}`}
     >
       <div className="flex items-center gap-3">
         {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}

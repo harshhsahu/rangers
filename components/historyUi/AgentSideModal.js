@@ -6,7 +6,7 @@ export function AgentSideModal({ agent, top, onClose }) {
         absolute left-full ml-4
         w-64
         h-60
-        border border-base-300
+        border-2 border-stroke
         bg-base-100
         p-3
         shadow
@@ -34,7 +34,7 @@ export function AgentSideModal({ agent, top, onClose }) {
           <div className="text-xs text-base-content/60 mb-1">TOOLS</div>
 
           {agent.parallelTools.map((tool) => (
-            <div key={tool} className="border border-base-300 px-2 py-1 text-xs mb-1 text-base-content">
+            <div key={tool} className="border-2 border-stroke px-2 py-1 text-xs mb-1 text-base-content">
               {tool}
             </div>
           ))}

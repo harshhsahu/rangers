@@ -6,7 +6,7 @@ const CollapsibleSection = ({ title, children, defaultOpen = true }) => {
   const sectionSlug = title.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div data-testid={`collapsible-section-wrapper-${sectionSlug}`} className="border-b border-base-300">
+    <div data-testid={`collapsible-section-wrapper-${sectionSlug}`} className="border-b-2 border-stroke">
       <button
         data-testid={`collapsible-section-${sectionSlug}`}
         className="w-full flex items-center justify-between p-4 text-left font-medium text-base-content hover:bg-base-200"
@@ -75,16 +75,13 @@ export function ToolFullSlider({ tool, onClose }) {
     <aside
       id="tool-full-slider"
       data-testid="tool-full-slider"
-      className={`sidebar-container fixed flex flex-col top-0 right-0 
-                  w-full md:w-1/2 lg:w-[50vw] min-w-[600px] h-screen 
-                  bg-base-100 transition-all duration-300 z-[999999] border-l border-base-300
-                  ${tool ? "translate-x-0" : "translate-x-full"}`}
+      className={`sidebar-container fixed flex flex-col top-0 right-0 w-full md:w-1/2 lg:w-[50vw] min-w-[600px] h-screen bg-base-100 transition-all duration-300 z-[999999] border-l-2 border-stroke ${tool ? "translate-x-0" : "translate-x-full"}`}
       aria-label="Tool Details Slider"
     >
       {/* Header */}
       <div
         data-testid="tool-full-slider-header"
-        className="flex items-center justify-between p-4 border-b border-base-300"
+        className="flex items-center justify-between p-4 border-b-2 border-stroke"
       >
         <button
           data-testid="tool-full-slider-back"
@@ -100,7 +97,7 @@ export function ToolFullSlider({ tool, onClose }) {
       </div>
 
       {/* Title */}
-      <div data-testid="tool-full-slider-title-section" className="px-6 py-4 border-b border-base-300">
+      <div data-testid="tool-full-slider-title-section" className="px-6 py-4 border-b-2 border-stroke">
         <h2 data-testid="tool-full-slider-title" className="text-xl font-semibold text-base-content">
           Run History
         </h2>
@@ -149,7 +146,7 @@ export function ToolFullSlider({ tool, onClose }) {
       </div>
 
       {/* Footer */}
-      <div data-testid="tool-full-slider-footer" className="flex justify-end p-4 border-t border-base-300 bg-base-200">
+      <div data-testid="tool-full-slider-footer" className="flex justify-end p-4 border-t-2 border-stroke bg-base-200">
         <button
           data-testid="tool-full-slider-close"
           onClick={onClose}

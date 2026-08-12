@@ -65,7 +65,7 @@ const BridgeTypeToggle = ({ params, searchParams, isEmbedUser, isPublished, isEd
       <div className="flex items-center gap-1">
         <span className="label-text font-medium">Agent Type</span>
         <InfoTooltip tooltipContent="Choose how users will interact with your AI agent - through API calls, chatbot interface, batch processing, or automated triggers.">
-          <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+          <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
         </InfoTooltip>
       </div>
 

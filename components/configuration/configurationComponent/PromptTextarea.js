@@ -120,18 +120,7 @@ const PromptTextarea = memo(
           data-testid="prompt-textarea-wrapper"
           id="prompt-textarea-wrapper"
           ref={wrapperRef}
-          className={`
-          bg-base-100 border flex
-          w-full relative rounded-b-none
-          transition-none p-0 m-0 overflow-hidden
-          ring-2 ring-transparent
-          focus-within:ring-2 focus-within:ring-base-content/20 box-border
-          ${
-            isPromptHelperOpen
-              ? "h-[calc(100vh-50px)] w-[700px] border-primary shadow-md resize-none"
-              : "h-96 min-h-96 border-base-content/20 resize-y"
-          }
-        `}
+          className={` bg-base-100 border-2 flex w-full relative rounded-b-none transition-none p-0 m-0 overflow-hidden focus-within: focus-within:-content/20 box-border-2 ${isPromptHelperOpen ? "h-[calc(100vh-50px)] w-[700px] border-primary shadow-md resize-none" : "h-96 min-h-96 border-stroke resize-y"} `}
         >
           <textarea
             data-testid="prompt-textarea"
@@ -140,12 +129,7 @@ const PromptTextarea = memo(
             disabled={isPublished || !isEditor || readOnly}
             readOnly={readOnly}
             contentEditable={!isPublished && isEditor && !readOnly}
-            className={`
-            w-full text-sm h-full min-h-full max-h-full resize-none bg-transparent border-none
-            caret-base-content outline-none overflow-auto p-2
-            ${readOnly ? "cursor-not-allowed opacity-70" : ""}
-            ${className}
-          `}
+            className={` w-full text-sm h-full min-h-full max-h-full resize-none bg-transparent border-none caret-base-content outline-none overflow-auto p-2 ${readOnly ? "cursor-not-allowed opacity-70" : ""} ${className} `}
             onBlur={handleBlur}
             onChange={handleChange}
             onFocus={handleFocus}

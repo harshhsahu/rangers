@@ -51,10 +51,10 @@ const ModelBadge = ({ model, service, modelsConfig }) => {
 
   return (
     <span
-      className="mt-1 inline-flex w-fit max-w-xs items-center gap-1 rounded-full border border-base-300/70 bg-base-200/60 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-base-content/60"
+      className="inline-flex w-fit max-w-xs items-center gap-1 self-start rounded-[5px] border-[1.5px] border-line px-1.5 py-[2px] font-mono text-[9.5px] text-soft"
       title={displayName || model}
     >
-      <span className="truncate text-base-content/70 normal-case max-w-[140px]">{displayName || model}</span>
+      <span className="truncate max-w-[140px]">{displayName || model}</span>
     </span>
   );
 };
@@ -68,9 +68,9 @@ const formatUsageNumber = (value, maximumFractionDigits = 2) => {
 const UsageProgressDonut = ({ percent, label }) => (
   <div className="relative h-16 w-16">
     <div
-      className="h-full w-full rounded-full border border-base-300 bg-base-200"
+      className="h-full w-full rounded-full border-2 border-stroke bg-base-200"
       style={{
-        background: `conic-gradient(#3b82f6 ${percent}%, rgba(59,130,246,0.15) ${percent}% 100%)`,
+        background: `conic-gradient(var(--acc) ${percent}%, var(--line) ${percent}% 100%)`,
       }}
     />
     <div className="absolute inset-[6px] flex items-center justify-center rounded-full bg-base-100 text-xs font-semibold text-base-content/70">
@@ -241,7 +241,7 @@ const renderCreatedByCell = (createdBy, timestamp) => {
   // If timestamp exists, show user name with date on hover
   return (
     <div className="group cursor-help w-[120px]">
-      <span title={createdBy} className="group-hover:hidden  truncate block flex-1">
+      <span title={createdBy} className="group-hover:hidden truncate block flex-1">
         {createdBy}
       </span>
       <span title={createdBy} className="hidden group-hover:inline">
@@ -298,8 +298,8 @@ const renderLimitCell = (limit) => {
 // Footer Component
 const PoweredByFooter = () => {
   return (
-    <footer className="w-full py-4 border-t border-base-300">
-      <div className="flex justify-center items-center gap-2  font-medium opacity-50 text-sm text-base-content/70">
+    <footer className="w-full py-4 border-t-2 border-stroke">
+      <div className="flex justify-center items-center gap-2 font-medium opacity-50 text-sm text-base-content/70">
         <span>Powered by</span>
         <a
           href="https://gtwy.ai"
@@ -373,6 +373,15 @@ function Home({ params, searchParams, isEmbedUser }) {
       setParam("folder", null, { replace: true });
     }
   }, [resolvedSearchParams?.folder, setActiveFolderId, setParam]);
+
+  // The sidebar's "+ Create new agent" routes here with ?create=1 because the
+  // CreateNewBridge modal is only mounted on this page.
+  useEffect(() => {
+    if (resolvedSearchParams?.create) {
+      openModal(MODAL_TYPE?.CREATE_BRIDGE_MODAL);
+      setParam("create", null, { replace: true });
+    }
+  }, [resolvedSearchParams?.create, setParam]);
 
   // Initialize with empty array instead of typeFilteredBridges to avoid reference error
   const [filterBridges, setFilterBridges] = useState([]);
@@ -640,25 +649,23 @@ function Home({ params, searchParams, isEmbedUser }) {
         _id: item._id,
         model: item.configuration?.model || "",
         name: (
-          <div className="flex gap-3 items-center">
-            <div className="flex gap-2 items-center">
+          <div className="flex gap-[10px] items-center min-w-0">
+            <div className="grid h-[30px] w-[30px] flex-none place-items-center rounded-[9px] border-2 border-stroke bg-cool">
               {loadingAgentId === item._id ? (
-                <div className="loading loading-spinner loading-sm"></div>
+                <div className="loading loading-spinner loading-xs"></div>
               ) : (
-                getIconOfService(item.service, 20, 20)
+                getIconOfService(item.service, 16, 16)
               )}
             </div>
-            <div className="flex-col" title={item.name}>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2 w-[300px]">
-                  <span className="truncate block flex-1">{item.name}</span>
-                  {item.bridge_status === 0 && (
-                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
-                      <ClockIcon size={12} />
-                      <span className="hidden sm:inline">Paused</span>
-                    </div>
-                  )}
-                </div>
+            <div className="flex flex-col gap-[3px] min-w-0" title={item.name}>
+              <div className="flex items-center gap-2 w-[300px]">
+                <span className="truncate block flex-1 font-mono text-[13px] font-bold">{item.name}</span>
+                {item.bridge_status === 0 && (
+                  <div className="badge badge-warning gap-1">
+                    <ClockIcon size={10} />
+                    <span className="hidden sm:inline">Paused</span>
+                  </div>
+                )}
               </div>
               <ModelBadge model={item.configuration?.model} service={item.service} modelsConfig={modelsConfig} />
             </div>
@@ -1040,7 +1047,7 @@ function Home({ params, searchParams, isEmbedUser }) {
           </button>
         </li>
 
-        <li className="mt-1 border-t border-base-200" />
+        <li className="mt-1 border-t-2 border-stroke" />
 
         <li>
           <button
@@ -1085,7 +1092,7 @@ function Home({ params, searchParams, isEmbedUser }) {
       const isNearBottom = rect.bottom + 550 > window.innerHeight;
 
       const dropdownContent = (
-        <div className="bg-base-100 rounded-box w-52 shadow-2xl p-1 border border-base-300">
+        <div className="bg-base-100 rounded-box w-52 shadow-2xl p-1 border-2 border-stroke">
           <AgentMenuItems
             bridge={row}
             bridgeData={row}
@@ -1187,7 +1194,7 @@ function Home({ params, searchParams, isEmbedUser }) {
               restoreBridge(row._id);
             }}
           >
-            <span className="flex items-center  gap-1">
+            <span className="flex items-center gap-1">
               <div className="flex text-xs items-center gap-1">
                 <Undo2 size={12} />
               </div>
@@ -1274,22 +1281,20 @@ function Home({ params, searchParams, isEmbedUser }) {
                           <button
                             type="button"
                             data-testid="agents-usage-filter-button"
-                            className="btn btn-outline btn-ghost text-sm btn-sm border border-base-300 gap-1"
+                            className="cursor-pointer rounded-full border-2 border-stroke bg-card px-[14px] py-[7px] font-mono text-[11.5px] text-ink flex items-center gap-1.5"
                             onClick={handleUsageFilterDropdownClick}
                           >
-                            <Funnel size={14} />
-                            <span>Usage Filter</span>
-                            <span className="text-xs text-gray-500">
-                              {isUsageFilterActive ? usageFilterLabel || "Last 24h" : "Last 24h"}
-                            </span>
+                            <Funnel size={13} />
+                            <span>Usage filter ·</span>
+                            <span>{isUsageFilterActive ? usageFilterLabel || "last 24h" : "last 24h"}</span>
                           </button>
 
                           <button
                             data-testid="create-new-agent-button"
-                            className="btn btn-primary btn-sm"
+                            className="cursor-pointer rounded-full border-2 border-stroke bg-acc px-4 py-2 text-[13.5px] font-bold text-acc-ink"
                             onClick={() => openModal(MODAL_TYPE?.CREATE_BRIDGE_MODAL)}
                           >
-                            + Create New Agent
+                            + Create new agent
                           </button>
                         </div>
                       </div>
@@ -1404,7 +1409,7 @@ function Home({ params, searchParams, isEmbedUser }) {
                 <div
                   ref={usageFilterPopoverRef}
                   data-testid="agents-usage-filter-popover"
-                  className="w-72 rounded-2xl border border-base-300 bg-base-100 p-4 shadow-2xl space-y-3"
+                  className="w-72 rounded-2xl border-2 border-stroke bg-base-100 p-4 shadow-2xl space-y-3"
                 >
                   <div className="flex items-start justify-between">
                     <div>

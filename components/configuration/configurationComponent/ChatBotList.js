@@ -32,7 +32,7 @@ const ChatBotList = ({ params }) => {
               id={`chatbot-card-${chatBot._id}`}
               key={index}
               onClick={() => router.push(`/org/${params.org_id}/chatbot/configure/${chatBot._id}`)}
-              className="flex max-w-xs flex-col items-center rounded-md border border-base-300 md:flex-row cursor-pointer transform transition duration-150 ease-in-out hover:bg-base-200"
+              className="flex max-w-xs flex-col items-center rounded-md border-2 border-stroke md:flex-row cursor-pointer transform transition duration-150 ease-in-out hover:bg-base-200"
             >
               <div>
                 <div className="p-4">

@@ -19,7 +19,7 @@ export function FinalResponseUI({ status, preview, onClick }) {
           type="button"
           data-testid="final-response-preview-button"
           onClick={onClick}
-          className="text-left w-full border border-base-300 bg-base-100 p-2 text-xs text-base-content hover:bg-base-200"
+          className="text-left w-full border-2 border-stroke bg-base-100 p-2 text-xs text-base-content hover:bg-base-200"
         >
           {preview}
         </button>

@@ -60,10 +60,7 @@ export default function TableComponent({
           {data.map((row, rowIdx) => (
             <tr
               key={rowIdx}
-              className={`
-                                border-b border-base-content/5 last:border-0
-                                ${hover ? "hover:bg-base-200/50 transition-colors" : ""}
-                            `}
+              className={` border-b-2 border-stroke last:border-0 ${hover ? "hover:bg-base-200/50 transition-colors" : ""} `}
             >
               {columns.map((col, colIdx) => {
                 const isObj = typeof col === "object" && col !== null;

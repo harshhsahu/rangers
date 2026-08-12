@@ -34,7 +34,7 @@ const SlugNameInput = ({ params }) => {
         onBlur={handleSlugNameChange}
       />
       <div className="label">
-        <span className="label-text-alt text-gray-500">Slugname must be unique</span>
+        <span className="label-text-alt text-soft">Slugname must be unique</span>
       </div>
     </label>
   );

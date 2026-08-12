@@ -62,7 +62,7 @@ export default function NotFound() {
           </button>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-base-content/10">
+        <div className="mt-16 pt-8 border-t-2 border-stroke">
           <p className="font-mono text-xs text-base-content/40 tracking-wider">ERROR_CODE: 404_PAGE_NOT_FOUND</p>
         </div>
       </div>

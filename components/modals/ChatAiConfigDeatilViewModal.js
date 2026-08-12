@@ -64,9 +64,9 @@ function JsonSection({ label, data, count, fullHeight = false }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-lg border border-base-content/10">
+    <section className="overflow-hidden rounded-lg border-2 border-stroke">
       <div
-        className="flex items-center justify-between gap-2 border-b border-base-content/10 px-3 py-2"
+        className="flex items-center justify-between gap-2 border-b-2 border-stroke px-3 py-2"
         style={{ background: "var(--ai-config-section-header)" }}
       >
         <div className="flex items-center gap-2">

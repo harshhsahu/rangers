@@ -109,7 +109,7 @@ const McpServerList = ({ params, searchParams, isPublished, isEditor = true }) =
         <div className="flex items-center gap-2">
           <p className="text-sm whitespace-nowrap">MCP Servers</p>
           <InfoTooltip tooltipContent="Connect MCP servers so this agent can use their tools at runtime.">
-            <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+            <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
           </InfoTooltip>
         </div>
       </div>
@@ -123,9 +123,7 @@ const McpServerList = ({ params, searchParams, isPublished, isEditor = true }) =
               return (
                 <div
                   key={index}
-                  className={`group relative bg-base-200/40 border rounded-lg p-3 space-y-2 transition-all hover:bg-base-200/60 ${
-                    isEdited ? "border-warning" : "border-base-300"
-                  }`}
+                  className={`group relative bg-base-200/40 border-2 rounded-lg p-3 space-y-2 transition-all hover:bg-base-200/60 ${isEdited ? "border-warning" : "border-stroke"}`}
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -184,7 +182,7 @@ const McpServerList = ({ params, searchParams, isPublished, isEditor = true }) =
               <button
                 type="button"
                 onClick={handleAdd}
-                className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-base-200 bg-transparent text-base-content/70 transition-all"
+                className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-stroke bg-transparent text-base-content/70 transition-all"
               >
                 <Plus size={14} />
                 Add Another MCP
@@ -196,7 +194,7 @@ const McpServerList = ({ params, searchParams, isPublished, isEditor = true }) =
             <button
               type="button"
               onClick={handleAdd}
-              className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-base-200 bg-transparent text-base-content/70 transition-all"
+              className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-stroke bg-transparent text-base-content/70 transition-all"
             >
               <Plus size={14} />
               Add MCP Configuration
@@ -204,7 +202,7 @@ const McpServerList = ({ params, searchParams, isPublished, isEditor = true }) =
           )
         )}
         {isReadOnly && servers.length === 0 && (
-          <div className="border-2 border-base-200 border-dashed p-4 text-center">
+          <div className="rounded-[8px] border-2 border-dashed border-stroke p-4 text-center">
             <p className="text-sm text-base-content/70">No MCP servers configured.</p>
           </div>
         )}

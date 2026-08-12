@@ -53,7 +53,7 @@ const DefaultVariablesSection = memo(
       <div
         data-testid="default-variables-section"
         id="default-variables-section"
-        className="bg-gradient-to-r bg-base-1 border-t-0 border border-base-content/10 rounded-t-none"
+        className="bg-gradient-to-r bg-base-1 border-t-0 border-2 border-stroke rounded-t-none"
       >
         {/* Header - Always visible */}
         <div
@@ -103,15 +103,13 @@ const DefaultVariablesSection = memo(
           </div>
           <ChevronDownIcon
             size={14}
-            className={`text-base-content/60 hover:text-base-content transition-transform duration-200 ${
-              isExpanded ? "rotate-180" : ""
-            }`}
+            className={`text-base-content/60 hover:text-base-content transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
           />
         </div>
 
         {/* Expandable Content */}
         {isExpanded && (
-          <div className="border-t border-base-content/10 p-3 bg-base-50">
+          <div className="border-t-2 border-stroke p-3 bg-base-50">
             {/* Default Variables Info */}
             <div className="mb-4">
               <h4 className="text-sm font-medium text-base-content mb-2">Default Variables:</h4>

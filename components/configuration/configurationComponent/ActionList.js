@@ -54,7 +54,7 @@ function ActionList({ params, searchParams, isPublished, isEditor = true }) {
       <div className="flex items-center gap-1">
         <label className="label font-medium whitespace-nowrap">Action</label>
         <InfoTooltip tooltipContent="Action is a task or operation executed in response to a trigger or event, often used to perform a defined outcome such as sending or processing data.">
-          <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+          <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
         </InfoTooltip>
       </div>
       <div data-testid="action-cards-wrapper" id="action-cards-wrapper" className="flex flex-wrap gap-4">
@@ -66,7 +66,7 @@ function ActionList({ params, searchParams, isPublished, isEditor = true }) {
                 data-testid={`action-card-${key}`}
                 id={`action-card-${key}`}
                 key={key}
-                className="flex w-[250px] mb-4 flex-col items-start rounded-md border border-base-300 hover:bg-base-200 md:flex-row cursor-pointer"
+                className="flex w-[250px] mb-4 flex-col items-start rounded-md border-2 border-stroke hover:bg-base-200 md:flex-row cursor-pointer"
                 onClick={() => {
                   setSelectedKey(key);
                   openModal(MODAL_TYPE.ACTION_MODAL);

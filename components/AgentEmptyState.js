@@ -80,7 +80,7 @@ const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "api", title,
           <div
             data-testid="agent-empty-video-section"
             id="agent-empty-video-section"
-            className=" rounded-2xl p-6 border border-base-300/50"
+            className=" rounded-2xl p-6 border-2 border-stroke/50"
           >
             <div className="text-center mb-3">
               <h2 className="text-lg mb-4 font-bold text-base-content">Watch How to Create Your First Agent</h2>

@@ -172,7 +172,7 @@ const ModelGardenPage = ({ params }) => {
   return (
     <div className="h-full flex flex-col">
       {/* Page Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-base-300">
+      <div className="px-6 pt-6 pb-4 border-b-2 border-stroke">
         <div className="flex items-center gap-3 mb-1">
           <Sparkles size={24} className="text-primary" />
           <h1 className="text-2xl font-bold">Model Garden</h1>
@@ -185,8 +185,8 @@ const ModelGardenPage = ({ params }) => {
       {/* Main Content: Inner Sidebar + Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Inner Sidebar - Service List */}
-        <div className="w-56 border-r border-base-300 flex flex-col bg-base-100 overflow-y-auto shrink-0">
-          <div className="p-3 border-b border-base-300">
+        <div className="w-56 border-r-2 border-stroke flex flex-col bg-base-100 overflow-y-auto shrink-0">
+          <div className="p-3 border-b-2 border-stroke">
             <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Services</h3>
           </div>
           <div className="flex-1 overflow-y-auto p-1">
@@ -202,9 +202,7 @@ const ModelGardenPage = ({ params }) => {
                   <button
                     key={key}
                     onClick={() => handleServiceClick(key)}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-all duration-150 ${
-                      isActive ? "bg-primary text-primary-content" : "hover:bg-base-200 text-base-content"
-                    }`}
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-all duration-150 ${isActive ? "bg-primary text-primary-content" : "hover:bg-base-200 text-base-content"}`}
                   >
                     <span className="truncate capitalize">{displayName}</span>
                     <ChevronRight size={14} className="shrink-0 opacity-50" />
@@ -237,7 +235,7 @@ const ModelGardenPage = ({ params }) => {
               }}
             >
               {/* Panel Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-base-300">
+              <div className="flex items-center justify-between px-5 py-4 border-b-2 border-stroke">
                 <div>
                   <h2 className="text-lg font-semibold capitalize">{selectedService}</h2>
                   <p className="text-xs text-base-content/50 mt-0.5">
@@ -251,7 +249,7 @@ const ModelGardenPage = ({ params }) => {
 
               {/* Search Bar */}
               {modelRows.length > 5 && (
-                <div className="px-5 py-3 border-b border-base-300">
+                <div className="px-5 py-3 border-b-2 border-stroke">
                   <div className="relative">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
                     <input
@@ -358,13 +356,13 @@ const ModelGardenPage = ({ params }) => {
       {/* ------------------------------------------------------------------ */}
       <aside
         id={SLIDER_ID}
-        className="sidebar-container fixed flex flex-col top-0 right-0 w-full md:w-2/5 h-screen translate-x-full overflow-y-auto bg-base-100 transition-all duration-300 z-high border-l border-base-300 shadow-lg"
+        className="sidebar-container fixed flex flex-col top-0 right-0 w-full md:w-2/5 h-screen translate-x-full overflow-y-auto bg-base-100 transition-all duration-300 z-high border-l-2 border-stroke shadow-lg"
         aria-label="Model Details"
       >
         {selectedModel && (
           <>
             {/* Slider Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-base-300 sticky top-0 bg-base-100 z-10">
+            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-stroke sticky top-0 bg-base-100 z-10">
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-semibold truncate">{selectedModel.name}</h2>
               </div>
@@ -377,7 +375,7 @@ const ModelGardenPage = ({ params }) => {
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-4">
                 {detailFields.map(({ label, value }) => (
-                  <div key={label} className="border-b border-base-200 pb-3">
+                  <div key={label} className="border-b-2 border-stroke pb-3">
                     <dt className="text-xs font-medium text-base-content/50 uppercase tracking-wider mb-1">{label}</dt>
                     <dd className="text-sm text-base-content break-words">{value}</dd>
                   </div>

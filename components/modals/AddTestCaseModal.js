@@ -269,7 +269,7 @@ function AddTestCaseModal({ testCaseConversation, setTestCaseConversation, chann
       <form id="add-testcase-modal-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="space-y-4">
           {/* Test Case Name Section */}
-          <div className="space-y-2 bg-base-50 rounded-lg p-4 border border-base-200">
+          <div className="space-y-2 bg-base-50 rounded-lg p-4 border-2 border-stroke">
             <label className="text-sm font-semibold text-base-content">Test Case Name</label>
             <input
               data-testid="add-testcase-name-input"
@@ -283,11 +283,11 @@ function AddTestCaseModal({ testCaseConversation, setTestCaseConversation, chann
           </div>
           {/* Variables Section */}
           {Object.keys(editableVariables).length > 0 && (
-            <div className="space-y-3 bg-base-50 rounded-lg p-4 border border-base-200">
+            <div className="space-y-3 bg-base-50 rounded-lg p-4 border-2 border-stroke">
               <div className="text-sm font-semibold text-base-content mb-4">Variables</div>
               <div className="space-y-3">
                 {Object.entries(editableVariables).map(([key, value]) => (
-                  <div key={key} className="bg-base-100 rounded-lg p-3 border border-base-200">
+                  <div key={key} className="bg-base-100 rounded-lg p-3 border-2 border-stroke">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-semibold text-base-content mb-1 block">Key</label>
@@ -312,7 +312,7 @@ function AddTestCaseModal({ testCaseConversation, setTestCaseConversation, chann
 
           {/* User URLs Section */}
           {userUrlsList.length > 0 && (
-            <div className="space-y-3 bg-base-50 rounded-lg p-4 border border-base-200">
+            <div className="space-y-3 bg-base-50 rounded-lg p-4 border-2 border-stroke">
               <div className="text-sm font-semibold text-base-content mb-4">Attachments</div>
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {userUrlsList.map((urlObj, idx) => {
@@ -363,7 +363,7 @@ function AddTestCaseModal({ testCaseConversation, setTestCaseConversation, chann
                 data-testid="add-testcase-conversation-toggle"
                 type="button"
                 onClick={() => setShowFullConversation(!showFullConversation)}
-                className="w-full flex items-center justify-between bg-base-50 hover:bg-base-100 rounded-lg px-4 py-3 border border-base-200 transition-colors"
+                className="w-full flex items-center justify-between bg-base-50 hover:bg-base-100 rounded-lg px-4 py-3 border-2 border-stroke transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <span className="text-sm font-medium text-base-content">Conversation History</span>
@@ -375,7 +375,7 @@ function AddTestCaseModal({ testCaseConversation, setTestCaseConversation, chann
                 />
               </button>
               {showFullConversation && (
-                <div className="mt-3 bg-base-100 rounded-lg px-6 py-4 border border-base-200 space-y-4">
+                <div className="mt-3 bg-base-100 rounded-lg px-6 py-4 border-2 border-stroke space-y-4">
                   {getConversationPairs().map((pair, pairIndex) => (
                     <div key={pair.id || pairIndex} className="space-y-4">
                       {/* User Message */}
@@ -451,14 +451,14 @@ function AddTestCaseModal({ testCaseConversation, setTestCaseConversation, chann
         >
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase text-base-content tracking-wide">User Expected Output</div>
-            <div className="bg-base-50 rounded-lg border border-base-200 px-4 pt-3 pb-2">
+            <div className="bg-base-50 rounded-lg border-2 border-stroke px-4 pt-3 pb-2">
               <ExpandCollapse collapsedHeight={160} fadeHeight={60}>
                 <AutoResizeTextarea
                   data-testid="add-testcase-expected-output-textarea"
                   value={expectedOutputText}
                   onChange={(e) => setExpectedOutputText(e.target.value)}
                   placeholder="Enter the expected output..."
-                  className="w-full bg-base-100 rounded p-3 text-sm text-base-content leading-relaxed outline-none border-0 focus:ring-0"
+                  className="w-full bg-base-100 rounded p-3 text-sm text-base-content leading-relaxed outline-none border-0 "
                   rows={3}
                 />
               </ExpandCollapse>

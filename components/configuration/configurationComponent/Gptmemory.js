@@ -52,13 +52,16 @@ const GptMemory = ({ params, searchParams, isPublished, isEditor = true }) => {
 
   return (
     <div className="mt-4">
-      {/* Header Section */}
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-base-content text-sm text-base-content/60">
-          Configure conversation memory and context retention
-        </span>
+      {/* Header Section — bordered row, per the design's memory panel */}
+      <div className="mb-4 flex items-center justify-between gap-4 rounded-[11px] border-2 border-stroke bg-card px-[14px] py-3">
+        <div className="flex flex-col gap-[3px]">
+          <span className="text-[14.5px] font-bold text-ink">Configure conversation memory and context retention</span>
+          <span className="font-mono text-[10.5px] text-soft">
+            GPT memory · carried across calls with the same thread id
+          </span>
+        </div>
 
-        <label className="label cursor-pointer gap-2">
+        <label className="cursor-pointer">
           <input
             autoComplete="off"
             data-testid="gpt-memory-toggle"
@@ -66,7 +69,7 @@ const GptMemory = ({ params, searchParams, isPublished, isEditor = true }) => {
             type="checkbox"
             checked={gpt_memory}
             onChange={handleCheckboxChange}
-            className="toggle toggle-sm"
+            className="toggle"
             disabled={isReadOnly}
           />
         </label>
@@ -75,17 +78,17 @@ const GptMemory = ({ params, searchParams, isPublished, isEditor = true }) => {
       {/* Centered empty state when memory is off */}
       {!gpt_memory && (
         <div className="flex flex-col items-center justify-center py-20">
-          <Brain size={48} className="text-base-content/30 mb-4" strokeWidth={1.5} />
-          <p className="text-sm text-base-content/50">Turn on memory to save conversation context</p>
+          <Brain size={48} className="text-line mb-4" strokeWidth={1.5} />
+          <p className="text-[13.5px] text-soft">Turn on memory to save conversation context</p>
         </div>
       )}
 
       {/* Context Input when memory is on */}
       {gpt_memory && (
         <div>
-          <div className="mb-3">
-            <label className="text-sm font-medium text-base-content mb-1 block">Memory Context</label>
-            <p className="text-xs text-base-content/60 leading-relaxed">
+          <div className="mb-3 flex flex-col gap-[7px]">
+            <span className="text-[16px] font-extrabold tracking-[-0.02em] text-ink">Memory context</span>
+            <p className="text-[13.5px] leading-relaxed text-soft">
               Define what the AI should remember about your preferences and conversation style.
             </p>
           </div>
@@ -93,7 +96,7 @@ const GptMemory = ({ params, searchParams, isPublished, isEditor = true }) => {
             data-testid="gpt-memory-context-textarea"
             id="gpt-memory-context-textarea"
             disabled={isReadOnly}
-            className="textarea textarea-bordered w-full min-h-[400px] "
+            className="textarea textarea-bordered w-full min-h-[220px] rounded-[11px] bg-card p-[14px] text-[14px] leading-[1.65]"
             defaultValue={gpt_memory_context}
             onBlur={handleUserReferenceChange}
             key={gpt_memory_context}

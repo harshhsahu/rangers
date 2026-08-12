@@ -15,12 +15,7 @@ export default function ListViewItemComponent({
 
   return (
     <div
-      className={`
-                relative
-                ${hover ? "transition-colors duration-150 hover:bg-base-200/60 rounded-xl" : ""}
-                ${divider ? "border-b border-base-200 last:border-0" : ""}
-                ${className}
-            `}
+      className={` relative ${hover ? "transition-colors duration-150 hover:bg-base-200/60 rounded-xl" : ""} ${divider ? "border-b-2 border-stroke last:border-0" : ""} ${className} `}
       style={safeStyle}
     >
       {children.map((child, i) => (

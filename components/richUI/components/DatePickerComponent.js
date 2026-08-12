@@ -37,23 +37,15 @@ export default function DatePickerComponent({
 
   /* ── Helpers ── */
   const variantMap = {
-    bordered: "border-base-content/20 bg-transparent focus:border-primary/50",
-    ghost: "border-transparent bg-base-content/10 focus:bg-base-content/20 focus:border-base-content/30",
-    outline: "border-2 border-base-content/20 bg-transparent focus:border-primary/50",
+    bordered: "border-stroke bg-transparent focus:border-primary/50",
+    ghost: "border-transparent bg-base-content/10 focus:bg-base-content/20 focus:border-stroke",
+    outline: "border-2 border-stroke bg-transparent focus:border-primary/50",
   };
 
   const { className: colorCls, style: colorStyle } = resolveColor(color, "text-inherit");
   const padStyle = resolvePadding(padding);
 
-  const inputCls = `
-        px-3 py-1.5 text-sm rounded-xl outline-none transition-all
-        border text-current appearance-none
-        ${variantMap[variant] ?? variantMap.ghost}
-        disabled:opacity-50 disabled:cursor-not-allowed
-        w-full max-w-[160px]
-        ${colorCls}
-        scheme-dark:dark
-    `;
+  const inputCls = ` px-3 py-1.5 text-sm rounded-xl outline-none transition-all border text-current appearance-none ${variantMap[variant] ?? variantMap.ghost} disabled:opacity-50 disabled:cursor-not-allowed w-full max-w-[160px] ${colorCls} scheme-dark:dark `;
 
   const labelCls = `text-[10px] font-bold text-base-content/40 uppercase tracking-tight mb-0.5 block`;
 

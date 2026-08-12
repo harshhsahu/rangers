@@ -266,9 +266,7 @@ const CustomTable = ({
                 data-testid={`custom-table-card-${row.id || row?._id || index}`}
                 id={`custom-table-card-${row.id || row?._id || index}`}
                 key={row.id || row?._id || index}
-                className={`bg-base-100 border border-base-300 rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-all group ${
-                  row.isLoading ? "opacity-60 cursor-wait" : ""
-                }`}
+                className={`bg-base-100 border-2 border-stroke rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-all group ${row.isLoading ? "opacity-60 cursor-wait" : ""}`}
                 onClick={() =>
                   handleRowClick(
                     keysToExtractOnRowClick.reduce((acc, key) => {
@@ -309,7 +307,7 @@ const CustomTable = ({
                         {renderCellContent(row, column)}
                       </div>
                       {column !== visibleColumns[visibleColumns.length - 1] && (
-                        <div className="border-t border-base-200 my-2" />
+                        <div className="border-t-2 border-stroke my-2" />
                       )}
                     </div>
                   ))}
@@ -317,7 +315,7 @@ const CustomTable = ({
 
                 {/* Card Actions */}
                 {endComponent && (
-                  <div className="mt-4 flex justify-end border-t border-base-200 pt-3 relative z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="mt-4 flex justify-end border-t-2 border-stroke pt-3 relative z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     {endComponent({ row: row })}
                   </div>
                 )}
@@ -339,17 +337,17 @@ const CustomTable = ({
 
     return (
       <div
-        className="overflow-visible relative z-50 border border-base-300 rounded-lg"
+        className="overflow-visible relative z-50 border-2 border-stroke rounded-[16px] shadow-[4px_4px_0_var(--shd-col)] bg-card"
         style={{ display: "inline-block", minWidth: "50%", width: "auto" }}
       >
         <table
           data-testid="custom-table-view"
           id="custom-table-view"
-          className={`table ${tableClass} bg-base-100 shadow-md overflow-visible relative z-50 border-collapse`}
+          className={`table ${tableClass} bg-card overflow-visible relative z-50 border-collapse rounded-[16px]`}
           style={{ tableLayout: "auto", width: "100%" }}
         >
-          <thead className="bg-gradient-to-r from-base-200 to-base-300 text-base-content">
-            <tr className="hover">
+          <thead className="bg-paper text-soft">
+            <tr>
               {showRowSelection && (
                 <th className="px-4 py-2 text-left">
                   <input
@@ -367,22 +365,23 @@ const CustomTable = ({
                 const isSortable = sorting && sortableColumns.includes(column);
 
                 return (
-                  <th key={column} className="px-4 py-2 text-left whitespace-nowrap capitalize">
+                  <th
+                    key={column}
+                    className="px-[17px] py-3 text-left whitespace-nowrap font-mono text-[9.5px] font-medium lowercase tracking-[.1em] text-soft"
+                  >
                     <div className="flex items-center justify-start gap-2">
                       {isSortable && (
                         <MoveDownIcon
                           data-testid={`custom-table-sort-icon-${column}`}
                           id={`custom-table-sort-icon-${column}`}
-                          className={`w-4 h-4 cursor-pointer ${
-                            activeColumn === column ? "text-black" : "text-[#BCBDBE] group-hover:text-black"
-                          } ${ascending ? "rotate-180" : "rotate-0"}`}
+                          className={`w-3.5 h-3.5 cursor-pointer ${activeColumn === column ? "text-ink" : "text-line group-hover:text-ink"} ${ascending ? "rotate-180" : "rotate-0"}`}
                           onClick={() => sortByColumn(column)}
                         />
                       )}
                       <span
                         data-testid={`custom-table-header-${column}`}
                         id={`custom-table-header-${column}`}
-                        className={`${isSortable ? "cursor-pointer" : "cursor-default"} capitalize`}
+                        className={`${isSortable ? "cursor-pointer" : "cursor-default"} lowercase`}
                         onClick={() => (isSortable ? sortByColumn(column) : undefined)}
                       >
                         {customGetColumnLabel ? customGetColumnLabel(column) : formatColumnName(column)}
@@ -405,9 +404,7 @@ const CustomTable = ({
                   data-testid={`custom-table-row-${row.id || row?._id || index}`}
                   id={`custom-table-row-${row.id || row?._id || index}`}
                   key={row.id || row?._id || index}
-                  className={`border-b border-base-300 hover:bg-base-200 transition-colors z-40 cursor-pointer group ${
-                    row.isLoading ? "opacity-60 cursor-wait" : ""
-                  }`}
+                  className={`border-b border-dashed border-line hover:bg-paper transition-colors z-40 cursor-pointer group ${row.isLoading ? "opacity-60 cursor-wait" : ""}`}
                   onClick={() =>
                     handleRowClick(
                       keysToExtractOnRowClick.reduce((acc, key) => {
@@ -427,9 +424,9 @@ const CustomTable = ({
                     ghost.style.top = "-1000px";
                     ghost.style.left = "-1000px";
                     ghost.style.padding = "6px 12px";
-                    ghost.style.background = "#3b82f6";
-                    ghost.style.color = "#ffffff";
-                    ghost.style.borderRadius = "4px";
+                    ghost.style.background = "var(--acc)";
+                    ghost.style.color = "var(--accInk)";
+                    ghost.style.borderRadius = "9999px";
                     ghost.style.fontSize = "12px";
                     ghost.style.fontWeight = "500";
                     ghost.style.pointerEvents = "none";
@@ -462,13 +459,7 @@ const CustomTable = ({
                   {visibleColumns?.map((column) => (
                     <td
                       key={column}
-                      className={`px-4 py-2 text-left ${
-                        ["last_used", "created_at", "createdAt", "updated_at", "updatedAt"].includes(column)
-                          ? "w-40 min-w-40 max-w-40"
-                          : column === "agents"
-                            ? "min-w-64"
-                            : "whitespace-nowrap"
-                      }`}
+                      className={`px-[17px] py-[13px] text-left font-mono text-[12px] ${["last_used", "created_at", "createdAt", "updated_at", "updatedAt", "created_by", "updated_by"].includes(column) ? "text-soft text-[11px] " : ""}${["last_used", "created_at", "createdAt", "updated_at", "updatedAt"].includes(column) ? "w-40 min-w-40 max-w-40" : column === "agents" ? "min-w-64" : "whitespace-nowrap"}`}
                     >
                       {customCellRenderers[column] ? customCellRenderers[column](row) : getDisplayValue(row, column)}
                     </td>
@@ -499,11 +490,7 @@ const CustomTable = ({
   };
 
   return (
-    <div
-      data-testid="custom-table"
-      id="custom-table"
-      className="bg-base-100 p-2 md:p-4 overflow-x-auto overflow-y-visible"
-    >
+    <div data-testid="custom-table" id="custom-table" className="p-2 md:p-4 overflow-x-auto overflow-y-visible">
       {/* Responsive view switching */}
       {isSmallScreen ? renderCardView() : renderTableView()}
     </div>

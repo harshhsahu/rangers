@@ -135,7 +135,7 @@ const ConfigureEnvironmentModal = ({ bridgeId, bridgeData }) => {
 
       <form id="configure-environment-form" onSubmit={handleSubmit} className="mt-0">
         <div className="space-y-4" style={{ opacity: !bridgeId ? 0.5 : 1, pointerEvents: !bridgeId ? "none" : "auto" }}>
-          <div className="grid grid-cols-2 gap-4 pb-4 border-b border-base-300">
+          <div className="grid grid-cols-2 gap-4 pb-4 border-b-2 border-stroke">
             <div>
               <label className="label-text font-semibold text-sm">When</label>
             </div>

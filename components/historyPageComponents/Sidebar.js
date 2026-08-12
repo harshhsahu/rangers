@@ -545,19 +545,15 @@ const Sidebar = memo(
 
     return (
       <div
-        className={`h-full flex flex-col text-xs ${isAnalytics ? "bg-white dark:bg-base-200" : "bg-base-200"} transition-all duration-300 ease-in-out ${
-          isAnalytics || isCollapsed ? "overflow-hidden" : "overflow-y-auto min-h-0"
-        } ${
+        className={`h-full flex flex-col text-xs ${isAnalytics ? "bg-base-100" : "bg-base-100"} transition-all duration-300 ease-in-out ${isAnalytics || isCollapsed ? "overflow-hidden" : "overflow-y-auto min-h-0"} ${
           isCollapsed
-            ? `w-[48px] min-w-[48px] max-w-[48px] ${isAnalytics ? "border-l" : "border-r"} border-base-300 ${isAnalytics ? "" : "ml-4"}`
-            : `w-[280px] min-w-[280px] max-w-[280px] ${isAnalytics ? "border-l" : "border-r"} border-base-300 relative ${isAnalytics ? "" : "ml-4"}`
+            ? `w-[48px] min-w-[48px] max-w-[48px] ${isAnalytics ? "border-l-2" : "border-r-2"} border-stroke ${isAnalytics ? "" : "ml-4"}`
+            : `w-[280px] min-w-[280px] max-w-[280px] ${isAnalytics ? "border-l-2" : "border-r-2"} border-stroke relative ${isAnalytics ? "" : "ml-4"}`
         }`}
         id={!isAnalytics && !isCollapsed ? "sidebar" : undefined}
       >
         {isCollapsed ? (
-          <div
-            className={`h-full flex flex-col justify-between items-center pt-3 pb-2 w-full ${isAnalytics ? "bg-white dark:bg-base-200" : "bg-base-200"}`}
-          >
+          <div className={`h-full flex flex-col justify-between items-center pt-3 pb-2 w-full bg-base-100`}>
             {/* Top Toggle Button with Divider */}
             <div className="flex flex-col items-center w-full">
               <button
@@ -568,7 +564,7 @@ const Sidebar = memo(
               >
                 {isAnalytics ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
               </button>
-              <div className="w-full border-b border-base-300 mt-3" />
+              <div className="w-full border-b-2 border-stroke mt-3" />
             </div>
 
             {/* Middle Section: Vertical Text */}
@@ -578,7 +574,7 @@ const Sidebar = memo(
                   return <div key={index} className="h-4" />;
                 }
                 return (
-                  <span key={index} className="font-bold text-base-content/50 uppercase text-[13px] leading-none">
+                  <span key={index} className="font-mono font-bold text-soft uppercase text-[13px] leading-none">
                     {char}
                   </span>
                 );
@@ -590,9 +586,7 @@ const Sidebar = memo(
             <CreateFineTuneModal params={params} selectedThreadIds={selectedThreadIds} />
             <div className="p-2 gap-2 flex flex-col w-full min-w-0">
               <div className="flex items-center justify-between px-1 py-1 shrink-0">
-                <span className="font-bold text-base-content/50 uppercase tracking-widest text-[9px]">
-                  Chat Threads
-                </span>
+                <span className="font-mono text-soft uppercase tracking-[.14em] text-[9.5px]">Chat Threads</span>
                 <button
                   type="button"
                   onClick={() => setIsCollapsed(true)}
@@ -606,7 +600,7 @@ const Sidebar = memo(
                 <div
                   data-testid="history-sidebar-advance-filter"
                   id="history-sidebar-advance-filter"
-                  className="collapse collapse-arrow border border-base-300 bg-base-100 min-h-0 overflow-hidden"
+                  className="collapse collapse-arrow border-2 border-stroke bg-base-100 min-h-0 overflow-hidden"
                 >
                   <input
                     autoComplete="off"
@@ -675,7 +669,7 @@ const Sidebar = memo(
                       </div>
 
                       <div
-                        className={`p-2 w-full min-w-0 ${isAnalytics ? "bg-[#F8FAFC] dark:bg-base-100" : "bg-base-100"}`}
+                        className={`p-2 w-full min-w-0 ${isAnalytics ? "bg-paper dark:bg-base-100" : "bg-base-100"}`}
                       >
                         <p className="text-center mb-2 text-xs font-medium">Search by Fields</p>
                         <p className="text-xs text-base-content/60 mb-2">
@@ -881,11 +875,7 @@ const Sidebar = memo(
                                     <div
                                       data-testid={`history-sidebar-thread-${item?.thread_id}`}
                                       id={`history-sidebar-thread-${item?.thread_id}`}
-                                      className={`flex-grow cursor-pointer group rounded-lg overflow-hidden transition-colors duration-200 ${
-                                        isSidebarThreadActive(item?.thread_id)
-                                          ? "bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40 dark:hover:text-base-100 dark:hover:bg-primary shadow-md"
-                                          : "hover:bg-base-300/50"
-                                      }`}
+                                      className={`flex-grow cursor-pointer group rounded-lg overflow-hidden transition-colors duration-200 ${isSidebarThreadActive(item?.thread_id) ? "bg-acc text-acc-ink border-2 border-stroke dark:bg-primary dark:text-acc-ink dark:border-primary/40 dark:hover:text-base-100 dark:hover:bg-primary shadow-md" : "hover:bg-base-300/50"}`}
                                       onClick={() => {
                                         const isCurrentlySelected = isSidebarThreadActive(item?.thread_id);
                                         if (searchQuery) {
@@ -912,30 +902,18 @@ const Sidebar = memo(
                                       <div className="w-full h-full flex items-center justify-between relative px-2 py-1.5 gap-2">
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                           <p
-                                            className={`text-xs truncate ${
-                                              isSidebarThreadActive(item?.thread_id)
-                                                ? "text-blue-900 dark:text-base-100"
-                                                : "text-base-content"
-                                            }`}
+                                            className={`font-mono text-[11.5px] font-bold truncate ${isSidebarThreadActive(item?.thread_id) ? "text-acc-ink" : "text-ink"}`}
                                           >
                                             {truncate(item?.thread_id, 22)}
                                           </p>
                                         </div>
                                         <span
-                                          className={`text-xs whitespace-nowrap group-hover:hidden ${
-                                            isSidebarThreadActive(item?.thread_id)
-                                              ? "text-blue-900/70 dark:text-base-100/70"
-                                              : "text-base-content/60"
-                                          }`}
+                                          className={`font-mono text-[10px] whitespace-nowrap group-hover:hidden ${isSidebarThreadActive(item?.thread_id) ? "text-acc-ink/70" : "text-soft"}`}
                                         >
                                           {formatRelativeTime(item?.updated_at || item?.created_at)}
                                         </span>
                                         <span
-                                          className={`text-xs whitespace-nowrap font-medium hidden group-hover:inline ${
-                                            isSidebarThreadActive(item?.thread_id)
-                                              ? "text-blue-900/70 dark:text-base-100/70"
-                                              : "text-base-content/60"
-                                          }`}
+                                          className={`font-mono text-[10px] whitespace-nowrap hidden group-hover:inline ${isSidebarThreadActive(item?.thread_id) ? "text-acc-ink/70" : "text-soft"}`}
                                         >
                                           {formatDate(item?.updated_at || item?.created_at)}
                                         </span>
@@ -945,11 +923,7 @@ const Sidebar = memo(
                                     <li
                                       data-testid={`history-sidebar-thread-${item?.thread_id}`}
                                       id={`history-sidebar-thread-${item?.thread_id}`}
-                                      className={`${
-                                        decodeURIComponent(searchParams?.thread_id) === item?.thread_id
-                                          ? "text-base-100 bg-primary hover:text-base-100 hover:bg-primary shadow-md"
-                                          : "hover:bg-base-300/50 transition-colors duration-200"
-                                      } flex-grow cursor-pointer group`}
+                                      className={`${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100 bg-primary hover:text-base-100 hover:bg-primary shadow-md" : "hover:bg-base-300/50 transition-colors duration-200"} flex-grow cursor-pointer group`}
                                       onClick={() => {
                                         const isCurrentlySelected =
                                           decodeURIComponent(searchParams?.thread_id) === item?.thread_id;
@@ -965,59 +939,35 @@ const Sidebar = memo(
                                       <a className="w-full h-full flex flex-col relative px-2 py-1.5">
                                         {bridgeType?.toLowerCase() === "chatbot" || bridgeType === "chatbot" ? (
                                           <div
-                                            className={`flex items-start gap-1 mb-1 w-full justify-between group ${
-                                              decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "" : ""
-                                            }`}
+                                            className={`flex items-start gap-1 mb-1 w-full justify-between group ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "" : ""}`}
                                           >
                                             <p
-                                              className={`text-xs truncate ${
-                                                decodeURIComponent(searchParams?.thread_id) === item?.thread_id
-                                                  ? "text-base-100"
-                                                  : "text-base-content"
-                                              }`}
+                                              className={`text-xs truncate ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
                                             >
                                               {truncate(item?.thread_id, 22)}
                                             </p>
                                             <span
-                                              className={`text-xs whitespace-nowrap group-hover:hidden ${
-                                                decodeURIComponent(searchParams?.thread_id) === item?.thread_id
-                                                  ? "text-base-100"
-                                                  : "text-base-content"
-                                              }`}
+                                              className={`text-xs whitespace-nowrap group-hover:hidden ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
                                             >
                                               {formatRelativeTime(item?.updated_at || item?.created_at)}
                                             </span>
                                             <span
-                                              className={`text-xs whitespace-nowrap font-medium hidden group-hover:inline ${
-                                                decodeURIComponent(searchParams?.thread_id) === item?.thread_id
-                                                  ? "text-base-100"
-                                                  : "text-base-content"
-                                              }`}
+                                              className={`text-xs whitespace-nowrap font-medium hidden group-hover:inline ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
                                             >
                                               {formatDate(item?.updated_at || item?.created_at)}
                                             </span>
                                           </div>
                                         ) : (
                                           <div
-                                            className={`flex items-start gap-1 mb-1 w-full group ${
-                                              decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "" : ""
-                                            }`}
+                                            className={`flex items-start gap-1 mb-1 w-full group ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "" : ""}`}
                                           >
                                             <span
-                                              className={`text-xs whitespace-nowrap group-hover:hidden ${
-                                                decodeURIComponent(searchParams?.thread_id) === item?.thread_id
-                                                  ? "text-base-100"
-                                                  : "text-base-content"
-                                              }`}
+                                              className={`text-xs whitespace-nowrap group-hover:hidden ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
                                             >
                                               {formatRelativeTime(item?.updated_at || item?.created_at)}
                                             </span>
                                             <span
-                                              className={`text-xs whitespace-nowrap group-hover:inline ${
-                                                decodeURIComponent(searchParams?.thread_id) === item?.thread_id
-                                                  ? "text-base-100"
-                                                  : "text-base-content"
-                                              }`}
+                                              className={`text-xs whitespace-nowrap group-hover:inline ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
                                             >
                                               {formatDate(item?.updated_at || item?.created_at)}
                                             </span>
@@ -1032,7 +982,7 @@ const Sidebar = memo(
                                         key={item.id}
                                         className={
                                           isAnalytics
-                                            ? "overflow-hidden rounded-b-lg border-x border-b border-blue-100 bg-[#F8FAFC] dark:bg-base-100 dark:border-base-300"
+                                            ? "overflow-hidden rounded-b-lg border-x-2 border-b-2 border-stroke bg-paper dark:bg-base-100 dark:border-stroke"
                                             : "shadow-sm bg-base-100 overflow-hidden"
                                         }
                                       >
@@ -1048,11 +998,7 @@ const Sidebar = memo(
                                                         <div
                                                           data-testid={`history-sidebar-search-subthread-${subThread?.sub_thread_id}`}
                                                           id={`history-sidebar-search-subthread-${subThread?.sub_thread_id}`}
-                                                          className={`ml-2 ${
-                                                            isSidebarSubThreadActive(subThread?.sub_thread_id)
-                                                              ? "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40 shadow-sm"
-                                                              : "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs text-base-content hover:bg-white hover:border-blue-100 border border-transparent dark:hover:bg-base-300"
-                                                          } flex-grow group`}
+                                                          className={`ml-2 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-acc text-acc-ink border-2 border-stroke dark:bg-primary dark:text-acc-ink dark:border-primary/40 shadow-sm" : "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs text-base-content hover:bg-white hover:border-stroke border-2 border-transparent dark:hover:bg-base-300"} flex-grow group`}
                                                           onClick={() =>
                                                             handleSelectSubThread(
                                                               subThread?.sub_thread_id,
@@ -1063,11 +1009,7 @@ const Sidebar = memo(
                                                           <div className="w-full h-full flex items-center justify-between relative gap-2">
                                                             <span className="truncate flex-1 text-xs flex items-center min-w-0">
                                                               <MessageCircleIcon
-                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${
-                                                                  isSidebarSubThreadActive(subThread?.sub_thread_id)
-                                                                    ? "text-blue-700 dark:text-base-100"
-                                                                    : "text-blue-500 dark:text-base-content"
-                                                                }`}
+                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-ink dark:text-acc-ink" : "text-soft dark:text-base-content"}`}
                                                               />
                                                               {truncate(
                                                                 subThread?.display_name || subThread?.sub_thread_id,
@@ -1077,20 +1019,12 @@ const Sidebar = memo(
                                                             {(subThread?.updated_at || subThread?.created_at) && (
                                                               <>
                                                                 <span
-                                                                  className={`text-[10px] whitespace-nowrap group-hover:hidden ${
-                                                                    isSidebarSubThreadActive(subThread?.sub_thread_id)
-                                                                      ? "text-blue-700/70 dark:text-base-100/70"
-                                                                      : "text-base-content/50"
-                                                                  }`}
+                                                                  className={`text-[10px] whitespace-nowrap group-hover:hidden ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-ink/70 dark:text-acc-ink/70" : "text-base-content/50"}`}
                                                                 >
                                                                   {formatRelativeTime(subThread?.updated_at)}
                                                                 </span>
                                                                 <span
-                                                                  className={`text-[10px] whitespace-nowrap hidden group-hover:inline ${
-                                                                    isSidebarSubThreadActive(subThread?.sub_thread_id)
-                                                                      ? "text-blue-700/70 dark:text-base-100/70"
-                                                                      : "text-base-content/50"
-                                                                  }`}
+                                                                  className={`text-[10px] whitespace-nowrap hidden group-hover:inline ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-ink/70 dark:text-acc-ink/70" : "text-base-content/50"}`}
                                                                 >
                                                                   {formatDate(
                                                                     subThread?.created_at || subThread?.created_at
@@ -1104,11 +1038,7 @@ const Sidebar = memo(
                                                         <li
                                                           data-testid={`history-sidebar-search-subthread-${subThread?.sub_thread_id}`}
                                                           id={`history-sidebar-search-subthread-${subThread?.sub_thread_id}`}
-                                                          className={`ml-4 ${
-                                                            isSidebarSubThreadActive(subThread?.sub_thread_id)
-                                                              ? "cursor-pointer hover:bg-base-primary hover:text-base-100 transition-all duration-200 text-xs bg-primary text-base-100"
-                                                              : "cursor-pointer hover:bg-base-300 hover:text-base-content transition-all duration-200 text-xs"
-                                                          } flex-grow group`}
+                                                          className={`ml-4 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "cursor-pointer hover:bg-base-primary hover:text-base-100 transition-all duration-200 text-xs bg-primary text-base-100" : "cursor-pointer hover:bg-base-300 hover:text-base-content transition-all duration-200 text-xs"} flex-grow group`}
                                                           onClick={() =>
                                                             handleSelectSubThread(
                                                               subThread?.sub_thread_id,
@@ -1119,11 +1049,7 @@ const Sidebar = memo(
                                                           <a className="w-full h-full flex items-center justify-between relative">
                                                             <span className="truncate flex-1 mr-1.5 text-xs flex items-center">
                                                               <MessageCircleIcon
-                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${
-                                                                  isSidebarSubThreadActive(subThread?.sub_thread_id)
-                                                                    ? "text-base-100"
-                                                                    : "text-base-content"
-                                                                }`}
+                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-base-100" : "text-base-content"}`}
                                                               />
                                                               {truncate(
                                                                 subThread?.display_name || subThread?.sub_thread_id,
@@ -1147,7 +1073,7 @@ const Sidebar = memo(
                                                       )}
                                                       {subThread?.messages?.length > 0 && (
                                                         <div
-                                                          className={`mt-1.5 space-y-1 ${isAnalytics ? "ml-3 pl-2 border-l border-blue-100 dark:border-base-300" : "mt-2 ml-4 space-y-2"}`}
+                                                          className={`mt-1.5 space-y-1 ${isAnalytics ? "ml-3 pl-2 border-l-2 border-stroke dark:border-stroke" : "mt-2 ml-4 space-y-2"}`}
                                                         >
                                                           {subThread?.messages?.map((msg, msgIndex) => (
                                                             <div
@@ -1157,23 +1083,13 @@ const Sidebar = memo(
                                                               onClick={() => handleSetMessageId(msg?.message_id)}
                                                               className={
                                                                 isAnalytics
-                                                                  ? `${
-                                                                      isSidebarMessageActive(msg?.message_id)
-                                                                        ? "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40"
-                                                                        : "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-white text-blue-900/80 border border-blue-100 hover:bg-[#EBF4FE]/60 hover:border-blue-200 dark:bg-base-200 dark:text-base-content dark:border-base-300"
-                                                                    }`
-                                                                  : "cursor-pointer transition-all duration-200 text-xs bg-base-100 hover:bg-base-200 text-base-content border-l-2 border-transparent hover:border-base-300"
+                                                                  ? `${isSidebarMessageActive(msg?.message_id) ? "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-acc text-acc-ink border-2 border-stroke dark:bg-primary dark:text-acc-ink dark:border-primary/40" : "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-white text-ink/80 border-2 border-stroke hover:bg-acc/60 hover:border-stroke dark:bg-base-200 dark:text-base-content dark:border-stroke"}`
+                                                                  : "cursor-pointer transition-all duration-200 text-xs bg-base-100 hover:bg-base-200 text-base-content border-l-2 border-transparent hover:border-stroke"
                                                               }
                                                             >
                                                               <div className="flex items-start gap-1.5">
                                                                 <UserIcon
-                                                                  className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${
-                                                                    isAnalytics
-                                                                      ? isSidebarMessageActive(msg?.message_id)
-                                                                        ? "text-blue-700 dark:text-base-100"
-                                                                        : "text-blue-400 dark:text-base-content"
-                                                                      : "text-base-content"
-                                                                  }`}
+                                                                  className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${isAnalytics ? (isSidebarMessageActive(msg?.message_id) ? "text-acc-ink dark:text-acc-ink" : "text-soft dark:text-base-content") : "text-base-content"}`}
                                                                 />
                                                                 <span className="leading-snug">
                                                                   {truncate(msg?.message, 35)}
@@ -1200,23 +1116,13 @@ const Sidebar = memo(
                                                   onClick={() => handleSetMessageId(msg?.message_id)}
                                                   className={
                                                     isAnalytics
-                                                      ? `${
-                                                          isSidebarMessageActive(msg?.message_id)
-                                                            ? "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40"
-                                                            : "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-white text-blue-900/80 border border-blue-100 hover:bg-[#EBF4FE]/60 hover:border-blue-200 dark:bg-base-200 dark:text-base-content dark:border-base-300"
-                                                        }`
-                                                      : "cursor-pointer p-2 transition-all duration-200 text-xs bg-base-100 hover:bg-base-200 text-base-content border-l-2 border-transparent hover:border-base-300"
+                                                      ? `${isSidebarMessageActive(msg?.message_id) ? "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-acc text-acc-ink border-2 border-stroke dark:bg-primary dark:text-acc-ink dark:border-primary/40" : "cursor-pointer rounded-md px-2 py-1.5 transition-all duration-200 text-xs bg-white text-ink/80 border-2 border-stroke hover:bg-acc/60 hover:border-stroke dark:bg-base-200 dark:text-base-content dark:border-stroke"}`
+                                                      : "cursor-pointer p-2 transition-all duration-200 text-xs bg-base-100 hover:bg-base-200 text-base-content border-l-2 border-transparent hover:border-stroke"
                                                   }
                                                 >
                                                   <div className="flex items-start gap-1.5">
                                                     <UserIcon
-                                                      className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${
-                                                        isAnalytics
-                                                          ? isSidebarMessageActive(msg?.message_id)
-                                                            ? "text-blue-700 dark:text-base-100"
-                                                            : "text-blue-400 dark:text-base-content"
-                                                          : "text-base-content"
-                                                      }`}
+                                                      className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${isAnalytics ? (isSidebarMessageActive(msg?.message_id) ? "text-acc-ink dark:text-acc-ink" : "text-soft dark:text-base-content") : "text-base-content"}`}
                                                     />
                                                     <span className="leading-snug">{truncate(msg?.message, 32)}</span>
                                                   </div>

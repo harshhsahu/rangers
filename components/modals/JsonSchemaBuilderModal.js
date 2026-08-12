@@ -37,7 +37,7 @@ const SchemaPropertyCard = ({
   const bgColor = depth % 2 === 0 ? "bg-base-100" : "bg-base-200";
 
   return (
-    <div className={`${bgColor} border border-base-300 rounded-lg p-2`}>
+    <div className={`${bgColor} border-2 border-stroke rounded-lg p-2`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 justify-between w-full">
           <input

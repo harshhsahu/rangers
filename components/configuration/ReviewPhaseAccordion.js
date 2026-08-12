@@ -19,7 +19,7 @@ function RoundEntry({ entry }) {
   const hasDetails = entry.isStreaming || entry.reviewContent || isFailed;
 
   return (
-    <div className="rounded border border-base-300 overflow-hidden">
+    <div className="rounded border-2 border-stroke overflow-hidden">
       <button
         type="button"
         className="flex w-full items-center gap-1.5 px-2 py-1.5 text-left font-semibold text-base-content/60 hover:text-base-content transition-colors"
@@ -45,7 +45,7 @@ function RoundEntry({ entry }) {
       </button>
 
       {roundOpen && hasDetails && (
-        <div className="border-t border-base-300 px-3 py-2 flex flex-col gap-1.5 bg-base-100/40">
+        <div className="border-t-2 border-stroke px-3 py-2 flex flex-col gap-1.5 bg-base-100/40">
           {entry.reviewContent && (
             <div className="text-base-content/70 leading-relaxed">
               <ReactMarkdown components={mdComponentsDark} remarkPlugins={mdRemarkPlugins}>
@@ -95,7 +95,7 @@ function ReviewPhaseAccordion({ reviewPhases }) {
   const headerLabel = isAnyStreaming ? "Reviewing…" : "Review";
 
   return (
-    <div className="mb-2 rounded-lg border border-base-300 bg-base-200/60 text-xs overflow-hidden">
+    <div className="mb-2 rounded-lg border-2 border-stroke bg-base-200/60 text-xs overflow-hidden">
       <button
         type="button"
         className="flex w-full items-center gap-2 px-3 py-2 text-left font-medium text-base-content/70 hover:text-base-content transition-colors duration-150"
@@ -116,7 +116,7 @@ function ReviewPhaseAccordion({ reviewPhases }) {
       </button>
 
       {open && (
-        <div className="border-t border-base-300 px-3 py-2 flex flex-col gap-2">
+        <div className="border-t-2 border-stroke px-3 py-2 flex flex-col gap-2">
           {reviewPhases.map((entry, i) => {
             if (entry.phase === "reviewer_start" || entry.phase === "reviewer_done") {
               return <RoundEntry key={i} entry={entry} />;

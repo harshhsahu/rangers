@@ -126,7 +126,7 @@ const MigratePromptWarningModal = ({
               className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 overflow-y-auto pr-1"
               style={{ maxHeight: "65vh" }}
             >
-              <div className="border border-base-300 rounded-lg p-3 bg-base-200/30 min-w-0">
+              <div className="border-2 border-stroke rounded-lg p-3 bg-base-200/30 min-w-0">
                 <h4 className="text-sm font-semibold mb-2">
                   {isEmbedMigration && !isEmbedDefaultPromptMode && hasAgentVisibleFields
                     ? "Current Agent Fields"
@@ -168,7 +168,7 @@ const MigratePromptWarningModal = ({
                 )}
               </div>
 
-              <div className="border border-base-300 rounded-lg p-3 bg-base-200/30 space-y-3 min-w-0">
+              <div className="border-2 border-stroke rounded-lg p-3 bg-base-200/30 space-y-3 min-w-0">
                 <h4 className="text-sm font-semibold">
                   {isMainMigration || isEmbedDefaultPromptMode ? "New Structured Prompt" : "Fill Embed Fields"}
                 </h4>
@@ -242,7 +242,7 @@ const MigratePromptWarningModal = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-base-content/10">
+            <div className="flex justify-end gap-2 pt-2 border-t-2 border-stroke">
               <button type="button" className="btn btn-ghost btn-sm" onClick={handleClose}>
                 Cancel
               </button>

@@ -55,16 +55,7 @@ export default function SelectComponent({
         value={value}
         onChange={handleChange}
         disabled={disabled}
-        className={`
-                    select ${variantMap[variant] ?? "select-ghost"}
-                    ${sizeMap[size] ?? "select-sm"}
-                    ${colorCls}
-                    rounded-xl font-medium
-                    focus:outline-none focus:ring-2 focus:ring-primary/30
-                    transition-all duration-150
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    max-w-xs
-                `}
+        className={` select ${variantMap[variant] ?? "select-ghost"} ${sizeMap[size] ?? "select-sm"} ${colorCls} rounded-xl font-medium focus:outline-none transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed max-w-xs `}
         style={{ ...widthStyle, ...colorStyle, textAlignLast: align === "end" ? "right" : "left" }}
       >
         {placeholder && (

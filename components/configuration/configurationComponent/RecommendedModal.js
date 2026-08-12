@@ -94,7 +94,7 @@ const RecommendedModal = ({
             <button
               data-testid="get-recommended-model-button"
               id="get-recommended-model-button"
-              className="flex items-center gap-2  rounded-md bg-gradient-to-r from-blue-800 to-orange-600 text-sm text-transparent bg-clip-text hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 rounded-md bg-gradient-to-r from-acc to-orange-600 text-sm text-transparent bg-clip-text hover:opacity-80 transition-opacity"
               onClick={handleGetRecommendations}
               disabled={isLoadingRecommendations || isPublished || !isEditor}
             >
@@ -102,7 +102,7 @@ const RecommendedModal = ({
             </button>
 
             {modelRecommendations && (
-              <div className="p-4 bg-base-100 rounded-lg border border-base-300 w-full mb-2">
+              <div className="p-4 bg-base-100 rounded-lg border-2 border-stroke w-full mb-2">
                 {modelRecommendations.error ? (
                   <p className="text-red-500 text-sm">{modelRecommendations.error}</p>
                 ) : (

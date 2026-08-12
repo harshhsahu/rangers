@@ -47,10 +47,10 @@ function ChatBotSlider() {
           placeholder="Search..."
           value={chatbotSearchQuery}
           onChange={handleChatbotSearchChange}
-          className="border border-base-300 rounded p-2 w-full"
+          className="border-2 border-stroke rounded p-2 w-full"
         />
         {/* Render filtered chatbot list */}
-        <ul className="menu p-0 w-full  text-base-content">
+        <ul className="menu p-0 w-full text-base-content">
           {filteredChatbotsList
             .slice() // Create a copy of the array to avoid mutating the original
             .sort((a, b) => a.title.localeCompare(b.title)) // Sort alphabetically based on title

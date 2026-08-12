@@ -72,10 +72,7 @@ export default function BoxComponent({
 
   return (
     <div
-      className={`
-                ${bgCls} ${colorCls} ${borderCls} ${roundedCls} ${shadowCls}
-                ${className}
-            `}
+      className={` ${bgCls} ${colorCls} ${borderCls} ${roundedCls} ${shadowCls} ${className} `}
       style={{
         ...bgStyle,
         ...colorStyle,

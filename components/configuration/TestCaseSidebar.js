@@ -301,18 +301,18 @@ const TestCaseSidebar = ({ params, resolvedParams, matching_type, onTestCaseClic
     <div
       data-testid="testcase-sidebar"
       id="testcase-sidebar"
-      className="bg-base-100 h-full overflow-y-auto border-r border-base-content/20"
+      className="bg-base-100 h-full overflow-y-auto border-r-2 border-stroke"
     >
       <div
         data-testid="testcase-sidebar-header"
         id="testcase-sidebar-header"
-        className="p-4 border-b border-base-content/20 flex flex-row justify-between"
+        className="p-4 border-b-2 border-stroke flex flex-row justify-between"
       >
         <h2 className="text-lg font-semibold text-base-content">Test Cases</h2>
         <button
           data-testid="testcase-run-all-button"
           id="testcase-run-all-button"
-          className="btn btn-sm text-base-content bg-blue-500   rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
+          className="btn btn-sm text-acc-ink bg-acc rounded-full hover:bg-acc disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200"
           onClick={runAllTests}
           disabled={testCaseArray.length === 0 || runningTests.size > 0}
         >
@@ -578,7 +578,7 @@ const TestCaseSidebar = ({ params, resolvedParams, matching_type, onTestCaseClic
                               <div
                                 data-testid={`testcase-history-table-${testCase._id}`}
                                 id={`testcase-history-table-${testCase._id}`}
-                                className="mt-2 border border-base-content/20 rounded overflow-hidden"
+                                className="mt-2 border-2 border-stroke rounded overflow-hidden"
                               >
                                 <table className="w-full text-xs">
                                   <thead className="bg-base-200">
@@ -595,7 +595,7 @@ const TestCaseSidebar = ({ params, resolvedParams, matching_type, onTestCaseClic
                                       const latestRun = runs[runs.length - 1];
                                       const versionIndex = versions.findIndex((v) => v === versionId) + 1;
                                       return (
-                                        <tr key={versionId} className="border-t border-base-content/20">
+                                        <tr key={versionId} className="border-t-2 border-stroke">
                                           <td className="p-2">V{versionIndex || "?"}</td>
                                           <td className="p-2">{latestRun?.metadata?.model || "N/A"}</td>
                                           <td className="p-2">

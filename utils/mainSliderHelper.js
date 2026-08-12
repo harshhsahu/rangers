@@ -136,7 +136,7 @@ export const createGuardedNavigate = (router, pendingNavRef, openModalFn, MODAL_
   router.push(url);
 };
 
-export const HRCollapsed = React.memo(() => <hr className="my-2 w-6 border-base-content/30 mx-auto" />);
+export const HRCollapsed = React.memo(() => <hr className="my-2 w-6 border-ink mx-auto" />);
 
 export const BetaBadge = React.memo(() => (
   <span className="badge badge-success rounded-md mb-1 text-base-100 text-xs">Beta</span>

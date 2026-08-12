@@ -80,13 +80,13 @@ const Modal = ({
         >
           <div
             id={`${MODAL_ID}-container`}
-            className={`relative flex ${widthClass} max-h-[88vh] flex-col overflow-hidden rounded-xl border border-base-content/10 shadow-2xl animate-scaleIn`}
+            className={`relative flex ${widthClass} max-h-[88vh] flex-col overflow-hidden rounded-xl border-2 border-stroke shadow-2xl animate-scaleIn`}
             style={{ background: "var(--ai-config-container-bg)" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Static Header */}
             <div
-              className="flex shrink-0 items-center justify-between border-b border-base-content/10 px-5 py-4"
+              className="flex shrink-0 items-center justify-between border-b-2 border-stroke px-5 py-4"
               style={{ background: "var(--ai-config-header-bg)" }}
             >
               <div className="flex items-center gap-2.5">
@@ -113,7 +113,7 @@ const Modal = ({
             {/* Static Footer */}
             {footer && (
               <div
-                className="flex shrink-0 items-center justify-end gap-3 border-t border-base-content/10 px-5 py-3"
+                className="flex shrink-0 items-center justify-end gap-3 border-t-2 border-stroke px-5 py-3"
                 style={{ background: "var(--ai-config-header-bg)" }}
               >
                 {footer}

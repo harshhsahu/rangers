@@ -101,11 +101,11 @@ function ReviewerToolSelector({ params, searchParams, isPublished, isEditor }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="text-xs font-semibold text-base-content/85">Reviewer Tool</label>
-      <div className="flex items-center justify-between border border-base-200 rounded-lg p-2 bg-base-100/50 min-h-[46px] w-full">
+      <div className="flex items-center justify-between border-2 border-stroke rounded-lg p-2 bg-base-100/50 min-h-[46px] w-full">
         {selectedTool ? (
           <div className="flex items-center justify-between w-full">
             <div
-              className="flex items-center gap-2 bg-base-200/60 border border-base-300 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-base-300/60 transition-colors"
+              className="flex items-center gap-2 bg-base-200/60 border-2 border-stroke rounded-lg px-3 py-1.5 cursor-pointer hover:bg-base-300/60 transition-colors"
               title="Click to open/edit tool"
               onClick={handleOpenTool}
             >
@@ -116,9 +116,7 @@ function ReviewerToolSelector({ params, searchParams, isPublished, isEditor }) {
                   "Untitled"}
               </span>
               <span
-                className={`rounded-full capitalize px-1.5 py-0.5 text-[9px] font-semibold text-black ${getStatusClass(
-                  statusLabel
-                )}`}
+                className={`rounded-full capitalize px-1.5 py-0.5 text-[9px] font-semibold text-black ${getStatusClass(statusLabel)}`}
               >
                 {statusLabel}
               </span>

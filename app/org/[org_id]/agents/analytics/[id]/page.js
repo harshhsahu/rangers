@@ -734,7 +734,7 @@ function Page({ params, searchParams }) {
                   return (
                     <div
                       key={idx}
-                      className="bg-base-100 p-5 rounded-2xl border border-base-300 shadow-sm flex flex-col gap-1"
+                      className="bg-base-100 p-5 rounded-2xl border-2 border-stroke shadow-sm flex flex-col gap-1"
                     >
                       <div className="flex justify-between items-start">
                         <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color}`}>
@@ -757,7 +757,7 @@ function Page({ params, searchParams }) {
             )}
 
             {/* Filters Container */}
-            <div className="bg-base-100 border border-base-300 rounded-lg  mb-8 shadow-sm">
+            <div className="bg-base-100 border-2 border-stroke rounded-lg mb-8 shadow-sm">
               {/* Row 1: Time Range, Interval, Feedback, Error, Advance Toggle */}
               <div className="flex items-center gap-4 px-4 py-1.5 flex-wrap">
                 {/* Time Range */}
@@ -781,9 +781,7 @@ function Page({ params, searchParams }) {
                           setFilterEnd("");
                           applyFilters({ range: item.value, start: "", end: "" });
                         }}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          isActive ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${isActive ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                       >
                         {item.label}
                       </button>
@@ -795,16 +793,12 @@ function Page({ params, searchParams }) {
                     <button
                       type="button"
                       onClick={() => setIsCustomOpen(!isCustomOpen)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border-none outline-none focus:outline-none focus:ring-0 ${
-                        filterStart || filterEnd
-                          ? "bg-blue-500 text-white"
-                          : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border-none outline-none focus:outline-none ${filterStart || filterEnd ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                     >
                       Custom
                     </button>
                     {isCustomOpen && (
-                      <div className="absolute left-0 z-50 menu p-4 shadow-xl border border-base-300 bg-base-100 rounded-box w-80 ">
+                      <div className="absolute left-0 z-50 menu p-4 shadow-xl border-2 border-stroke bg-base-100 rounded-box w-80 ">
                         <h3 className="font-semibold text-sm mb-4 text-base-content">Custom Date Range</h3>
 
                         <div className="space-y-4">
@@ -887,11 +881,7 @@ function Page({ params, searchParams }) {
                         setFilterInterval(newInterval);
                         applyFilters({ interval: newInterval });
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                        filterInterval === item.value
-                          ? "bg-blue-500 text-white"
-                          : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${filterInterval === item.value ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                     >
                       {item.label}
                     </button>
@@ -916,11 +906,7 @@ function Page({ params, searchParams }) {
                         setFilterFeedback(item.value);
                         applyFilters({ feedback: item.value });
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                        filterFeedback === item.value
-                          ? "bg-blue-500 text-white"
-                          : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${filterFeedback === item.value ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                     >
                       {item.label}
                     </button>
@@ -929,9 +915,7 @@ function Page({ params, searchParams }) {
 
                 {/* Reviewer Failures Toggle */}
                 <label
-                  className={`flex items-center gap-2 cursor-pointer shrink-0 px-3 py-1.5 rounded-full transition-colors ${
-                    filterReviewFailed ? "bg-[#FD9900] text-white border border-[#FD9900]" : "border border-base-200"
-                  }`}
+                  className={`flex items-center gap-2 cursor-pointer shrink-0 px-3 py-1.5 rounded-full transition-colors ${filterReviewFailed ? "bg-[#FD9900] text-white border-2 border-[#FD9900]" : "border-2 border-stroke"}`}
                 >
                   <input
                     type="checkbox"
@@ -949,9 +933,7 @@ function Page({ params, searchParams }) {
 
                 {/* Error Toggle */}
                 <label
-                  className={`flex items-center gap-2 cursor-pointer shrink-0 px-3 py-1.5 rounded-full transition-colors ${
-                    filterError ? "bg-[#FA2C36] text-white border border-[#FA2C36]" : "border border-base-200"
-                  }`}
+                  className={`flex items-center gap-2 cursor-pointer shrink-0 px-3 py-1.5 rounded-full transition-colors ${filterError ? "bg-[#FA2C36] text-white border-2 border-[#FA2C36]" : "border-2 border-stroke"}`}
                 >
                   <input
                     type="checkbox"
@@ -971,11 +953,7 @@ function Page({ params, searchParams }) {
                 <button
                   type="button"
                   onClick={() => setIsAdvanceFilterOpen(!isAdvanceFilterOpen)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 border ${
-                    isAdvanceFilterOpen
-                      ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:border-primary/40"
-                      : "bg-base-100 text-base-content/70 border-base-200 hover:bg-primary/5 hover:text-primary hover:border-primary/40 dark:bg-base-100 dark:hover:bg-primary/10 dark:hover:text-primary"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 border-2 ${isAdvanceFilterOpen ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:border-primary/40" : "bg-base-100 text-base-content/70 border-stroke hover:bg-primary/5 hover:text-primary hover:border-primary/40 dark:bg-base-100 dark:hover:bg-primary/10 dark:hover:text-primary"}`}
                 >
                   <Filter className="w-4 h-4" />
                   Search by Fields
@@ -996,11 +974,7 @@ function Page({ params, searchParams }) {
 
               {/* Row 2: Advance Filters (expandable inside same container) */}
               <div
-                className={`overflow-hidden px-4 pt-2 transition-all duration-300 ${
-                  isAdvanceFilterOpen
-                    ? "max-h-[600px] opacity-100  pt-3 pb-3 border-t border-base-200 dark:border-t-base-200 bg-[#F8FAFC] dark:bg-base-200/50 space-y-4"
-                    : "max-h-0 opacity-0"
-                }`}
+                className={`overflow-hidden px-4 pt-2 transition-all duration-300 ${isAdvanceFilterOpen ? "max-h-[600px] opacity-100 pt-3 pb-3 border-t-2 border-stroke dark:border-t-base-200 bg-[#F8FAFC] dark:bg-base-200/50 space-y-4" : "max-h-0 opacity-0"}`}
               >
                 {/* Tool, Knowledge Base, Agent & Model badges */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
@@ -1018,11 +992,7 @@ function Page({ params, searchParams }) {
                           setFilterAgent([]);
                           applyFilters({ tool_id: [], knowledgebase_id: [], agent_id: [] });
                         }}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          !filterTool.length && !filterKnowledgeBase.length && !filterAgent.length
-                            ? "bg-blue-500 text-white"
-                            : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${!filterTool.length && !filterKnowledgeBase.length && !filterAgent.length ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                       >
                         All
                       </button>
@@ -1084,11 +1054,7 @@ function Page({ params, searchParams }) {
                                 <button
                                   key={`${item.type}-${item.id}`}
                                   onClick={() => toggle(item)}
-                                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
-                                    selected
-                                      ? "bg-blue-500 text-white"
-                                      : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                                  }`}
+                                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${selected ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                                   title={item.name}
                                 >
                                   {item.type === "tool" && <Wrench className={`w-3 h-3 ${iconColor}`} />}
@@ -1101,7 +1067,7 @@ function Page({ params, searchParams }) {
                             {allItems.length > 8 && (
                               <button
                                 onClick={() => setShowAllToolGroup(!showAllToolGroup)}
-                                className="px-3 py-1 rounded-full text-xs font-medium transition-colors border border-dashed border-base-content/30 text-base-content/60 hover:border-base-content/50 hover:text-base-content"
+                                className="px-3 py-1 rounded-full text-xs font-medium transition-colors border-2 border-dashed border-stroke text-base-content/60 hover:border-stroke hover:text-base-content"
                               >
                                 {showAllToolGroup ? "Less" : `+${allItems.length - 8} More`}
                               </button>
@@ -1123,11 +1089,7 @@ function Page({ params, searchParams }) {
                           setFilterModel([]);
                           applyFilters({ model: [] });
                         }}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          !filterModel.length
-                            ? "bg-blue-500 text-white"
-                            : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${!filterModel.length ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                       >
                         All
                       </button>
@@ -1148,11 +1110,7 @@ function Page({ params, searchParams }) {
                             setFilterModel(next);
                             applyFilters({ model: next });
                           }}
-                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                            filterModel.includes(m)
-                              ? "bg-blue-500 text-white"
-                              : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${filterModel.includes(m) ? "bg-blue-500 text-white" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
                         >
                           {m}
                         </button>
@@ -1161,7 +1119,7 @@ function Page({ params, searchParams }) {
                         .length > 4 && (
                         <button
                           onClick={() => setShowAllModels(!showAllModels)}
-                          className="px-3 py-1 rounded-full text-xs font-medium transition-colors border border-dashed border-base-content/30 text-base-content/60 hover:border-base-content/50 hover:text-base-content"
+                          className="px-3 py-1 rounded-full text-xs font-medium transition-colors border-2 border-dashed border-stroke text-base-content/60 hover:border-stroke hover:text-base-content"
                         >
                           {showAllModels
                             ? "Less"
@@ -1237,7 +1195,7 @@ function Page({ params, searchParams }) {
                         ))}
                         <button
                           type="button"
-                          className="px-3 py-1 rounded-md text-xs font-medium border border-dashed border-base-content/30 text-base-content/60 hover:border-base-content/50 hover:text-base-content transition-colors"
+                          className="px-3 py-1 rounded-md text-xs font-medium border-2 border-dashed border-stroke text-base-content/60 hover:border-stroke hover:text-base-content transition-colors"
                           onClick={() => setFilterVariableRows((prev) => [...prev, { key: "", value: "" }])}
                         >
                           + Add Key/Value
@@ -1247,7 +1205,7 @@ function Page({ params, searchParams }) {
                   </div>
                   <div className="flex justify-end gap-3 mt-3">
                     <button
-                      className="px-5 py-1 rounded-lg text-sm font-medium border border-base-200 text-base-content/70 hover:bg-primary/5 hover:text-primary hover:border-primary/40 dark:hover:bg-primary/10 dark:hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-5 py-1 rounded-lg text-sm font-medium border-2 border-stroke text-base-content/70 hover:bg-primary/5 hover:text-primary hover:border-primary/40 dark:hover:bg-primary/10 dark:hover:text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       disabled={!hasAdvancedFilterValues}
                       onClick={() => {
                         const emptyFields = {
@@ -1289,7 +1247,7 @@ function Page({ params, searchParams }) {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Success / Failure Chart */}
-              <div className="bg-base-100 p-6 rounded-2xl border border-base-300 shadow-sm flex flex-col">
+              <div className="bg-base-100 p-6 rounded-2xl border-2 border-stroke shadow-sm flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-base font-semibold text-base-content">Execution Volume</h3>
@@ -1372,7 +1330,7 @@ function Page({ params, searchParams }) {
               </div>
 
               {/* Latency Chart */}
-              <div className="bg-base-100 p-6 rounded-2xl border border-base-300 shadow-sm flex flex-col">
+              <div className="bg-base-100 p-6 rounded-2xl border-2 border-stroke shadow-sm flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-base font-semibold text-base-content">Average Latency</h3>
@@ -1479,11 +1437,9 @@ function Page({ params, searchParams }) {
 
         {/* Slide-in Thread Detail Panel - right to left */}
         <div
-          className={`absolute top-0 right-0 h-full bg-base-100 shadow-2xl border-l border-base-300 z-40 flex flex-col transform transition-transform duration-300 ease-in-out ${
-            selectedThreadId ? "translate-x-0 w-[85%]" : "translate-x-full w-[85%]"
-          }`}
+          className={`absolute top-0 right-0 h-full bg-base-100 shadow-2xl border-l-2 border-stroke z-40 flex flex-col transform transition-transform duration-300 ease-in-out ${selectedThreadId ? "translate-x-0 w-[85%]" : "translate-x-full w-[85%]"}`}
         >
-          <div className="h-14 border-b border-base-300 flex items-center justify-between px-4 bg-base-100 shrink-0">
+          <div className="h-14 border-b-2 border-stroke flex items-center justify-between px-4 bg-base-100 shrink-0">
             <h3 className="font-semibold text-sm truncate">Thread Details</h3>
             <button onClick={handleCloseAside} className="btn btn-ghost btn-sm btn-circle shrink-0">
               <X size={16} className="text-base-content/60 hover:text-base-content" />

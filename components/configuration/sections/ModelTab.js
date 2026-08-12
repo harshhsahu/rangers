@@ -105,7 +105,7 @@ const ModelTab = () => {
           <div
             data-testid="model-tab-parameters-section"
             id="model-tab-parameters-section"
-            className="border-t border-base-200 pt-6"
+            className="border-t-2 border-stroke pt-6"
           >
             <div className="mb-4">
               <h2 className="text-base-content text-md font-medium">Parameters</h2>

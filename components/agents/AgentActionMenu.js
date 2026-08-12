@@ -201,7 +201,7 @@ const AgentActionMenu = (props) => {
       </button>
 
       {showMenu && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-base-100 border border-base-300 rounded-lg shadow-xl z-very-high">
+        <div className="absolute right-0 top-full mt-1 w-48 bg-base-100 border-2 border-stroke rounded-lg shadow-xl z-very-high">
           <AgentMenuItems {...props} onClose={() => setShowMenu(false)} />
         </div>
       )}

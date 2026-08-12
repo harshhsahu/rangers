@@ -58,14 +58,7 @@ export default function RowComponent({
 
   return (
     <div
-      className={`
-                flex flex-row
-                ${alignMap[align] ?? "items-center"}
-                ${justifyMap[justify] ?? "justify-start"}
-                ${wrap ? "flex-wrap" : "flex-nowrap"}
-                ${bgCls} ${borderCls} ${roundedCls} ${shadowCls} ${colorCls}
-                ${className}
-            `}
+      className={` flex flex-row ${alignMap[align] ?? "items-center"} ${justifyMap[justify] ?? "justify-start"} ${wrap ? "flex-wrap" : "flex-nowrap"} ${bgCls} ${borderCls} ${roundedCls} ${shadowCls} ${colorCls} ${className} `}
       style={{
         gap: `${gap * 4}px`,
         ...padStyle,

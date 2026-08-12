@@ -22,9 +22,9 @@ function getStatusClass(status) {
     case "published":
       return "text-green-700 bg-green-100";
     case "rejected":
-      return "text-gray-700 bg-gray-100";
+      return "text-ink bg-paper";
     default:
-      return "bg-gray-100";
+      return "bg-paper";
   }
 }
 
@@ -160,7 +160,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
           <div className="flex items-center gap-2">
             <p className="text-sm whitespace-nowrap">Triggers</p>
             <InfoTooltip tooltipContent="A trigger is an event or condition that initiates an automated process or workflow.">
-              <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+              <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
             </InfoTooltip>
           </div>
           {hasTriggers && (
@@ -180,7 +180,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
       <div className="flex flex-col gap-2 w-full">
         {!hasTriggers ? (
           <div className="w-full max-w-md">
-            <div className="border-2 border-dashed border-base-200 p-4 text-center">
+            <div className="rounded-[9px] border-2 border-dashed border-stroke p-4 text-center">
               <p className="text-sm text-base-content/70">No triggers found.</p>
               <button
                 data-testid="triggers-add-first-button"
@@ -200,27 +200,21 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
               {hasTelegram && (
                 <div
                   data-testid="trigger-card-telegram"
-                  className="group flex items-center border border-base-200 cursor-pointer bg-base-100 relative min-h-[44px] w-full transition-colors duration-200"
+                  className="group flex items-center gap-[9px] rounded-[9px] border-2 border-stroke cursor-pointer bg-card px-[10px] py-[6px] min-h-[44px] w-full transition-colors duration-200 hover:bg-paper"
                   onClick={() => !isReadOnly && openModal(MODAL_TYPE.TELEGRAM_CONNECT_MODAL)}
                 >
-                  <div className="p-2 flex-1 flex items-center">
-                    <div className="flex items-center gap-2 w-full">
-                      <MessageCircle size={16} className="shrink-0 text-[#229ED9]" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-normal block truncate">Telegram Bot</span>
-                        <span className="text-[10px] text-base-content/50">Connected</span>
-                      </div>
-                      <span
-                        className={`shrink-0 inline-block rounded-full capitalize px-2 py-0.5 text-[10px] font-medium ${
-                          telegramChannel.telegram.webhookSet
-                            ? "text-green-700 bg-green-100"
-                            : "text-yellow-700 bg-yellow-100"
-                        }`}
-                      >
-                        {telegramChannel.telegram.webhookSet ? "Active" : "Saved"}
-                      </span>
-                    </div>
+                  <div className="grid h-5 w-5 flex-none place-items-center rounded-[6px] border-[1.5px] border-stroke bg-acc">
+                    <MessageCircle size={12} className="shrink-0 text-acc-ink" />
                   </div>
+                  <div className="flex flex-1 flex-col min-w-0">
+                    <span className="text-[12.5px] font-bold block truncate text-ink">Telegram Bot</span>
+                    <span className="font-mono text-[9.5px] text-soft">Connected</span>
+                  </div>
+                  <span
+                    className={`ml-auto shrink-0 inline-block rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${telegramChannel.telegram.webhookSet ? "bg-acc text-acc-ink" : "bg-cool text-ink"}`}
+                  >
+                    {telegramChannel.telegram.webhookSet ? "Active" : "Saved"}
+                  </span>
                 </div>
               )}
 
@@ -230,21 +224,19 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
                   id={`trigger-card-${trigger?.id}`}
                   key={trigger?.id}
                   onClick={() => openTrigger(trigger?.id)}
-                  className="group flex items-center border border-base-200 cursor-pointer bg-base-100 relative min-h-[44px] w-full transition-colors duration-200"
+                  className="group flex items-center gap-[9px] rounded-[9px] border-2 border-stroke cursor-pointer bg-card px-[10px] py-[6px] min-h-[44px] w-full transition-colors duration-200 hover:bg-paper"
                 >
-                  <div className="p-2 flex-1 flex items-center">
-                    <div className="flex items-center gap-2 w-full">
-                      <Zap size={16} className="shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-normal block truncate">{trigger?.title}</span>
-                      </div>
-                      <span
-                        className={`shrink-0 inline-block rounded-full capitalize px-2 py-0.5 text-[10px] font-medium ${getStatusClass(trigger?.status)}`}
-                      >
-                        {trigger?.status || "Draft"}
-                      </span>
-                    </div>
+                  <div className="grid h-5 w-5 flex-none place-items-center rounded-[6px] border-[1.5px] border-stroke bg-acc">
+                    <Zap size={12} className="shrink-0 text-acc-ink" />
                   </div>
+                  <div className="flex flex-1 flex-col min-w-0">
+                    <span className="text-[12.5px] font-bold block truncate text-ink">{trigger?.title}</span>
+                  </div>
+                  <span
+                    className={`ml-auto shrink-0 inline-block rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${getStatusClass(trigger?.status)}`}
+                  >
+                    {trigger?.status || "Draft"}
+                  </span>
                 </div>
               ))}
             </div>

@@ -88,7 +88,7 @@ const ThemePaletteEditor = ({ theme, onColorChange }) => {
                               onColorChange(mode, token, newOklch);
                             }
                           }}
-                          className="w-10 h-10 rounded cursor-pointer border border-base-300"
+                          className="w-10 h-10 rounded cursor-pointer border-2 border-stroke"
                         />
                       </div>
                     );

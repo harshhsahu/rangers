@@ -126,7 +126,7 @@ const SearchItems = ({
 
   const containerClasses =
     containerClass || (isWorkspaceItem ? `${item === "org" ? "w-full mt-2" : "max-w-xs ml-2"}` : "max-w-xs ml-2");
-  const inputClasses = style ? style : "input input-sm w-full border bg-base-200 border-base-content/50 pr-16";
+  const inputClasses = style ? style : "input input-sm w-full border-2 bg-base-200 border-stroke pr-16";
 
   return (
     <div className={containerClasses}>
@@ -168,7 +168,7 @@ const SearchItems = ({
             )}
             {!filterParam && (
               <kbd
-                className={`kbd kbd-xs bg-base-200 text-base-content/70 border border-base-content/20 ${isMac ? "px-1.5" : "px-1"}`}
+                className={`kbd kbd-xs bg-base-200 text-base-content/70 border-2 border-stroke ${isMac ? "px-1.5" : "px-1"}`}
               >
                 {shortcutText}
               </kbd>

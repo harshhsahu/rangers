@@ -4,7 +4,7 @@ export const AnalyticsStatsSkeleton = () => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4 mb-8">
       {Array.from({ length: 8 }).map((_, idx) => (
-        <div key={idx} className="bg-base-100 p-5 rounded-2xl border border-base-300 shadow-sm flex flex-col gap-1">
+        <div key={idx} className="bg-base-100 p-5 rounded-2xl border-2 border-stroke shadow-sm flex flex-col gap-1">
           <div className="flex justify-between items-start">
             <div className="p-2.5 rounded-xl bg-base-200 animate-pulse">
               <div className="w-4 h-4" />

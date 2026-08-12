@@ -103,10 +103,7 @@ export default function ListViewComponent({
           return (
             <div
               key={key}
-              className={`
-                                ${hover && resolvedDir !== "horizontal" ? "transition-colors duration-150 hover:bg-base-200/60 rounded-xl" : ""}
-                                ${dividers ? "border-b border-base-200 last:border-0" : ""}
-                            `}
+              className={` ${hover && resolvedDir !== "horizontal" ? "transition-colors duration-150 hover:bg-base-200/60 rounded-xl" : ""} ${dividers ? "border-b-2 border-stroke last:border-0" : ""} `}
             >
               <RNode node={resolved} onAction={onAction} actionDefs={actionDefs} />
             </div>
@@ -128,11 +125,7 @@ export default function ListViewComponent({
           return (
             <div
               key={key}
-              className={`
-                                flex items-center gap-3 p-3 rounded-xl
-                                ${hover ? "transition-colors duration-150 hover:bg-base-200/60" : ""}
-                                ${dividers ? "border-b border-base-200 last:border-0" : ""}
-                            `}
+              className={` flex items-center gap-3 p-3 rounded-xl ${hover ? "transition-colors duration-150 hover:bg-base-200/60" : ""} ${dividers ? "border-b-2 border-stroke last:border-0" : ""} `}
             >
               {item.image && (
                 <img

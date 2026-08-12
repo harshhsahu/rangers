@@ -222,32 +222,24 @@ const AgentSetupGuide = ({
                     id={`agent-setup-step-${step}`}
                     key={step}
                     onClick={handleStepClick}
-                    className={`card shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer ${
-                      isCompleted ? "bg-success/10 border border-success/20" : "bg-base-200 border border-base-300"
-                    }`}
+                    className={`card shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer ${isCompleted ? "bg-success/10 border-2 border-success/20" : "bg-base-200 border-2 border-stroke"}`}
                   >
                     <div className="card-body p-2">
                       <div className="flex items-start gap-3">
                         <div
-                          className={`w-8 h-8 flex items-center justify-center transition-all duration-300 ${
-                            isCompleted ? "text-success" : "text-base-content"
-                          }`}
+                          className={`w-8 h-8 flex items-center justify-center transition-all duration-300 ${isCompleted ? "text-success" : "text-base-content"}`}
                         >
                           {isCompleted ? <CheckIcon className="h-4 w-4" /> : <span className="text-sm">{icon}</span>}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <h3
-                              className={`font-semibold text-sm mt-1 ${
-                                isCompleted ? "text-success" : "text-base-content"
-                              }`}
+                              className={`font-semibold text-sm mt-1 ${isCompleted ? "text-success" : "text-base-content"}`}
                             >
                               {title}
                             </h3>
                             {optional && (
-                              <div className="badge badge-sm bg-base-300 text-base-content border-base-300">
-                                Optional
-                              </div>
+                              <div className="badge badge-sm bg-base-300 text-base-content border-stroke">Optional</div>
                             )}
                           </div>
                           {step === "1" && isEmbedUser && embedFields.length > 0 ? (
@@ -257,7 +249,7 @@ const AgentSetupGuide = ({
                                 .map((field) => (
                                   <span
                                     key={field.name}
-                                    className="badge badge-sm bg-base-300 border-base-300 text-base-content font-mono"
+                                    className="badge badge-sm bg-base-300 border-stroke text-base-content font-mono"
                                   >
                                     {field.displayValue || field.name}
                                   </span>

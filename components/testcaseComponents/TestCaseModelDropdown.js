@@ -33,7 +33,7 @@ const TestCaseModelDropdown = ({ selectedModel, onModelChange, onServiceChange, 
       <button
         data-testid="testcase-model-dropdown-btn"
         onClick={() => setIsOpen((o) => !o)}
-        className="flex items-center gap-2 px-3.5 py-2.5 bg-base-100 border border-base-300 rounded-xl text-sm font-semibold text-base-content/70 cursor-pointer shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-base-200 transition-colors"
+        className="flex items-center gap-2 px-3.5 py-2.5 bg-base-100 border-2 border-stroke rounded-xl text-sm font-semibold text-base-content/70 cursor-pointer shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-base-200 transition-colors"
       >
         <Zap size={15} strokeWidth={2} className={iconTextColor} />
         <span className={`font-bold ${iconTextColor}`}>{isDefault ? "Default" : selectedModel}</span>
@@ -49,13 +49,13 @@ const TestCaseModelDropdown = ({ selectedModel, onModelChange, onServiceChange, 
             data-testid="testcase-model-dropdown-backdrop"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-[calc(100%+8px)] left-0 z-[100] w-[280px] max-h-[400px] overflow-y-auto bg-base-100 border border-base-300 rounded-2xl shadow-lg p-2">
-            <div className="text-[11px] font-bold tracking-[0.05em] text-base-content/50 px-2.5 pt-1.5 pb-2.5 uppercase border-b border-base-200 mb-1.5">
+          <div className="absolute top-[calc(100%+8px)] left-0 z-[100] w-[280px] max-h-[400px] overflow-y-auto bg-base-100 border-2 border-stroke rounded-2xl shadow-lg p-2">
+            <div className="text-[11px] font-bold tracking-[0.05em] text-base-content/50 px-2.5 pt-1.5 pb-2.5 uppercase border-b-2 border-stroke mb-1.5">
               Select Model
             </div>
 
             {/* Default Option */}
-            <div className="mb-1.5 border-b border-base-200 pb-1.5">
+            <div className="mb-1.5 border-b-2 border-stroke pb-1.5">
               <button
                 data-testid="testcase-model-option-default"
                 onClick={() => {
@@ -65,15 +65,11 @@ const TestCaseModelDropdown = ({ selectedModel, onModelChange, onServiceChange, 
                   }
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-[9px] text-left cursor-pointer transition-colors ${
-                  isDefault ? "bg-base-200" : "bg-transparent hover:bg-base-200"
-                }`}
+                className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-[9px] text-left cursor-pointer transition-colors ${isDefault ? "bg-base-200" : "bg-transparent hover:bg-base-200"}`}
               >
                 <div>
                   <div
-                    className={`text-[13.5px] ${
-                      isDefault ? "font-bold text-base-content" : "font-medium text-base-content/70"
-                    }`}
+                    className={`text-[13.5px] ${isDefault ? "font-bold text-base-content" : "font-medium text-base-content/70"}`}
                   >
                     Default (version config)
                   </div>
@@ -98,11 +94,7 @@ const TestCaseModelDropdown = ({ selectedModel, onModelChange, onServiceChange, 
                         handleModelSelect(model.name, group.provider);
                         setIsOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-[9px] text-left text-[13.5px] cursor-pointer transition-colors ${
-                        isActive
-                          ? "bg-primary/10 font-bold text-primary"
-                          : "bg-transparent font-normal text-base-content/70 hover:bg-base-200"
-                      }`}
+                      className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-[9px] text-left text-[13.5px] cursor-pointer transition-colors ${isActive ? "bg-primary/10 font-bold text-primary" : "bg-transparent font-normal text-base-content/70 hover:bg-base-200"}`}
                     >
                       {model.name}
                       {isActive && <Check size={14} strokeWidth={3} className="text-primary flex-shrink-0" />}

@@ -442,7 +442,7 @@ const ToolsPage = ({ params, isEmbedUser = false }) => {
                       key={idx}
                       src={icon}
                       alt={`${title} icon ${idx + 1}`}
-                      className="w-6 h-6 rounded-full border-2 border-base-100 flex-shrink-0 object-contain bg-white p-0.5"
+                      className="w-6 h-6 rounded-full border-2 border-stroke flex-shrink-0 object-contain bg-white p-0.5"
                       style={{ zIndex: 5 - idx }}
                       onError={(e) => {
                         e.target.style.display = "none";
@@ -479,19 +479,7 @@ const ToolsPage = ({ params, isEmbedUser = false }) => {
         const statusTone = normalizedStatus.toString().trim().toLowerCase();
         return (
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusClass(
-              statusTone
-            )} ${
-              statusTone === "active" || statusTone === "published" || statusTone === "1"
-                ? "bg-green-100 text-green-700"
-                : statusTone === "paused"
-                  ? "bg-red-100 text-red-700"
-                  : statusTone === "drafted"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : statusTone === "rejected"
-                      ? "bg-gray-100 text-gray-700"
-                      : "bg-base-200 text-base-content/80"
-            }`}
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusClass(statusTone)} ${statusTone === "active" || statusTone === "published" || statusTone === "1" ? "bg-green-100 text-green-700" : statusTone === "paused" ? "bg-red-100 text-red-700" : statusTone === "drafted" ? "bg-yellow-100 text-yellow-700" : statusTone === "rejected" ? "bg-gray-100 text-gray-700" : "bg-base-200 text-base-content/80"}`}
           >
             {normalizedStatus}
           </span>
@@ -558,13 +546,11 @@ const ToolsPage = ({ params, isEmbedUser = false }) => {
 
             {isOpen && (
               <div
-                className={`absolute left-0 z-50 bg-base-100 border border-base-content/60 shadow-lg rounded min-w-[240px] ${
-                  agentsDropdownPlacement === "up" ? "bottom-full mb-1" : "top-full mt-1"
-                }`}
+                className={`absolute left-0 z-50 bg-base-100 border-2 border-stroke shadow-lg rounded min-w-[240px] ${agentsDropdownPlacement === "up" ? "bottom-full mb-1" : "top-full mt-1"}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div
-                  className="px-3 py-2 border-b border-base-200 text-base-content/60 uppercase tracking-wider"
+                  className="px-3 py-2 border-b-2 border-stroke text-base-content/60 uppercase tracking-wider"
                   style={{ fontSize: 10 }}
                 >
                   Connected agents
@@ -574,7 +560,7 @@ const ToolsPage = ({ params, isEmbedUser = false }) => {
                     const isExpanded = expandedAgentId === agent.bridgeId;
                     const hasVersions = agent.versions.length > 0;
                     return (
-                      <li key={agent.bridgeId} className="border-b border-base-200 last:border-b-0">
+                      <li key={agent.bridgeId} className="border-b-2 border-stroke last:border-b-0">
                         <button
                           type="button"
                           data-testid={`tools-connected-agent-option-${agent.bridgeId}`}
@@ -714,7 +700,7 @@ const ToolsPage = ({ params, isEmbedUser = false }) => {
             )}
             <button
               data-testid="tools-filter-dropdown-btn"
-              className="btn btn-outline btn-ghost text-sm btn-sm border border-base-300 gap-1"
+              className="btn btn-outline btn-ghost text-sm btn-sm border-2 border-stroke gap-1"
               onClick={handleFilterDropdownClick}
             >
               <Funnel size={14} />

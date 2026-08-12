@@ -118,7 +118,7 @@ const ParameterCard = ({
   const bgColor = depth % 2 === 0 ? "bg-base-100" : "bg-base-200";
 
   return (
-    <div className={`${bgColor} border border-base-300 rounded-lg p-2`}>
+    <div className={`${bgColor} border-2 border-stroke rounded-lg p-2`}>
       {/* Parameter Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 justify-between w-full">
@@ -1378,7 +1378,7 @@ function FunctionParameterModal({
         data-testid="function-parameter-modal"
         className="flex flex-col gap-4 text-xs h-full"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-base-content/10 pb-3">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-stroke pb-3">
           <p className="text-xs text-base-content/60 leading-relaxed max-w-[70%]">
             {name === "Pre Tool" || name === "Post Tool" ? (
               <>
@@ -1436,7 +1436,7 @@ function FunctionParameterModal({
                       <CircleQuestionMark
                         id="function-param-thread-id-icon"
                         size={14}
-                        className="text-gray-500 hover:text-gray-700 cursor-help"
+                        className="text-soft hover:text-ink cursor-help"
                       />
                     </InfoTooltip>
                     <input
@@ -1465,7 +1465,7 @@ function FunctionParameterModal({
                         <CircleQuestionMark
                           id="function-param-environment-icon"
                           size={14}
-                          className="text-gray-500 hover:text-gray-700 cursor-help"
+                          className="text-soft hover:text-ink cursor-help"
                         />
                       </InfoTooltip>
                     </label>
@@ -1523,7 +1523,7 @@ function FunctionParameterModal({
             <div className="flex justify-between">
               <p
                 id="function-param-optimize-button"
-                className="cursor-pointer label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text text-[11px]"
+                className="cursor-pointer label-text capitalize font-medium bg-gradient-to-r from-acc to-orange-600 text-transparent bg-clip-text text-[11px]"
                 onClick={handleOptimizeRawJson}
               >
                 Optimize Json Format
@@ -1553,7 +1553,7 @@ function FunctionParameterModal({
                 </button>
 
                 {showNameDescription && (
-                  <div className="space-y-1 mt-1 pl-2 border-l-2 border-base-300">
+                  <div className="space-y-1 mt-1 pl-2 border-l-2 border-stroke">
                     {/* Name Field */}
                     <div>
                       <label className="block text-xs font-medium mb-1">Name</label>
@@ -1647,7 +1647,7 @@ function FunctionParameterModal({
                   ))
                 ) : (
                   <div className="flex items-center justify-center h-full min-h-[100px]">
-                    <div className="text-xs opacity-60 text-gray-500 text-center">
+                    <div className="text-xs opacity-60 text-soft text-center">
                       No parameters defined yet. Click the "+ Parameter" button above to add your first parameter.
                     </div>
                   </div>
@@ -1668,7 +1668,7 @@ function FunctionParameterModal({
                   editable={!isReadOnly}
                   onChange={(val) => setObjectFieldValue(val)}
                   onBlur={handleTextFieldChange}
-                  className="border border-base-300 rounded overflow-hidden text-sm"
+                  className="border-2 border-stroke rounded overflow-hidden text-sm"
                 />
               </div>
               {isOldFieldViewTrue && (
@@ -1679,7 +1679,7 @@ function FunctionParameterModal({
                     extensions={[json(), linter(jsonParseLinter), lintGutter()]}
                     theme={actualTheme}
                     editable={false}
-                    className="border border-base-300 rounded overflow-hidden text-sm opacity-80"
+                    className="border-2 border-stroke rounded overflow-hidden text-sm opacity-80"
                   />
                 </div>
               )}

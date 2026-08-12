@@ -111,7 +111,7 @@ export default function PrebuiltPreToolConfigModal({ toolEntry, onSave, orgId })
             />
             <ChevronDown className="h-3 w-3 opacity-50 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-          <ul className="border border-base-300 rounded-box w-full max-h-48 overflow-y-auto flex flex-col bg-base-100">
+          <ul className="border-2 border-stroke rounded-box w-full max-h-48 overflow-y-auto flex flex-col bg-base-100">
             {filtered.length === 0 && (
               <li className="text-xs text-base-content/40 px-3 py-2">No knowledge bases found</li>
             )}
@@ -200,7 +200,7 @@ export default function PrebuiltPreToolConfigModal({ toolEntry, onSave, orgId })
           )}
 
           <div
-            className={`flex justify-end gap-2 pt-2 border-t border-base-content/10 ${toolEntry.type === "rag_knowledgebase" ? "mt-auto" : "mt-2"}`}
+            className={`flex justify-end gap-2 pt-2 border-t-2 border-stroke ${toolEntry.type === "rag_knowledgebase" ? "mt-auto" : "mt-2"}`}
           >
             <button
               type="button"

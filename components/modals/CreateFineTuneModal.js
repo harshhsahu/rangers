@@ -116,7 +116,7 @@ function CreateFineTuneModal({ params, selectedThreadIds }) {
           </label>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-base-content/10">
+        <div className="flex justify-end gap-2 pt-2 border-t-2 border-stroke">
           <button
             data-testid="fine-tune-close-button"
             id="fine-tune-close-button"

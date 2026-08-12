@@ -55,7 +55,7 @@ export default function ThemeToggle() {
         </button>
 
         {isDropdownOpen && (
-          <div className="menu bg-base-200 w-full rounded-lg mt-1 p-1 shadow border border-base-300">
+          <div className="menu bg-base-200 w-full rounded-lg mt-1 p-1 shadow border-2 border-stroke">
             <li>
               <button
                 data-testid="theme-light-button"

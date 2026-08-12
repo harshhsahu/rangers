@@ -12,7 +12,7 @@ const KeyboardShortcut = ({ keys, description }) => {
       <div className="flex items-center gap-1">
         {keys.map((key, index) => (
           <React.Fragment key={index}>
-            <kbd className="kbd kbd-xs bg-base-300 text-base-content border border-base-300 shadow-sm">{key}</kbd>
+            <kbd className="kbd kbd-xs bg-base-300 text-base-content border-2 border-stroke shadow-sm">{key}</kbd>
             {index < keys.length - 1 && <span className="text-base-content/50 text-xs mx-0.5">+</span>}
           </React.Fragment>
         ))}

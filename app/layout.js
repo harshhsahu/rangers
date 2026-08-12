@@ -2,13 +2,20 @@ import "./globals.css";
 import "../styles/performance-optimizations.css";
 import Wrapper from "@/wrapper/Wrapper";
 import { GoogleTagManager } from "@next/third-parties/google";
-import { DM_Sans } from "next/font/google";
+import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import NetworkStatus from "@/components/NetworkStatus";
 import PaletteFocusGuard from "@/components/PaletteFocusGuard";
 
-const dmSans = DM_Sans({
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-bricolage",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains",
 });
 
 export const metadata = {
@@ -27,10 +34,10 @@ export const runtime = "edge";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="light">
+    <html lang="en" data-theme="light" className={`${bricolage.variable} ${jetbrainsMono.variable}`}>
       <GoogleTagManager gtmId="GTM-PXRN8T45" />
       <script src={`https://main.d2f49esifpcbwh.amplifyapp.com/tracker.js`} async />
-      <body suppressHydrationWarning className={dmSans.className}>
+      <body suppressHydrationWarning className="font-sans">
         <PaletteFocusGuard />
         <Wrapper>{children}</Wrapper>
         <NetworkStatus />

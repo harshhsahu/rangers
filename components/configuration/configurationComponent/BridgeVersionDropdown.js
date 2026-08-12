@@ -497,31 +497,13 @@ function BridgeVersionDropdown({
                   data-testid={`version-button-${version}`}
                   id={`version-button-${version}`}
                   onClick={() => handleVersionChange(version)}
-                  className={`
-                                   btn btn-xs flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-all duration-200 relative whitespace-nowrap min-w-fit
-                                    ${canDelete ? "group-hover:pr-8" : ""}
-                                    ${
-                                      isActive
-                                        ? isPublished
-                                          ? isDrafted
-                                            ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                                            : "bg-green-100 text-green-800 border border-green-300"
-                                          : "bg-primary hover:bg-primary text-primary-content"
-                                        : isPublished
-                                          ? isDrafted
-                                            ? "bg-base-100 text-base-content hover:bg-yellow-50 hover:text-yellow-700 border border-base-300"
-                                            : "bg-base-100 text-base-content hover:bg-green-50 hover:text-green-700 border border-base-300"
-                                          : "text-base-content/70 hover:text-base-content"
-                                    }
-                                `}
+                  className={` flex items-center gap-1 px-[9px] py-[3px] font-mono text-[10px] font-bold rounded-[6px] border-[1.5px] transition-all duration-200 relative whitespace-nowrap min-w-fit ${canDelete ? "group-hover:pr-8" : ""} ${isActive ? "bg-acc text-acc-ink border-ink" : "bg-card text-soft border-line hover:border-ink hover:text-ink"} `}
                   style={{ minWidth: "max-content" }}
                 >
                   <span>{versionDisplayName}</span>
                   {isPublished && (
                     <span
-                      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                        isDrafted ? "bg-yellow-400" : "bg-green-500"
-                      }`}
+                      className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isDrafted ? "bg-warning" : "bg-success"}`}
                       title={isDrafted ? "Published Version with Changes" : "Published Version"}
                     ></span>
                   )}
@@ -565,7 +547,7 @@ function BridgeVersionDropdown({
 
             {/* Dropdown Menu */}
             {showVersionDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-base-100 border border-base-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 mt-1 w-48 bg-base-100 border-2 border-stroke rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
                 <div className="p-2">
                   <div
                     data-testid="version-dropdown-menu"
@@ -591,22 +573,7 @@ function BridgeVersionDropdown({
                             handleVersionChange(version);
                             setShowVersionDropdown(false);
                           }}
-                          className={`
-                                                        w-full flex items-center justify-between gap-2 px-2 py-2 text-xs rounded-md transition-all duration-200 text-left
-                                                        ${
-                                                          isActive
-                                                            ? isPublished
-                                                              ? isDrafted
-                                                                ? "bg-yellow-100 text-yellow-800"
-                                                                : "bg-green-100 text-green-800"
-                                                              : "bg-base-300 text-base-content"
-                                                            : isPublished
-                                                              ? isDrafted
-                                                                ? "bg-base-100 hover:bg-yellow-50 text-base-content"
-                                                                : "bg-base-100 hover:bg-green-50 text-base-content"
-                                                              : "bg-base-100 hover:bg-base-200 text-base-content"
-                                                        }
-                                                    `}
+                          className={` w-full flex items-center justify-between gap-2 px-2 py-2 text-xs rounded-md transition-all duration-200 text-left ${isActive ? (isPublished ? (isDrafted ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800") : "bg-base-300 text-base-content") : isPublished ? (isDrafted ? "bg-base-100 hover:bg-yellow-50 text-base-content" : "bg-base-100 hover:bg-green-50 text-base-content") : "bg-base-100 hover:bg-base-200 text-base-content"} `}
                         >
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{versionDisplayName}</span>
@@ -663,7 +630,7 @@ function BridgeVersionDropdown({
               }
               openModal(MODAL_TYPE.VERSION_DESCRIPTION_MODAL);
             }}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-base-100 text-base-content  hover:bg-base-200 rounded-md transition-all duration-200"
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-base-100 text-base-content hover:bg-base-200 rounded-md transition-all duration-200"
             title="Create New Version"
           >
             <Plus className="w-3 h-3" />

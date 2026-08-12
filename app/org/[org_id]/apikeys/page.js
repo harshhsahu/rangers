@@ -144,14 +144,7 @@ const Page = ({ isEmbedUser = false }) => {
             <div className="relative flex items-center group/status">
               <Icon size={16} className={iconClass} />
               <span
-                className={`
-        absolute left-5 z-10
-        px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap
-        opacity-0 -translate-x-2 pointer-events-none
-        group-hover/status:opacity-100 group-hover/status:translate-x-0
-        transition-all duration-200 ease-out
-        ${getApiKeyStatusClass(item.status, "badge")}
-      `}
+                className={` absolute left-5 z-10 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap opacity-0 -translate-x-2 pointer-events-none group-hover/status:opacity-100 group-hover/status:translate-x-0 transition-all duration-200 ease-out ${getApiKeyStatusClass(item.status, "badge")} `}
               >
                 {item.status}
               </span>

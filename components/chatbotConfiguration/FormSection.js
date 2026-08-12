@@ -197,7 +197,7 @@ export default function FormSection({ params, chatbotId = null }) {
     <div data-testid="form-section-container" id="form-section-container" className="space-y-6">
       {/* Display Settings Section */}
       <div className="bg-base-200 rounded-lg max-w-4xl shadow p-6">
-        <h3 className="text-lg font-semibold mb-6 border-b border-base-content/20 pb-2">Display Settings</h3>
+        <h3 className="text-lg font-semibold mb-6 border-b-2 border-stroke pb-2">Display Settings</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl">
           {/* Basic Information */}
@@ -331,9 +331,9 @@ export default function FormSection({ params, chatbotId = null }) {
         </div>
       </div>
       {/* Preview Section */}
-      <div className="bg-base-200 rounded-lg shadow-lg border border-base-content/40">
+      <div className="bg-base-200 rounded-lg shadow-lg border-2 border-stroke">
         {/* Header */}
-        <div className="bg-base-200 px-6 py-4 border-b border-base-content/20 rounded-t-lg">
+        <div className="bg-base-200 px-6 py-4 border-b-2 border-stroke rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">

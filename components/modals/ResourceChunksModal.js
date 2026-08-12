@@ -87,7 +87,7 @@ const ResourceChunksModal = ({ resourceId, resourceName }) => {
                   key={chunk._id || index}
                   data-testid={`resource-chunk-item-${index}`}
                   id={`resource-chunk-item-${index}`}
-                  className="collapse collapse-arrow bg-base-100 border border-base-300"
+                  className="collapse collapse-arrow bg-base-100 border-2 border-stroke"
                 >
                   <input autoComplete="off" type="checkbox" defaultChecked />
                   <div className="collapse-title font-medium flex items-center gap-2">
@@ -109,7 +109,7 @@ const ResourceChunksModal = ({ resourceId, resourceName }) => {
 
         {/* Footer */}
         {!isLoading && !error && chunks.length > 0 && (
-          <div className="flex justify-between items-center pt-2 border-t border-base-content/10">
+          <div className="flex justify-between items-center pt-2 border-t-2 border-stroke">
             <span className="text-sm text-gray-500">Total chunks: {chunks.length}</span>
           </div>
         )}

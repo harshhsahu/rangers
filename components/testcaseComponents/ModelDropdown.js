@@ -127,7 +127,7 @@ const TestCaseModelDropdown = ({ selectedModels = [], onChange, selectedVersions
         data-testid="testcase-model-dropdown-btn"
         onClick={() => setIsOpen((o) => !o)}
         title={triggerTitle}
-        className="flex items-center gap-2 px-2 py-1 bg-transparent border border-base-content/20 rounded-lg text-xs font-semibold text-base-content/70 cursor-pointer hover:bg-base-200 transition-colors max-w-[200px]"
+        className="flex items-center gap-2 px-2 py-1 bg-transparent border-2 border-stroke rounded-lg text-xs font-semibold text-base-content/70 cursor-pointer hover:bg-base-200 transition-colors max-w-[200px]"
       >
         <Zap size={12} strokeWidth={2} className={iconTextColor} />
         <span className={`font-bold truncate ${iconTextColor}`}>{triggerLabel}</span>
@@ -143,8 +143,8 @@ const TestCaseModelDropdown = ({ selectedModels = [], onChange, selectedVersions
             data-testid="testcase-model-dropdown-backdrop"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-[calc(100%+8px)] -left-16 z-[100] w-[280px] max-h-[400px] overflow-y-auto bg-base-100 border border-base-300 rounded-2xl shadow-lg p-2 flex flex-col">
-            <div className="flex items-center justify-between gap-2 px-2.5 pt-1.5 pb-2.5 border-b border-base-200 mb-1.5">
+          <div className="absolute top-[calc(100%+8px)] -left-16 z-[100] w-[280px] max-h-[400px] overflow-y-auto bg-base-100 border-2 border-stroke rounded-2xl shadow-lg p-2 flex flex-col">
+            <div className="flex items-center justify-between gap-2 px-2.5 pt-1.5 pb-2.5 border-b-2 border-stroke mb-1.5">
               <span className="text-[11px] font-bold tracking-[0.05em] text-base-content/50 uppercase">
                 Select Models
               </span>
@@ -160,22 +160,18 @@ const TestCaseModelDropdown = ({ selectedModels = [], onChange, selectedVersions
             </div>
 
             {/* Default Option */}
-            <div className="mb-1.5 border-b border-base-200 pb-1.5">
+            <div className="mb-1.5 border-b-2 border-stroke pb-1.5">
               <button
                 data-testid="testcase-model-option-default"
                 onClick={() => {
                   onChange([]);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-[9px] text-left cursor-pointer transition-colors ${
-                  isDefault ? "bg-base-200" : "bg-transparent hover:bg-base-200"
-                }`}
+                className={`w-full flex items-center justify-between gap-2 px-2.5 py-2.5 rounded-[9px] text-left cursor-pointer transition-colors ${isDefault ? "bg-base-200" : "bg-transparent hover:bg-base-200"}`}
               >
                 <div>
                   <div
-                    className={`text-[13.5px] ${
-                      isDefault ? "font-bold text-base-content" : "font-medium text-base-content/70"
-                    }`}
+                    className={`text-[13.5px] ${isDefault ? "font-bold text-base-content" : "font-medium text-base-content/70"}`}
                   >
                     Default (version config)
                   </div>
@@ -187,7 +183,7 @@ const TestCaseModelDropdown = ({ selectedModels = [], onChange, selectedVersions
 
             {/* Search - Sticky */}
             <div className="sticky top-0 z-10 px-1.5 pb-1.5 bg-base-100">
-              <div className="flex items-center gap-2 px-2 py-1.5 rounded-[9px] border border-base-content/30 bg-base-100 focus-within:border-primary">
+              <div className="flex items-center gap-2 px-2 py-1.5 rounded-[9px] border-2 border-stroke bg-base-100 focus-within:border-primary">
                 <Search size={12} className="text-base-content/40 flex-shrink-0" />
                 <input
                   type="text"
@@ -249,22 +245,10 @@ const TestCaseModelDropdown = ({ selectedModels = [], onChange, selectedVersions
                           onClick={() => toggleModel(model.name, group.provider)}
                           disabled={disabled}
                           title={disabled ? unavailableTooltip : versionsLabel ? `Connected to: ${versionsLabel}` : ""}
-                          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-[9px] text-left text-[13.5px] transition-colors ${
-                            disabled
-                              ? "cursor-not-allowed opacity-50 bg-transparent text-base-content/40"
-                              : isActive
-                                ? "cursor-pointer bg-primary/10 font-bold text-primary"
-                                : "cursor-pointer bg-transparent font-normal text-base-content/70 hover:bg-base-200"
-                          }`}
+                          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-[9px] text-left text-[13.5px] transition-colors ${disabled ? "cursor-not-allowed opacity-50 bg-transparent text-base-content/40" : isActive ? "cursor-pointer bg-primary/10 font-bold text-primary" : "cursor-pointer bg-transparent font-normal text-base-content/70 hover:bg-base-200"}`}
                         >
                           <span
-                            className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center ${
-                              isActive
-                                ? "bg-primary border-primary"
-                                : disabled
-                                  ? "bg-base-200 border-base-content/20"
-                                  : "bg-base-100 border-base-content/40"
-                            }`}
+                            className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center ${isActive ? "bg-primary border-primary" : disabled ? "bg-base-200 border-stroke" : "bg-base-100 border-stroke"}`}
                           >
                             {isActive && <Check size={12} strokeWidth={3} className="text-primary-content" />}
                           </span>

@@ -75,8 +75,7 @@ export function BatchUI({ agents, onToolClick, onToolSliderClick, onAgentSliderC
                     handleToolClick(tool);
                   }
                 }}
-                className={`cursor-pointer flex items-center justify-between border px-3 py-2 text-xs text-base-content gap-2
-                              ${isAgentNode ? "hover:border-blue-400 hover:bg-blue-400/10" : "hover:border-orange-400 hover:bg-orange-400/10"}`}
+                className={`cursor-pointer flex items-center justify-between border-2 px-3 py-2 text-xs text-base-content gap-2 ${isAgentNode ? "hover:border-stroke hover:bg-cool" : "hover:border-stroke hover:bg-acc/10"}`}
                 title={toolName}
               >
                 <span className="flex items-center gap-2 flex-1 min-w-0">
@@ -94,7 +93,7 @@ export function BatchUI({ agents, onToolClick, onToolSliderClick, onAgentSliderC
                       data-testid={`batch-ui-tool-log-${depth}-${index}`}
                       type="button"
                       onClick={(event) => handleToolSliderClick(event, tool)}
-                      className="p-1 border border-base-300 rounded hover:border-primary hover:text-primary"
+                      className="p-1 border-2 border-stroke rounded hover:border-primary hover:text-primary"
                       title="Open tool logs"
                     >
                       <FileClockIcon size={12} />
@@ -222,7 +221,7 @@ export function BatchUI({ agents, onToolClick, onToolSliderClick, onAgentSliderC
                     ref={(node) => {
                       if (node) rowRefs.current[agentKey] = node;
                     }}
-                    className="flex justify-between items-center border px-2 py-2 text-sm text-base-content cursor-pointer hover:border-blue-400 hover:bg-blue-400/10"
+                    className="flex justify-between items-center border-2 border-stroke rounded-[8px] px-2 py-2 text-sm text-base-content cursor-pointer hover:border-stroke hover:bg-acc/10"
                     title={agent.name}
                   >
                     <span className="truncate flex items-center gap-2">

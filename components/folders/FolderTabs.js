@@ -78,11 +78,7 @@ export const FolderTabs = ({
         {/* All Items Tab */}
         <div
           onClick={() => setActiveFolderId(null)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-sm font-medium border ${
-            activeFolderId === null
-              ? "bg-primary text-primary-content border-primary shadow-sm"
-              : "bg-base-200 hover:bg-base-300 text-base-content/80 border-transparent"
-          }`}
+          className={`flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2 ${activeFolderId === null ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
         >
           {activeFolderId === null ? <FolderOpen size={15} /> : <Folder size={15} />}
           <span>All {folderCounts.all !== undefined ? `(${folderCounts.all})` : ""}</span>
@@ -101,19 +97,11 @@ export const FolderTabs = ({
               onDragOver={(e) => handleDragOver(e, folder._id)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, folder._id)}
-              className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-sm cursor-pointer transition-all duration-200 shrink-0 text-sm font-medium border ${
-                isSelected
-                  ? "bg-primary text-primary-content border-primary shadow-sm"
-                  : "bg-base-200 hover:bg-base-300 text-base-content/80 border-transparent"
-              }`}
+              className={`group flex items-center gap-1.5 px-[13px] py-1.5 rounded-[9px] cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold border-2 ${isSelected ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
               style={{
                 borderStyle: isDragOver ? "dashed" : "solid",
                 borderWidth: isDragOver ? "2px" : "1px",
-                borderColor: isDragOver
-                  ? "var(--fallback-p,oklch(var(--p)/1))"
-                  : isSelected
-                    ? "transparent"
-                    : undefined,
+                borderColor: isDragOver ? "var(--acc)" : isSelected ? "transparent" : undefined,
               }}
             >
               {isSelected ? <FolderOpen size={15} className="shrink-0" /> : <Folder size={15} className="shrink-0" />}
@@ -174,18 +162,14 @@ export const FolderTabs = ({
         {/* Uncategorized Tab */}
         <div
           onClick={() => setActiveFolderId("uncategorized")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-sm font-medium border ${
-            activeFolderId === "uncategorized"
-              ? "bg-primary text-primary-content border-primary shadow-sm"
-              : "bg-base-200 hover:bg-base-300 text-base-content/80 border-transparent"
-          }`}
+          className={`flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2 ${activeFolderId === "uncategorized" ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
           onDragOver={(e) => handleDragOver(e, "uncategorized")}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, "uncategorized")}
           style={{
             borderStyle: dragOverFolderId === "uncategorized" ? "dashed" : "solid",
             borderWidth: dragOverFolderId === "uncategorized" ? "2px" : "1px",
-            borderColor: dragOverFolderId === "uncategorized" ? "var(--fallback-p,oklch(var(--p)/1))" : "transparent",
+            borderColor: dragOverFolderId === "uncategorized" ? "var(--acc)" : "transparent",
           }}
         >
           <FileMinus size={15} />
@@ -196,11 +180,7 @@ export const FolderTabs = ({
         {showTrashTab && (
           <div
             onClick={() => setActiveFolderId("trash")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-sm font-medium border ${
-              activeFolderId === "trash"
-                ? "bg-error/15 text-error border-error/30 shadow-sm"
-                : "bg-base-200 hover:bg-base-300 text-base-content/80 border-transparent"
-            }`}
+            className={`flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2 ${activeFolderId === "trash" ? "bg-error text-error-content border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
             data-testid="folder-tab-trash"
           >
             <Trash2 size={15} />
@@ -212,7 +192,7 @@ export const FolderTabs = ({
         {isCreating ? (
           <form
             onSubmit={handleCreate}
-            className="flex items-center gap-1 bg-base-200 px-2 py-1 shrink-0 border border-base-300"
+            className="flex items-center gap-1 bg-base-200 px-2 py-1 shrink-0 border-2 border-stroke"
           >
             <input
               type="text"
@@ -237,7 +217,7 @@ export const FolderTabs = ({
         ) : (
           <button
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-sm font-medium border border-dashed border-base-content/30 hover:border-primary/50 text-base-content/60 hover:text-primary bg-transparent"
+            className="flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-semibold rounded-[9px] border-2 border-dashed border-stroke text-soft hover:text-acc bg-transparent"
           >
             <Plus size={15} />
             <span>Add Folder</span>

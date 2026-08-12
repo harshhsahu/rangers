@@ -120,8 +120,8 @@ function JsonSchemaModal({
         </div>
 
         {/* Current JSON Schema - Right Side (50%) */}
-        <div className="flex-1 flex flex-col bg-base-200 rounded-lg overflow-hidden border border-base-300">
-          <div className="px-4 py-3 border-b border-base-300 bg-base-100">
+        <div className="flex-1 flex flex-col bg-base-200 rounded-lg overflow-hidden border-2 border-stroke">
+          <div className="px-4 py-3 border-b-2 border-stroke bg-base-100">
             <h4 className="font-semibold text-sm">Current Schema</h4>
           </div>
           <div className="flex-1 overflow-hidden">

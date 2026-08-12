@@ -32,10 +32,10 @@ function getStatusClass(status) {
     case "published":
       return "bg-green-100";
     case "rejected":
-      return "bg-gray-100";
+      return "bg-paper";
     // Add more cases as needed
     default:
-      return "bg-gray-100";
+      return "bg-paper";
   }
 }
 
@@ -326,7 +326,7 @@ const EmbedList = ({ params, searchParams, isPublished, isEditor = true }) => {
                   video={getFunctionCreationVideo()}
                   tooltipContent="Tool calling lets LLMs use external tools to get real-time data and perform complex tasks."
                 >
-                  <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+                  <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
                 </InfoTooltip>
               </div>
             </div>
@@ -342,7 +342,7 @@ const EmbedList = ({ params, searchParams, isPublished, isEditor = true }) => {
                     id="embed-list-no-tools-dropdown"
                     className="dropdown dropdown-end w-full"
                   >
-                    <div className="border-2 border-base-200 border-dashed p-4 text-center">
+                    <div className="rounded-[8px] border-2 border-dashed border-stroke p-4 text-center">
                       <p className="text-sm text-base-content/70">No tools found.</p>
                       {showAddTool && (
                         <button
@@ -401,9 +401,7 @@ const EmbedList = ({ params, searchParams, isPublished, isEditor = true }) => {
                           data-testid={`embed-list-prebuilt-tool-${item?.value}`}
                           key={item?.value}
                           id={`embed-list-prebuilt-tool-${item?.value}`}
-                          className={`group flex w-full items-center border cursor-pointer bg-base-100 relative ${
-                            hasIssue ? "border-error" : isWebSearchTool ? WEB_SEARCH_WARNING_CLASS : "border-base-200"
-                          } transition-colors duration-200 min-h-[44px]`}
+                          className={`group flex w-full items-center border-2 cursor-pointer bg-base-100 relative ${hasIssue ? "border-error" : isWebSearchTool ? WEB_SEARCH_WARNING_CLASS : "border-stroke"} transition-colors duration-200 min-h-[44px]`}
                         >
                           <div className="p-2 flex-1 flex items-center gap-2">
                             {GetPreBuiltToolTypeIcon(item?.value, 16, 16)}
@@ -500,7 +498,7 @@ const EmbedList = ({ params, searchParams, isPublished, isEditor = true }) => {
                         id="embed-list-add-tool-dropdown"
                         className="dropdown dropdown-end w-full max-w-md"
                       >
-                        <div className="border-2 border-base-200 border-dashed text-center">
+                        <div className="rounded-[8px] border-2 border-dashed border-stroke text-center">
                           <button
                             data-testid="embed-list-add-tool-button"
                             id="embed-list-add-tool-button"

@@ -187,7 +187,7 @@ const ThemePaletteEditor = ({ theme, onColorChange, onColorBlur, defaultTheme })
                     return (
                       <div
                         key={`${mode}-${token}`}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-base-200 p-2"
+                        className="flex items-center justify-between gap-3 rounded-lg border-2 border-stroke p-2"
                       >
                         <div className="flex-1">
                           <p className="text-xs font-semibold">{COLOR_LABEL_MAP[token] || token}</p>
@@ -197,7 +197,7 @@ const ThemePaletteEditor = ({ theme, onColorChange, onColorBlur, defaultTheme })
                           autoComplete="off"
                           data-testid="embed-config-theme-color-input"
                           type="color"
-                          className="w-10 h-10 border border-base-300 rounded cursor-pointer bg-transparent shrink-0"
+                          className="w-10 h-10 border-2 border-stroke rounded cursor-pointer bg-transparent shrink-0"
                           value={hexValue}
                           onChange={(e) => onColorChange(mode, token, e.target.value)}
                           onBlur={() => onColorBlur?.(theme)}

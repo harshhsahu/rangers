@@ -554,7 +554,7 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
               )}
 
               <div
-                className="card bg-base-100 shadow-sm border border-base-300 mb-3"
+                className="card bg-base-100 shadow-sm border-2 border-stroke mb-3"
                 style={{ marginLeft: `${indentLevel}px` }}
               >
                 <div className="card-body p-4">
@@ -874,14 +874,14 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
 
             {/* Connected Agents Section */}
             {isLoadingAgents ? (
-              <div className="mt-4 pt-4 border-t border-base-300">
+              <div className="mt-4 pt-4 border-t-2 border-stroke">
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="loading loading-spinner loading-lg text-primary"></div>
                   <p className="mt-3 text-sm text-base-content/70">Loading connected agents...</p>
                 </div>
               </div>
             ) : allConnectedAgents.length > 1 ? (
-              <div className="mt-4 pt-4 border-t border-base-300">
+              <div className="mt-4 pt-4 border-t-2 border-stroke">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-md font-semibold flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary" />

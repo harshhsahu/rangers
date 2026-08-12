@@ -117,10 +117,10 @@ const OrganizationGrid = ({ displayedOrganizations = [], handleSwitchOrg, curren
 
   return (
     <div className="mb-8">
-      <div className="overflow-x-auto rounded-lg shadow-lg border border-base-300 bg-base-100">
+      <div className="overflow-x-auto rounded-lg shadow-lg border-2 border-stroke bg-base-100">
         <table
           id="organization-grid-table"
-          className="table bg-base-100 shadow-md overflow-visible relative z-50 border-collapse focus:outline-none focus:ring-2 focus:ring-primary/40"
+          className="table bg-base-100 shadow-md overflow-visible relative z-50 border-collapse focus:outline-none "
           tabIndex={0}
           onKeyDown={handleKeyDown}
         >
@@ -151,9 +151,7 @@ const OrganizationGrid = ({ displayedOrganizations = [], handleSwitchOrg, curren
                       setSelectedIndex(index);
                       handleOrgClick(org.id, org.name);
                     }}
-                    className={`cursor-pointer transition-colors hover:bg-base-200 group ${
-                      isLoading ? "opacity-60 cursor-wait" : ""
-                    } ${isSelected ? "bg-base-200" : ""}`}
+                    className={`cursor-pointer transition-colors hover:bg-base-200 group ${isLoading ? "opacity-60 cursor-wait" : ""} ${isSelected ? "bg-base-200" : ""}`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">

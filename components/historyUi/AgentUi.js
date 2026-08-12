@@ -29,7 +29,7 @@ export function AgentUI({ label, name, status, statusClass, onToolClick, emptyTo
               <div
                 key={`${tool?.name || "tool"}-${index}`}
                 data-testid={`agent-ui-tool-${index}`}
-                className="flex items-center justify-between border border-base-300 hover:border-primary p-2 mb-3 hover:bg-primary/10 cursor-pointer"
+                className="flex items-center justify-between border-2 border-stroke hover:border-primary p-2 mb-3 hover:bg-primary/10 cursor-pointer"
                 onClick={() => handleToolClick(tool)}
               >
                 <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ export function AgentUI({ label, name, status, statusClass, onToolClick, emptyTo
               </div>
             ))
           ) : (
-            <div className="border border-base-300 bg-base-200 text-xs text-base-content/60 p-3 text-center">
+            <div className="border-2 border-stroke bg-base-200 text-xs text-base-content/60 p-3 text-center">
               {emptyToolsMessage || "No tool calls for this agent."}
             </div>
           )}

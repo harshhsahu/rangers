@@ -6,7 +6,7 @@ const CollapsibleSection = ({ title, children, defaultOpen = true }) => {
   const sectionSlug = title.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div data-testid={`collapsible-section-wrapper-${sectionSlug}`} className="border-b border-base-300">
+    <div data-testid={`collapsible-section-wrapper-${sectionSlug}`} className="border-b-2 border-stroke">
       <button
         data-testid={`collapsible-section-${sectionSlug}`}
         className="w-full flex items-center justify-between p-4 text-left font-medium text-base-content hover:bg-base-200"
@@ -48,16 +48,13 @@ export function AgentFullSlider({ agent, onClose }) {
     <aside
       id="agent-full-slider"
       data-testid="agent-full-slider"
-      className={`sidebar-container fixed flex flex-col top-0 right-0 
-                  w-full md:w-1/2 lg:w-[50vw] min-w-[600px] h-screen 
-                  bg-base-100 transition-all duration-300 z-[999999] border-l border-base-300
-                  ${agent ? "translate-x-0" : "translate-x-full"}`}
+      className={`sidebar-container fixed flex flex-col top-0 right-0 w-full md:w-1/2 lg:w-[50vw] min-w-[600px] h-screen bg-base-100 transition-all duration-300 z-[999999] border-l-2 border-stroke ${agent ? "translate-x-0" : "translate-x-full"}`}
       aria-label="Agent Details Slider"
     >
       {/* Header */}
       <div
         data-testid="agent-full-slider-header"
-        className="flex items-center justify-end p-4 border-b border-base-300"
+        className="flex items-center justify-end p-4 border-b-2 border-stroke"
       >
         <button
           data-testid="agent-full-slider-back"
@@ -71,7 +68,7 @@ export function AgentFullSlider({ agent, onClose }) {
       {/* Title */}
       <div
         data-testid="agent-full-slider-title-section"
-        className="px-6 py-4 border-b border-base-300 flex flex-row gap-2 items-center"
+        className="px-6 py-4 border-b-2 border-stroke flex flex-row gap-2 items-center"
       >
         <h2 data-testid="agent-full-slider-title" className="text-md font-semibold text-base-content">
           Agent Details

@@ -209,11 +209,7 @@ const EmbedAnalyticsTab = ({ data }) => {
                 key={item.value}
                 type="button"
                 onClick={() => setRange(item.value)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  range === item.value
-                    ? "bg-primary text-primary-content"
-                    : "bg-base-200 text-base-content/70 hover:bg-base-300"
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${range === item.value ? "bg-primary text-primary-content" : "bg-base-200 text-base-content/70 hover:bg-base-300"}`}
               >
                 {item.label}
               </button>
@@ -257,7 +253,7 @@ const EmbedAnalyticsTab = ({ data }) => {
               return (
                 <div
                   key={`${stat.title}-${idx}`}
-                  className="bg-base-100 p-4 rounded-xl border border-base-300 shadow-sm flex flex-col gap-1"
+                  className="bg-base-100 p-4 rounded-xl border-2 border-stroke shadow-sm flex flex-col gap-1"
                 >
                   <div className="flex justify-between items-start">
                     <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
@@ -272,7 +268,7 @@ const EmbedAnalyticsTab = ({ data }) => {
           </div>
         )}
 
-        <div className="bg-base-100 border border-base-300 rounded-xl p-4 shadow-sm">
+        <div className="bg-base-100 border-2 border-stroke rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Activity size={16} className="text-base-content/50" />
             <h2 className="text-sm font-semibold">Requests over time</h2>
@@ -321,8 +317,8 @@ const EmbedAnalyticsTab = ({ data }) => {
         </div>
 
         {/* Users table */}
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-base-300 flex items-center gap-2">
+        <div className="bg-base-100 border-2 border-stroke rounded-xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b-2 border-stroke flex items-center gap-2">
             <Users size={16} className="text-base-content/50" />
             <h2 className="text-sm font-semibold">Users</h2>
             <span className="text-xs text-base-content/50">Agent owners in this embed</span>
@@ -435,7 +431,7 @@ const EmbedAnalyticsTab = ({ data }) => {
           )}
 
           {!loading && userPageCount > 1 && (
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-base-300">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-t-2 border-stroke">
               <span className="text-xs text-base-content/50">
                 {(currentUserPage - 1) * USERS_PAGE_SIZE + 1}–{Math.min(currentUserPage * USERS_PAGE_SIZE, userTotal)}{" "}
                 of {userTotal}

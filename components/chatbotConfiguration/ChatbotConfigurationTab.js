@@ -60,7 +60,7 @@ function ModelCustomization({ value = {}, onChange, onBlur }) {
         });
         if (allModels.length === 0) return null;
         return (
-          <div key={service} className="border border-base-300 rounded-lg overflow-hidden">
+          <div key={service} className="border-2 border-stroke rounded-lg overflow-hidden">
             <button
               type="button"
               data-testid={`chatbot-config-model-service-toggle-${service}`}
@@ -374,7 +374,7 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
   if (isInSidebar) {
     return (
       <>
-        <h3 className="text-lg font-semibold border-b border-base-300 pb-2 mb-4">Display Settings</h3>
+        <h3 className="text-lg font-semibold border-b-2 border-stroke pb-2 mb-4">Display Settings</h3>
 
         {/* Basic Information */}
         <div className="space-y-3">
@@ -580,9 +580,7 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
                         return (
                           <div
                             key={index}
-                            className={`group relative bg-base-200/40 border rounded-lg p-3 space-y-2 transition-all hover:bg-base-200/60 ${
-                              isEdited ? "border-warning" : "border-base-300"
-                            }`}
+                            className={`group relative bg-base-200/40 border-2 rounded-lg p-3 space-y-2 transition-all hover:bg-base-200/60 ${isEdited ? "border-warning" : "border-stroke"}`}
                           >
                             <div className="flex justify-between items-center">
                               <div className="flex items-center gap-2">
@@ -617,9 +615,7 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
                               autoComplete="off"
                               type="text"
                               placeholder="MCP name (e.g. my-mcp)"
-                              className={`input input-bordered w-full input-sm ${
-                                !config.name ? "input-error input-error/30" : ""
-                              }`}
+                              className={`input input-bordered w-full input-sm ${!config.name ? "input-error input-error/30" : ""}`}
                               value={config.name || ""}
                               onChange={(e) => handleMcpConfigChange(index, "name", e.target.value)}
                               required
@@ -628,9 +624,7 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
                               autoComplete="off"
                               type="url"
                               placeholder="https://mcp.example.com/..."
-                              className={`input input-bordered w-full input-sm ${
-                                !config.url ? "input-error input-error/30" : ""
-                              }`}
+                              className={`input input-bordered w-full input-sm ${!config.url ? "input-error input-error/30" : ""}`}
                               value={config.url || ""}
                               onChange={(e) => handleMcpConfigChange(index, "url", e.target.value)}
                               required
@@ -642,7 +636,7 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
                         <button
                           type="button"
                           onClick={handleAddMcpConfig}
-                          className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-base-200 bg-transparent text-base-content/70 transition-all"
+                          className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-stroke bg-transparent text-base-content/70 transition-all"
                         >
                           <Plus size={14} />
                           Add Another MCP
@@ -656,7 +650,7 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
               <button
                 type="button"
                 onClick={handleAddMcpConfig}
-                className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-base-200 bg-transparent text-base-content/70 transition-all"
+                className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-stroke bg-transparent text-base-content/70 transition-all"
               >
                 <Plus size={14} />
                 Add MCP Configuration
@@ -762,8 +756,8 @@ const ChatbotConfigurationTab = ({ params, chatbotId, isInSidebar = false }) => 
   return (
     <div className="flex h-full">
       {/* Sidebar - Configuration Settings */}
-      <div className="w-80 flex-shrink-0 border-r border-base-300 overflow-y-auto p-4 space-y-4">
-        <h3 className="text-lg font-semibold border-b border-base-300 pb-2">Display Settings</h3>
+      <div className="w-80 flex-shrink-0 border-r-2 border-stroke overflow-y-auto p-4 space-y-4">
+        <h3 className="text-lg font-semibold border-b-2 border-stroke pb-2">Display Settings</h3>
         <ChatbotPreview />
       </div>
     </div>

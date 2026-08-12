@@ -13,13 +13,13 @@ import SmartLink from "./SmartLink";
 const PageHeader = ({ title, description, docLink }) => {
   return (
     <div data-testid="page-header-container" id="page-header-container" className="mb-6">
-      <h1 className="text-2xl font-bold mb-1">{title}</h1>
+      <h1 className="text-[32px] font-extrabold tracking-[-0.04em] leading-none mb-2">{title}</h1>
       {description && (
-        <p className="text-base text-base-content opacity-80">
+        <p className="max-w-[78ch] text-[15px] leading-[1.55] text-soft">
           {description}
           <SmartLink data-testid="page-header-learn-more-link" id="page-header-learn-more-link" href={docLink}>
-            <span className="inline-flex mb-4 ml-1 items-center gap-2 text-sm text-blue-500 hover:text-blue-600 transition-colors font-medium group">
-              Learn more <ExternalLinkIcon size={16} />
+            <span className="inline-flex ml-1 items-center gap-1.5 text-[15px] font-semibold text-acc hover:opacity-80 transition-opacity group">
+              Learn more <ExternalLinkIcon size={15} />
             </span>
           </SmartLink>
         </p>

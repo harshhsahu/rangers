@@ -40,7 +40,7 @@ const Link = ({ href, children }) => (
     data-testid="api-key-guide-provider-link"
     id="api-key-guide-provider-link"
     href={href}
-    className="text-blue-600 hover:underline font-medium"
+    className="text-acc hover:underline font-medium"
     target="_blank"
     rel="noopener noreferrer"
   >
@@ -144,7 +144,7 @@ function ApiKeyGuideSlider() {
         </button>
 
         {/* Header */}
-        <div className="sticky top-0 bg-base-100 p-6 border-b border-base-300">
+        <div className="sticky top-0 bg-base-100 p-6 border-b-2 border-stroke">
           <h2 className="text-xl font-bold mb-4">API Key Setup Guide</h2>
 
           {/* Model Selection Tabs */}
@@ -155,11 +155,7 @@ function ApiKeyGuideSlider() {
                 id={`api-key-guide-tab-${model.id}`}
                 key={model.id}
                 onClick={() => setSelectedModel(model.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedModel === model.id
-                    ? `${model.color} text-base-100 shadow-lg`
-                    : "bg-base-200 text-base-content hover:bg-base-300"
-                }`}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedModel === model.id ? `${model.color} text-base-100 shadow-lg` : "bg-base-200 text-base-content hover:bg-base-300"}`}
                 aria-pressed={selectedModel === model.id}
               >
                 {model.name}

@@ -303,6 +303,18 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   );
 
   // Get settings menu items for sidebar
+  /** Create-agent action. The CreateNewBridge modal is only mounted on the
+   *  agents page, so open it directly when we are already there and otherwise
+   *  navigate with ?create=1 for that page to pick up. */
+  const handleCreateAgent = useCallback(() => {
+    if (isMobile) setIsMobileVisible(false);
+    if (pathname.endsWith("/agents")) {
+      openModal(MODAL_TYPE.CREATE_BRIDGE_MODAL);
+      return;
+    }
+    if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/agents?create=1`);
+  }, [isMobile, pathname, targetOrgId]);
+
   const settingsMenuItems = useMemo(
     () => [
       {
@@ -344,9 +356,9 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     return (
       <>
         {/* User info */}
-        <div className="flex items-start gap-3 p-3 border-b border-base-300 mb-3">
+        <div className="flex items-start gap-3 p-3 border-b-2 border-stroke mb-3">
           {!openDetails ? (
-            <User size={16} className="text-base-content/60 mt-3  flex-shrink-0" />
+            <User size={16} className="text-base-content/60 mt-3 flex-shrink-0" />
           ) : (
             <div className="shrink-0 w-9 h-9 bg-primary flex items-center justify-center cursor-pointer">
               <span className="text-primary-content font-semibold text-sm">
@@ -406,7 +418,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
   if (openDetails) {
     return (
-      <div className="absolute top-23 right-2 mt-2 bg-base-100 border border-base-300 shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2 z-[9999]">
+      <div className="absolute top-23 right-2 mt-2 bg-base-100 border-2 border-stroke shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2 z-[9999]">
         {renderOrganizationDropdown()}
       </div>
     );
@@ -453,7 +465,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
           <button
             id="main-slider-mobile-menu-toggle"
             onClick={handleMobileMenuToggle}
-            className="fixed top-3 left-2 w-8 h-8 bg-base-100 border border-base-300 flex items-center justify-center hover:bg-base-200 transition-colors z-50 shadow-md"
+            className="fixed top-3 left-2 w-8 h-8 bg-base-100 border-2 border-stroke flex items-center justify-center hover:bg-base-200 transition-colors z-50 shadow-md"
           >
             <AlignJustify size={12} />
           </button>
@@ -464,7 +476,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         {/* ------------------------------------------------------------------ */}
         <div
           data-testid="main-sidebar"
-          className={`${sidebarPositioning} sidebar bg-base-100 border ${isMobile ? "overflow-hidden" : ""} border-base-200 left-0 top-0 h-[100dvh] bg-base-100 my-0 ${isMobile ? "mx-1" : isSideBySideMode ? "ml-3 mr-0" : "mx-3"} flex flex-col pb-2 ${sidebarZIndex}`}
+          className={`${sidebarPositioning} sidebar bg-base-100 border-r-2 ${isMobile ? "overflow-hidden" : ""} border-ink left-0 top-0 h-[100dvh] my-0 ${isMobile ? "mx-1" : isSideBySideMode ? "ml-3 mr-0" : "mx-3"} flex flex-col pb-2 ${sidebarZIndex}`}
           style={{
             width: isMobile ? (isMobileVisible ? "56px" : "0px") : isOpen ? "220px" : "50px",
             transform: isMobile ? (isMobileVisible ? "translateX(0)" : "translateX(-100%)") : "translateX(0)",
@@ -478,7 +490,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             <button
               id="main-slider-mobile-close-button"
               onClick={() => setIsMobileVisible(false)}
-              className="absolute -right-3 top-3 w-7 h-7 bg-base-100 border border-base-300 flex items-center justify-center hover:bg-base-200 transition-colors z-10 shadow-sm"
+              className="absolute -right-3 top-3 w-7 h-7 bg-base-100 border-2 border-stroke flex items-center justify-center hover:bg-base-200 transition-colors z-10 shadow-sm"
             >
               <ChevronLeft size={14} />
             </button>
@@ -489,7 +501,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             <button
               id="main-slider-toggle-button"
               onClick={handleToggle}
-              className="absolute -right-3 top-[50px] w-7 h-7 bg-base-100 border border-base-300 flex items-center justify-center hover:bg-base-200 transition-colors z-10 shadow-sm"
+              className="absolute -right-3 top-[50px] w-7 h-7 bg-base-100 border-2 border-stroke flex items-center justify-center hover:bg-base-200 transition-colors z-10 shadow-sm"
             >
               {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>
@@ -498,7 +510,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
           {/* -------------------------- NAVIGATION -------------------------- */}
           <div className="flex flex-col h-full">
             {/* Header section — account menu (no org switcher) */}
-            <div className="p-2 border-b border-base-300 relative">
+            <div className="p-2 border-b-2 border-stroke relative">
               {pathParts.length >= 4 && (
                 <div
                   className="relative account-dropdown-container"
@@ -508,20 +520,22 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                   <button
                     id="main-slider-account-dropdown-button"
                     onClick={handleOrgClick}
-                    className="w-full flex items-center gap-3 py-2 hover:bg-base-200 transition-colors"
+                    className={`w-full flex items-center gap-[10px] transition-colors ${showSidebarContent ? "border-2 border-ink rounded-[12px] px-[11px] py-[9px] hover:bg-paper" : "py-2"}`}
                   >
-                    <div className="shrink-0 w-8 h-8 bg-primary flex items-center justify-center">
-                      <span className="text-primary-content font-semibold text-sm">
+                    <div className="shrink-0 w-[30px] h-[30px] grid place-items-center rounded-[9px] border-2 border-stroke bg-acc">
+                      <span className="text-acc-ink font-mono font-bold text-[12px]">
                         {getInitials(userdetailsfromOrg?.name || userdetails?.name || "U")}
                       </span>
                     </div>
                     {showSidebarContent && (
                       <>
                         <div className="flex-1 text-left overflow-hidden">
-                          <div className="font-semibold text-sm truncate">
+                          <div className="text-[13.5px] font-bold truncate">
                             {truncate(userdetails?.name || userdetailsfromOrg?.name || "Account", 20)}
                           </div>
-                          <div className="text-xs text-base-content/60 truncate">{userdetails?.email || "Account"}</div>
+                          <div className="font-mono text-[9.5px] text-soft truncate">
+                            {userdetails?.email || "Account"}
+                          </div>
                         </div>
                         <ChevronDown
                           size={16}
@@ -533,7 +547,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
                   {isOrgDropdownOpen && !showSidebarContent && (
                     <div
-                      className="absolute left-full top-0 ml-2 bg-base-100 border border-base-300 shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2"
+                      className="absolute left-full top-0 ml-2 bg-base-100 border-2 border-stroke shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2"
                       onMouseEnter={() => {
                         if (orgDropdownTimeout) {
                           clearTimeout(orgDropdownTimeout);
@@ -547,13 +561,31 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                   )}
 
                   {isOrgDropdownExpanded && showSidebarContent && (
-                    <div className="absolute top-0 left-0 mt-2 bg-base-100 border border-base-300 shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2">
+                    <div className="absolute top-0 left-0 mt-2 bg-base-100 border-2 border-stroke shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2">
                       {renderOrganizationDropdown()}
                     </div>
                   )}
                 </div>
               )}
             </div>
+
+            {/* Create new agent — primary sidebar action (design) */}
+            {targetOrgId && (
+              <div className="px-2 pt-2">
+                <button
+                  id="main-slider-create-agent-button"
+                  data-testid="main-slider-create-agent-button"
+                  onClick={handleCreateAgent}
+                  onMouseEnter={(e) => onItemEnter("create-agent", e)}
+                  onMouseLeave={onItemLeave}
+                  className={`w-full flex items-center ${
+                    showSidebarContent ? "justify-between px-[13px]" : "justify-center px-0"
+                  } gap-2 rounded-[12px] border-2 border-ink bg-acc py-[10px] text-[14px] font-bold text-acc-ink shadow-sm transition-transform `}
+                >
+                  {showSidebarContent ? <span>+ Create new agent</span> : <span className="text-[16px]">+</span>}
+                </button>
+              </div>
+            )}
 
             {/* Main navigation - scrollable */}
             <div className={`flex-1 scrollbar-hide overflow-x-hidden scroll-smooth p-1`}>
@@ -587,7 +619,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     {NAV_SECTIONS.map(({ title, items }, idx) => (
                       <div key={idx} className="">
                         {showSidebarContent && title && (
-                          <h3 className="my-1 text-[10px] text-base-content/50 uppercase tracking-wider px-2">
+                          <h3 className="my-1 font-mono text-[9.5px] text-soft uppercase tracking-[.14em] px-1">
                             {title}
                           </h3>
                         )}
@@ -602,16 +634,12 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                               }}
                               onMouseEnter={(e) => onItemEnter(key, e)}
                               onMouseLeave={onItemLeave}
-                              className={`w-full flex items-center gap-3 py-2 px-3 transition-all duration-200 ${
-                                activeKey === key
-                                  ? "bg-primary text-primary-content shadow-sm"
-                                  : "hover:bg-base-200 text-base-content"
-                              } ${!showSidebarContent ? "justify-center" : ""}`}
+                              className={`w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] border-2 text-[14px] font-semibold transition-all duration-200 ${activeKey === key ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"} ${!showSidebarContent ? "justify-center" : ""}`}
                             >
                               <div className="shrink-0">{ITEM_ICONS[key]}</div>
                               {showSidebarContent && (
                                 <div className="flex items-center gap-2 justify-center">
-                                  <span className="text-sm capitalize truncate">{DISPLAY_NAMES(key)}</span>
+                                  <span className="text-[14px] capitalize truncate">{DISPLAY_NAMES(key)}</span>
                                   <span>{(key === "orchestratal_model" || key === "widgets") && <BetaBadge />}</span>
                                 </div>
                               )}
@@ -631,7 +659,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     }}
                   >
                     {showSidebarContent && (
-                      <h3 className="my-2 text-xs text-base-content/50 uppercase tracking-wider px-2">
+                      <h3 className="my-2 font-mono text-[9.5px] text-soft uppercase tracking-[.14em] px-1">
                         Admin Settings
                       </h3>
                     )}
@@ -646,7 +674,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                           }}
                           onMouseEnter={(e) => onItemEnter(item.id, e)}
                           onMouseLeave={onItemLeave}
-                          className={`w-full flex items-center gap-3 py-2 px-3 transition-all duration-200 hover:bg-base-200 text-base-content ${!showSidebarContent ? "justify-center" : ""}`}
+                          className={`w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] text-[13.5px] font-semibold transition-all duration-200 hover:bg-paper text-ink ${!showSidebarContent ? "justify-center" : ""}`}
                         >
                           <div className="shrink-0">{item.icon}</div>
                           {showSidebarContent && <span className="text-sm truncate">{item.label}</span>}
@@ -659,7 +687,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             </div>
 
             {/* Footer Actions Section */}
-            <div className="border-t border-base-content/20 p-1">
+            <div className="border-t-2 border-stroke p-1 pt-2">
               <div className="space-y-1">
                 {/* Primary action: Admin */}
                 <button
@@ -667,15 +695,11 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                   onClick={handleAdminToggle}
                   onMouseEnter={(e) => onItemEnter("admin-toggle", e)}
                   onMouseLeave={onItemLeave}
-                  className={`w-full flex items-center gap-3 rounded-lg p-2.5 transition-colors ${
-                    isAdminMode ? "bg-primary text-primary-content shadow-sm" : "hover:bg-base-200 text-base-content"
-                  } ${!showSidebarContent ? "justify-center" : ""}`}
+                  className={`w-full flex items-center gap-3 rounded-[9px] border-2 px-[11px] py-2 text-[13.5px] font-semibold transition-colors ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"} ${!showSidebarContent ? "justify-center" : ""}`}
                 >
                   {ITEM_ICONS.adminSettings}
                   {showSidebarContent && (
-                    <span className="text-xs truncate font-medium">
-                      {isAdminMode ? "Back to Main" : "Admin Settings"}
-                    </span>
+                    <span className="truncate">{isAdminMode ? "Back to Main" : "Admin Settings"}</span>
                   )}
                 </button>
 
@@ -690,17 +714,15 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                       }}
                       onMouseEnter={(e) => onItemEnter("lifetimeAccess", e)}
                       onMouseLeave={onItemLeave}
-                      className={`w-full flex items-center gap-3 rounded-lg p-2.5 transition-all duration-300 border border-yellow-500/60 bg-yellow-500/5 hover:bg-yellow-500/10 ${!showSidebarContent ? "justify-center" : ""}`}
+                      className={`w-full flex items-center gap-3 rounded-[9px] px-[11px] py-2 transition-all duration-300 border-2 border-acc text-acc hover:bg-acc/10 ${!showSidebarContent ? "justify-center" : ""}`}
                     >
                       <div className="relative z-10 flex items-center gap-3 w-full">
                         <div className="relative">
                           {ITEM_ICONS.lifetimeAccess}
-                          <div className="absolute -top-1 -right-1 w-1 h-1 bg-yellow-400 animate-ping opacity-40"></div>
+                          <div className="absolute -top-1 -right-1 w-1 h-1 bg-acc animate-ping opacity-40"></div>
                         </div>
                         {showSidebarContent && (
-                          <span className="text-xs truncate font-semibold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-                            Free Lifetime Access
-                          </span>
+                          <span className="text-[13.5px] truncate font-bold text-acc">Free Lifetime Access</span>
                         )}
                       </div>
                     </button>
@@ -713,7 +735,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
                 {/* Secondary footer actions */}
                 {showSidebarContent ? (
-                  <div className="border-t border-base-content/15 pt-2">
+                  <div className="border-t border-dashed border-line pt-2">
                     <div className="grid grid-cols-2 gap-1">
                       <button
                         id="main-slider-refer-earn-button"
@@ -723,10 +745,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                         }}
                         onMouseEnter={(e) => onItemEnter("refer-earn", e)}
                         onMouseLeave={onItemLeave}
-                        className="flex flex-col items-center justify-center gap-1 rounded-md p-1.5 hover:bg-base-200 transition-colors text-base-content/80"
+                        className="flex flex-col items-center justify-center gap-1 rounded-[9px] border-2 border-stroke p-[7px] font-mono text-[10.5px] hover:bg-paper transition-colors text-ink"
                       >
                         <span className="text-sm">🎁</span>
-                        <span className="text-[10px] leading-none">Refer</span>
+                        <span className="text-[10.5px] leading-none">Refer</span>
                       </button>
 
                       <button
@@ -737,10 +759,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                         }}
                         onMouseEnter={(e) => onItemEnter("keyboard-shortcuts", e)}
                         onMouseLeave={onItemLeave}
-                        className="flex flex-col items-center justify-center gap-1 rounded-md p-1.5 hover:bg-base-200 transition-colors text-base-content/80"
+                        className="flex flex-col items-center justify-center gap-1 rounded-[9px] border-2 border-stroke p-[7px] font-mono text-[10.5px] hover:bg-paper transition-colors text-ink"
                       >
                         <Keyboard size={16} className="text-base-content/70" />
-                        <span className="text-[10px] leading-none">Keys</span>
+                        <span className="text-[10.5px] leading-none">Keys</span>
                       </button>
                     </div>
                   </div>
@@ -777,12 +799,12 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             </div>
 
             {/* GTWY Label Section */}
-            <div className="border-t border-base-300 p-1">
+            <div className="border-t border-dashed border-line p-1 pt-[9px]">
               <div className="text-center">
                 {showSidebarContent ? (
-                  <span className="text-sm text-base-content/70">GTWY</span>
+                  <span className="font-mono text-[11px] tracking-[.16em] text-soft">GTWY</span>
                 ) : (
-                  <span className="text-xs text-base-content/50">GTWY</span>
+                  <span className="font-mono text-[10px] tracking-[.16em] text-soft">GTWY</span>
                 )}
               </div>
             </div>
@@ -808,10 +830,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         {/* ------------------------------------------------------------------ */}
         {hovered && !showSidebarContent && (isMobileVisible || (!isMobile && !isOpen)) && (
           <div
-            className="fixed capitalize bg-base-300 text-base-content py-2 px-3 rounded-lg shadow-lg whitespace-nowrap border border-base-300 pointer-events-none z-50"
+            className="fixed capitalize bg-base-300 text-base-content py-2 px-3 rounded-lg shadow-lg whitespace-nowrap border-2 border-stroke pointer-events-none z-50"
             style={{ top: tooltipPos.top - 20, left: tooltipPos.left }}
           >
-            <div className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-base-300 border rotate-45 capitalize -left-1 border-r-0 border-b-0 border-base-300" />
+            <div className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-base-300 border-2 rotate-45 capitalize -left-1 border-r-0 border-b-0 border-stroke" />
             {DISPLAY_NAMES(hovered)}
           </div>
         )}

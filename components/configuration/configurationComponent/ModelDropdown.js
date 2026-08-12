@@ -56,11 +56,11 @@ export const ModelPreview = memo(({ hoveredModel, modelSpecs, dropdownRef }) => 
     <div
       data-testid="model-preview-container"
       id="model-preview-container"
-      className="w-[260px] bg-base-100 border border-base-content/20 rounded-lg shadow-xl p-4 transition-all duration-200 ease-in-out"
+      className="w-[260px] bg-base-100 border-2 border-stroke rounded-lg shadow-xl p-4 transition-all duration-200 ease-in-out"
       style={previewStyle}
     >
       <div className="space-y-3">
-        <div className="border-b border-base-300 pb-2">
+        <div className="border-b-2 border-stroke pb-2">
           <h3 className="text-lg font-semibold text-base-content truncate">{hoveredModel}</h3>
           {modelSpecs?.description && <p className="text-xs text-base-content/80 mt-1">{modelSpecs.description}</p>}
         </div>
@@ -380,9 +380,7 @@ const ModelDropdown = ({
             <InfoTooltip tooltipContent="Let GTWY's Smart Model Router select the model depending on User Query. Only works for chat type models.">
               <CircleQuestionMark
                 size={14}
-                className={
-                  isAutoModelSelected ? "text-warning cursor-help" : "text-gray-500 hover:text-gray-700 cursor-help"
-                }
+                className={isAutoModelSelected ? "text-warning cursor-help" : "text-soft hover:text-ink cursor-help"}
               />
             </InfoTooltip>
             <input
@@ -413,7 +411,7 @@ const ModelDropdown = ({
                 options={autoModelBasedOnOptions}
                 value={selectedAutoModelBasedOn}
                 onChange={handleAutoSelectModelChange}
-                className="flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 border-base-content/20 text-base-content h-8 min-w-[150px]"
+                className="flex w-full items-center justify-between gap-2 rounded-[9px] border-2 px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none -[3px] disabled:cursor-not-allowed disabled:opacity-50 border-stroke text-base-content h-8 min-w-[150px]"
                 placeholder="Select basis"
                 size="sm"
                 key={selectedAutoModelBasedOn}
@@ -437,8 +435,8 @@ const ModelDropdown = ({
                 }}
                 placeholder="Select model"
                 size="sm"
-                className="flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 border-base-content/20 text-base-content h-8 min-w-[150px]"
-                style={{ backgroundColor: "color-mix(in oklab, var(--color-white) 3%, transparent)" }}
+                className="flex w-full items-center justify-between gap-2 rounded-[9px] border-2 px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none -[3px] disabled:cursor-not-allowed disabled:opacity-50 border-stroke text-base-content h-8 min-w-[150px]"
+                style={{ backgroundColor: "var(--card)" }}
                 menuClassName="w-full sm:w-[260px] max-h-[500px] min-w-[200px]"
                 maxLabelLength={20}
               />
@@ -469,9 +467,9 @@ const ModelDropdown = ({
             >
               <button
                 type="button"
-                className={`btn btn-sm btn-ghost border rounded border-base-200 px-2 ${isFallbackEnabled ? "" : "opacity-70"}`}
+                className={`btn btn-sm btn-ghost border-2 rounded border-stroke px-2 ${isFallbackEnabled ? "" : "opacity-70"}`}
               >
-                <CircleAlert size={16} className={isFallbackEnabled ? "text-warning" : "text-gray-400"} />
+                <CircleAlert size={16} className={isFallbackEnabled ? "text-warning" : "text-soft"} />
               </button>
             </InfoTooltip>
           )}
@@ -496,7 +494,7 @@ const ModelDropdown = ({
               onBlur={handleFinetuneModelChange}
               placeholder="Fine-tune model Name"
               disabled={isReadOnly}
-              className="input input-bordered input-sm w-full bg-base-100 text-base-content focus:border-primary focus:ring-1 focus:ring-primary min-h-[2.5rem] sm:min-h-[2rem]"
+              className="input input-bordered input-sm w-full bg-base-100 text-base-content focus:border-primary min-h-[2.5rem] sm:min-h-[2rem]"
             />
           </div>
         )}

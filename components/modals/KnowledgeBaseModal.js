@@ -617,7 +617,7 @@ const KnowledgeBaseModal = ({
 
         {/* Query Settings Accordion */}
         {!selectedResource && (
-          <div className="collapse collapse-arrow border border-base-300 bg-base-100">
+          <div className="collapse collapse-arrow border-2 border-stroke bg-base-100">
             <input
               autoComplete="off"
               id="knowledgebase-advanced-settings-toggle"

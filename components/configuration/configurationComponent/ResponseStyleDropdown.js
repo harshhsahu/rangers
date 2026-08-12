@@ -90,7 +90,7 @@ const ResponseStyleDropdown = ({ params, searchParams, isPublished, isEditor = t
       <div className="flex items-center gap-1">
         <span className="label-text font-medium">Response Style</span>
         <InfoTooltip tooltipContent="Choose how detailed and structured you want your AI agent's responses to be.">
-          <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+          <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
         </InfoTooltip>
       </div>
 

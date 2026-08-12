@@ -260,7 +260,7 @@ const ConnectedAgentList = ({ params, searchParams, isPublished, isEditor = true
           data-testid={`connected-agent-item-${item?.bridge_id}`}
           key={item?.bridge_id}
           id={item?.bridge_id}
-          className={`group flex items-center border border-base-200 bg-base-100 relative min-h-[44px] w-full overflow-hidden ${!bridge?.agent_info?.description && !item.description ? "border-red-600" : ""} transition-colors duration-200 ${isReadOnly ? "cursor-not-allowed opacity-50 pointer-events-none" : "cursor-pointer"}`}
+          className={`group flex items-center gap-2 rounded-[8px] border-2 border-stroke bg-card relative min-h-[44px] w-full overflow-hidden px-[9px] py-[5px] ${!bridge?.agent_info?.description && !item.description ? "border-error" : ""} transition-colors duration-200 ${isReadOnly ? "cursor-not-allowed opacity-50 pointer-events-none" : "cursor-pointer"}`}
         >
           <div className="p-2 flex-1 flex items-center" onClick={() => handleAgentClicked(item)}>
             <div className="flex items-center gap-2 w-full">
@@ -348,14 +348,14 @@ const ConnectedAgentList = ({ params, searchParams, isPublished, isEditor = true
             <div className="flex items-center gap-2">
               <p className="text-sm whitespace-nowrap">Agents</p>
               <InfoTooltip tooltipContent="To handle different or complex tasks, one agent can use other agents.">
-                <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+                <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
               </InfoTooltip>
             </div>
           </div>
           <div className="flex flex-col gap-2 w-full">
             {!hasAgents ? (
               <div className="dropdown dropdown-end w-full max-w-md">
-                <div className="border-2 border-base-200 border-dashed p-4 text-center">
+                <div className="rounded-[8px] border-2 border-dashed border-stroke p-4 text-center">
                   <p className="text-sm text-base-content/70">No agents found.</p>
                   <button
                     data-testid="connected-agent-list-add-agent-button-empty"
@@ -394,7 +394,7 @@ const ConnectedAgentList = ({ params, searchParams, isPublished, isEditor = true
                     id="connected-agent-list-add-agent-dropdown"
                     className="dropdown dropdown-end w-full max-w-md"
                   >
-                    <div className="border-2 border-base-200 border-dashed text-center">
+                    <div className="rounded-[8px] border-2 border-dashed border-stroke text-center">
                       <button
                         data-testid="connected-agent-list-add-agent-button"
                         id="connected-agent-list-add-agent-button"

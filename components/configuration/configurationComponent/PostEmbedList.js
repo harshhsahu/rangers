@@ -195,7 +195,7 @@ const PostEmbedList = ({ params, searchParams, isPublished, isEditor = true, isE
 
         <div
           id="post-embed-list-content"
-          className="w-full gap-2 flex flex-col cursor-default border border-base-200 p-3 rounded-lg"
+          className="w-full gap-2 flex flex-col cursor-default border-2 border-stroke p-3 rounded-lg"
         >
           <div className="flex items-center justify-between gap-2">
             <div

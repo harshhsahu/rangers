@@ -242,9 +242,7 @@ const PrebuiltToolsConfigModal = ({ initialDomains = [], onSave }) => {
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
                   placeholder="Enter domain"
-                  className={`input input-bordered input-sm flex-1 focus:ring-1 ring-primary/40 ${
-                    !isEditing && validationError ? "input-error border-error" : ""
-                  }`}
+                  className={`input input-bordered input-sm flex-1 ${!isEditing && validationError ? "input-error border-error" : ""}`}
                   disabled={isLoading}
                 />
                 <button
@@ -284,7 +282,7 @@ const PrebuiltToolsConfigModal = ({ initialDomains = [], onSave }) => {
                     key={index}
                     className="space-y-1"
                   >
-                    <div className="group flex items-center gap-2 bg-base-200 rounded-lg p-3 border border-base-300 hover:bg-base-300 transition-colors duration-200">
+                    <div className="group flex items-center gap-2 bg-base-200 rounded-lg p-3 border-2 border-stroke hover:bg-base-300 transition-colors duration-200">
                       <div className="flex-1">
                         {isEditing && editingIndex === index ? (
                           <input
@@ -295,9 +293,7 @@ const PrebuiltToolsConfigModal = ({ initialDomains = [], onSave }) => {
                             defaultValue={editingValueRef.current}
                             onChange={handleEditInputChange}
                             onKeyPress={handleEditKeyPress}
-                            className={`input input-bordered input-sm w-full focus:ring-1 ring-primary/40 ${
-                              isEditing && validationError ? "input-error border-error" : ""
-                            }`}
+                            className={`input input-bordered input-sm w-full ${isEditing && validationError ? "input-error border-error" : ""}`}
                             placeholder="Enter domain"
                             autoFocus
                             disabled={isLoading}

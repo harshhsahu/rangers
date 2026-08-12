@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 const UsageProgressDonut = ({ percent, label }) => (
   <div className="relative h-24 w-24 flex-shrink-0">
     <div
-      className="h-full w-full rounded-full border border-base-300 bg-base-200/50"
+      className="h-full w-full rounded-full border-2 border-stroke bg-base-200/50"
       style={{
         background: `conic-gradient(#3b82f6 ${percent}%, rgba(59,130,246,0.1) ${percent}% 100%)`,
       }}
@@ -99,7 +99,7 @@ const AgentUsageLimitModal = ({ agent, isEmbedUser }) => {
       widthClass="w-[min(480px,92vw)]"
     >
       <div className="flex flex-col gap-6" id="agent-usage-limit-modal-content">
-        <div className="flex items-center gap-6 p-4 bg-base-200/40 rounded-xl border border-base-content/5">
+        <div className="flex items-center gap-6 p-4 bg-base-200/40 rounded-xl border-2 border-stroke">
           <UsageProgressDonut
             percent={hasLimit ? usagePercent : 0}
             label={hasLimit ? `${Math.round(usagePercent)}%` : "—"}
@@ -114,7 +114,7 @@ const AgentUsageLimitModal = ({ agent, isEmbedUser }) => {
                 )}
               </span>
             </div>
-            <div className="flex justify-between items-center py-0.5 border-t border-base-content/5">
+            <div className="flex justify-between items-center py-0.5 border-t-2 border-stroke">
               <span className="text-base-content/60">Remaining</span>
               <span className="font-semibold text-base-content">
                 {hasLimit
@@ -132,7 +132,7 @@ const AgentUsageLimitModal = ({ agent, isEmbedUser }) => {
               autoComplete="off"
               type="number"
               placeholder="Enter limit in $"
-              className="input input-bordered w-full input-sm h-9 px-3 text-sm focus-visible:ring-[3px] border-base-content/20"
+              className="input input-bordered w-full input-sm h-9 px-3 text-sm -[3px] border-stroke"
               value={limit}
               min="0"
               step="0.0001"
@@ -144,7 +144,7 @@ const AgentUsageLimitModal = ({ agent, isEmbedUser }) => {
             <div className="form-control w-full">
               <label className="label-text mb-1 font-medium text-xs text-base-content/70">Reset Period</label>
               <select
-                className="select select-bordered w-full select-sm h-9 px-3 text-sm border-base-content/20"
+                className="select select-bordered w-full select-sm h-9 px-3 text-sm border-stroke"
                 value={resetPeriod}
                 onChange={(e) => setResetPeriod(e.target.value)}
               >
@@ -157,14 +157,14 @@ const AgentUsageLimitModal = ({ agent, isEmbedUser }) => {
         </div>
 
         {!isEmbedUser && (
-          <div className="flex items-center justify-between border-t border-base-content/10 pt-4 mt-2">
+          <div className="flex items-center justify-between border-t-2 border-stroke pt-4 mt-2">
             <div className="flex flex-col">
               <span className="text-xs font-semibold text-base-content/70">Reset Current Usage</span>
               <span className="text-[10px] text-base-content/50">Clear all accumulated usage for this period</span>
             </div>
             <button
               type="button"
-              className="btn btn-sm btn-ghost text-xs border border-base-content/10 text-error hover:bg-error/10 hover:border-error/20"
+              className="btn btn-sm btn-ghost text-xs border-2 border-stroke text-error hover:bg-error/10 hover:border-error/20"
               disabled={isResetting || usageValue === 0}
               onClick={handleResetUsage}
             >
@@ -173,7 +173,7 @@ const AgentUsageLimitModal = ({ agent, isEmbedUser }) => {
           </div>
         )}
 
-        <div className="flex justify-end gap-3 border-t border-base-content/10 pt-4 mt-2">
+        <div className="flex justify-end gap-3 border-t-2 border-stroke pt-4 mt-2">
           <button
             type="button"
             className="btn btn-sm text-xs h-8 px-4 font-normal"

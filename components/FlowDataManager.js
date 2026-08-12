@@ -115,17 +115,14 @@ function SlideOver({
         data-testid={overlayId}
         id={overlayId}
         onClick={handleOverlayClick}
-        className={`fixed inset-0 ${overlayZ} ${backDropBlur ? "backdrop-blur-sm bg-black/40" : ""} transition-opacity duration-300
-          ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`fixed inset-0 ${overlayZ} ${backDropBlur ? "backdrop-blur-sm bg-black/40" : ""} transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       />
 
       {/* Panel */}
       <aside
         id={panelId}
         data-state={isOpen ? "open" : "closed"}
-        className={`fixed top-0 right-0 h-full ${widthClass} bg-base-100 border border-base-content/50 ${panelZ}
-          transform-gpu transition-transform duration-300 ease-in-out
-          ${isOpen ? "translate-x-0" : "translate-x-full"} ${className}`}
+        className={`fixed top-0 right-0 h-full ${widthClass} bg-base-100 border-2 border-stroke ${panelZ} transform-gpu transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"} ${className}`}
         style={{ transition: `transform ${animationMs}ms ease-in-out` }}
         role="dialog"
         aria-modal="true"
@@ -596,7 +593,7 @@ export function AgentSidebar({ isOpen, title, agents, onClose, nodes, onChoose, 
         onClose={onClose}
         widthClass="w-full sm:w-[460px] md:w-[620px] w-[720px] rounded-lg"
         header={
-          <div className="p-4 border-b border-base-300 bg-gradient-to-r from-primary/5 to-secondary/5">
+          <div className="p-4 border-b-2 border-stroke bg-gradient-to-r from-primary/5 to-secondary/5">
             <div className="flex items-center justify-between">
               <div>
                 <div className="badge badge-primary badge-sm font-medium mb-2">SELECT AGENT</div>
@@ -696,9 +693,7 @@ export function AgentSidebar({ isOpen, title, agents, onClose, nodes, onChoose, 
                   return (
                     <div
                       key={(agent.bridge_id || agent.__key || `${agent.name}-${idx}`).toString()}
-                      className={`card bg-base-100 shadow-md hover:shadow-lg group hover:bg-base-200/30 transition-all duration-200 ${
-                        isDisabled ? "opacity-60" : "hover:scale-[1.02]"
-                      }`}
+                      className={`card bg-base-100 shadow-md hover:shadow-lg group hover:bg-base-200/30 transition-all duration-200 ${isDisabled ? "opacity-60" : "hover:scale-[1.02]"}`}
                     >
                       <div className="card-body p-2">
                         <div className="flex items-center justify-between">
@@ -710,17 +705,11 @@ export function AgentSidebar({ isOpen, title, agents, onClose, nodes, onChoose, 
                               handleSelectAgent(agent);
                             }}
                             disabled={isDisabled}
-                            className={`flex items-center gap-3 flex-1 text-left ${
-                              isDisabled ? "cursor-not-allowed" : "cursor-pointer group"
-                            }`}
+                            className={`flex items-center gap-3 flex-1 text-left ${isDisabled ? "cursor-not-allowed" : "cursor-pointer group"}`}
                           >
                             <div className="avatar placeholder">
                               <div
-                                className={`rounded-full w-12 h-12 ${
-                                  isDisabled
-                                    ? "bg-base-300 text-base-content/50"
-                                    : "bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-content"
-                                } transition-all duration-200`}
+                                className={`rounded-full w-12 h-12 ${isDisabled ? "bg-base-300 text-base-content/50" : "bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-content"} transition-all duration-200`}
                               >
                                 <Bot className="w-6 h-6" />
                               </div>
@@ -729,9 +718,7 @@ export function AgentSidebar({ isOpen, title, agents, onClose, nodes, onChoose, 
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <h3
-                                  className={`text-sm ${
-                                    isDisabled ? "text-base-content/50" : "text-base-content group-hover:text-primary"
-                                  } transition-colors duration-200`}
+                                  className={`text-sm ${isDisabled ? "text-base-content/50" : "text-base-content group-hover:text-primary"} transition-colors duration-200`}
                                 >
                                   {agent.name || agent.__key}
                                 </h3>
@@ -768,7 +755,7 @@ export function AgentSidebar({ isOpen, title, agents, onClose, nodes, onChoose, 
           </div>
 
           {/* Fixed Create Button at Bottom */}
-          <div className="border-t border-base-300 mb-24 p-4 bg-base-100 flex-shrink-0">
+          <div className="border-t-2 border-stroke mb-24 p-4 bg-base-100 flex-shrink-0">
             <div className="dropdown dropdown-top w-full">
               <div
                 data-testid="agent-sidebar-create-toggle"
@@ -806,18 +793,14 @@ export function AgentSidebar({ isOpen, title, agents, onClose, nodes, onChoose, 
                           data-testid="agent-sidebar-create-type-name"
                           id="agent-sidebar-create-type-name"
                           onClick={() => handleTypeChange("name")}
-                          className={`btn btn-sm join-item flex-1 ${
-                            creationType === "name" ? "btn-primary" : "btn-outline btn-primary"
-                          }`}
+                          className={`btn btn-sm join-item flex-1 ${creationType === "name" ? "btn-primary" : "btn-outline btn-primary"}`}
                         >
                           📝 Name
                         </button>
                         <button
                           id="agent-sidebar-create-type-purpose"
                           onClick={() => handleTypeChange("purpose")}
-                          className={`btn btn-sm join-item flex-1 ${
-                            creationType === "purpose" ? "btn-primary" : "btn-outline btn-primary"
-                          }`}
+                          className={`btn btn-sm join-item flex-1 ${creationType === "purpose" ? "btn-primary" : "btn-outline btn-primary"}`}
                         >
                           🎯 Purpose
                         </button>
@@ -932,10 +915,10 @@ export function FlowControlPanel({
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2">
           <div className="relative">
             {/* Outer ring */}
-            <div className="absolute inset-0 rounded-full ring-2 ring-primary animate-pulse"></div>
+            <div className="absolute inset-0 rounded-full animate-pulse"></div>
 
             {/* Main content */}
-            <div className="relative flex items-center gap-2 bg-base-100/95 backdrop-blur-md border border-base-200 rounded-full px-4 py-3 shadow-lg">
+            <div className="relative flex items-center gap-2 bg-base-100/95 backdrop-blur-md border-2 border-stroke rounded-full px-4 py-3 shadow-lg">
               <TestTube className="h-5 w-5 text-primary" />
               <input
                 autoComplete="off"
@@ -960,7 +943,7 @@ export function FlowControlPanel({
         panelZ="z-[9969]"
         backDropBlur={false}
         header={
-          <div className="px-5 py-1 border-b border-base-content/30 flex items-center justify-between rounded-t-lg">
+          <div className="px-5 py-1 border-b-2 border-stroke flex items-center justify-between rounded-t-lg">
             <div className="flex items-center gap-2">
               <TestTube className="h-5 w-5 text-primary" />
               <h4 className="text-base font-semibold">Test Your Model</h4>
@@ -1029,7 +1012,7 @@ export function AgentConfigSidebar({ isOpen, onClose, agent, instanceId, onAgent
       onClose={onClose}
       widthClass="w-[80vw] max-w-[80vw]"
       header={
-        <div className="flex items-center justify-between px-6 py-4 border border-base-200">
+        <div className="flex items-center justify-between px-6 py-4 border-2 border-stroke">
           <h2 className="text-xl font-semibold">Agent Configuration</h2>
           <button
             id="agent-config-sidebar-close-button"

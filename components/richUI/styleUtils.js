@@ -206,7 +206,7 @@ export function resolveDimension(value) {
 // ─────────────────────────────────────────────────────────────────────────────
 export function resolveBorder(border) {
   if (!border) return { className: "", style: {} };
-  if (border === true) return { className: "border border-base-content/10", style: {} };
+  if (border === true) return { className: "border-2 border-stroke", style: {} };
   if (typeof border === "object") {
     const style = {};
     const color = border.color || "rgba(var(--bc), 0.1)"; // fallback to semantic base-content

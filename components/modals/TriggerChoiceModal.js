@@ -36,7 +36,7 @@ const TriggerChoiceModal = ({ onSelectCustom }) => {
           type="button"
           data-testid="trigger-choice-telegram"
           onClick={handleTelegram}
-          className="w-full text-left border border-base-300 hover:border-primary/50 hover:bg-primary/5 transition-colors p-4 rounded-lg flex items-start gap-3"
+          className="w-full text-left border-2 border-stroke hover:border-primary/50 hover:bg-primary/5 transition-colors p-4 rounded-lg flex items-start gap-3"
         >
           <div className="w-10 h-10 rounded-lg bg-[#229ED9]/10 flex items-center justify-center shrink-0">
             <MessageCircle size={20} className="text-[#229ED9]" />
@@ -53,7 +53,7 @@ const TriggerChoiceModal = ({ onSelectCustom }) => {
           type="button"
           data-testid="trigger-choice-custom"
           onClick={handleCustom}
-          className="w-full text-left border border-base-300 hover:border-primary/50 hover:bg-primary/5 transition-colors p-4 rounded-lg flex items-start gap-3"
+          className="w-full text-left border-2 border-stroke hover:border-primary/50 hover:bg-primary/5 transition-colors p-4 rounded-lg flex items-start gap-3"
         >
           <div className="w-10 h-10 rounded-lg bg-base-200 flex items-center justify-center shrink-0">
             <Zap size={20} className="text-base-content/70" />

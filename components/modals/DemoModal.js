@@ -66,7 +66,7 @@ const DemoModal = ({ speakToUs }) => {
         ) : (
           <div
             id="demo-modal-video-content"
-            className="relative group rounded-xl overflow-hidden border-2 border-base-content/10 shadow-xl hover:border-base-content/20 transition-all duration-300"
+            className="relative group rounded-xl overflow-hidden border-2 border-stroke shadow-xl hover:border-stroke transition-all duration-300"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 pointer-events-none" />
             <div className="aspect-video w-full overflow-hidden rounded-lg">

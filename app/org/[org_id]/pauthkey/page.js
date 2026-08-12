@@ -245,7 +245,7 @@ function Page({ params }) {
             <input
               autoComplete="off"
               type="text"
-              className="input input-bordered w-full input-sm h-9 px-3 text-sm focus-visible:ring-[3px] border-base-content/20"
+              className="input input-bordered w-full input-sm h-9 px-3 text-sm -[3px] border-stroke"
               id="authNameInput"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {

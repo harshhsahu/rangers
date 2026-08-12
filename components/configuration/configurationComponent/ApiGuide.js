@@ -39,7 +39,7 @@ const PARAM_DATA = [
 const Section = ({ title, caption }) => (
   <div className="flex items-start flex-col justify-center">
     <h3 className="text-lg font-semibold">{title}</h3>
-    {caption && <p className="text-sm text-gray-600 block">{caption}</p>}
+    {caption && <p className="text-sm text-soft block">{caption}</p>}
   </div>
 );
 
@@ -47,7 +47,7 @@ const CodeSnippet = ({ code, language = "bash", id }) => (
   <div
     data-testid={id}
     id={id}
-    className="relative rounded-lg overflow-hidden border border-base-300"
+    className="relative rounded-lg overflow-hidden border-2 border-stroke"
     style={{ animation: "snippetFadeIn 180ms ease-out" }}
   >
     <CodeBlock className={`language-${language}`}>{code}</CodeBlock>
@@ -62,7 +62,7 @@ const LanguageDropdown = ({ selected, onChange }) => {
       <div
         tabIndex={0}
         role="button"
-        className="btn btn-sm btn-ghost border border-base-300 gap-1 rounded-lg bg-base-200"
+        className="btn btn-sm btn-ghost border-2 border-stroke gap-1 rounded-lg bg-base-200"
         data-testid="language-dropdown-trigger"
       >
         {current.label}
@@ -70,7 +70,7 @@ const LanguageDropdown = ({ selected, onChange }) => {
       </div>
       <ul
         tabIndex={0}
-        className="dropdown-content menu bg-base-100 rounded-box z-10 w-36 p-1 shadow border border-base-300 mt-1"
+        className="dropdown-content menu bg-base-100 rounded-box z-10 w-36 p-1 shadow border-2 border-stroke mt-1"
         data-testid="language-dropdown-menu"
       >
         {LANGUAGES.map((lang) => (

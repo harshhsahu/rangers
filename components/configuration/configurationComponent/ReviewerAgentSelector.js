@@ -113,7 +113,7 @@ function ReviewerAgentSelector({ params, searchParams, isPublished, isEditor }) 
     <div
       data-testid="reviewer-agent-selector-container"
       id="reviewer-agent-selector-container"
-      className="border border-base-200 p-3 flex flex-col items-stretch gap-3 w-full"
+      className="border-2 border-stroke p-3 flex flex-col items-stretch gap-3 w-full"
     >
       {/* Top Toggle Row */}
       <div className="flex items-center justify-between gap-4 w-full">
@@ -141,9 +141,9 @@ function ReviewerAgentSelector({ params, searchParams, isPublished, isEditor }) 
 
       {/* Configurations Panel - only visible when enabled */}
       {isEnabled && (
-        <div className="flex flex-col gap-4 mt-1 border-t border-base-200 pt-3 transition-all duration-200">
+        <div className="flex flex-col gap-4 mt-1 border-t-2 border-stroke pt-3 transition-all duration-200">
           {/* Reviewer Type Selector */}
-          <div className="flex items-center gap-4 bg-base-100 border border-base-200 p-2 rounded-lg justify-around">
+          <div className="flex items-center gap-4 bg-base-100 border-2 border-stroke p-2 rounded-lg justify-around">
             <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-base-content/80 select-none">
               <input
                 type="radio"
@@ -237,11 +237,11 @@ function ReviewerAgentSelector({ params, searchParams, isPublished, isEditor }) 
             /* Option 1: Reviewer Agent Selector */
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-base-content/85">Reviewer Agent</label>
-              <div className="flex items-center justify-between border border-base-200 rounded-lg p-2 bg-base-100/50 min-h-[46px] w-full">
+              <div className="flex items-center justify-between border-2 border-stroke rounded-lg p-2 bg-base-100/50 min-h-[46px] w-full">
                 {reviewerAgent ? (
                   <div className="flex items-center justify-between w-full">
                     <div
-                      className="flex items-center gap-2 bg-base-200/60 border border-base-300 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-base-300/60 transition-colors"
+                      className="flex items-center gap-2 bg-base-200/60 border-2 border-stroke rounded-lg px-3 py-1.5 cursor-pointer hover:bg-base-300/60 transition-colors"
                       title="Open reviewer agent"
                       onClick={() => {
                         const isCmdOrCtrl = window.event && (window.event.ctrlKey || window.event.metaKey);
@@ -254,9 +254,7 @@ function ReviewerAgentSelector({ params, searchParams, isPublished, isEditor }) 
                         {reviewerAgent.name || "Untitled"}
                       </span>
                       <span
-                        className={`rounded-full capitalize px-1.5 py-0.5 text-[9px] font-semibold text-black ${getStatusClass(
-                          reviewerAgent.bridge_status === 0 ? "paused" : "active"
-                        )}`}
+                        className={`rounded-full capitalize px-1.5 py-0.5 text-[9px] font-semibold text-black ${getStatusClass(reviewerAgent.bridge_status === 0 ? "paused" : "active")}`}
                       >
                         {reviewerAgent.bridge_status === 0 ? "paused" : "active"}
                       </span>

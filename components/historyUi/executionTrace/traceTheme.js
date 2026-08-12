@@ -1,7 +1,7 @@
 /** Trace accent colors — tailwind.config.js oklch tokens: trace-gold, trace-blue, trace-green */
 
 /** Dark border on light theme, light border on dark theme (follows base-content) */
-export const TRACE_ROW_BORDER = "border border-base-content/8 dark:border-base-content/15";
+export const TRACE_ROW_BORDER = "border-2 border-stroke dark:border-stroke";
 
 export const AGENT_HUES = ["trace-blue", "trace-green", "trace-gold"];
 
@@ -35,7 +35,7 @@ export const HUE_THEME = {
   },
 };
 
-export const NEUTRAL_RAIL = "border-base-300/35";
+export const NEUTRAL_RAIL = "border-stroke/35";
 
 export const NEUTRAL_HEAD = "bg-gradient-to-r from-base-200/70 via-base-200/30 to-transparent hover:from-base-200/90";
 

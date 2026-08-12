@@ -737,7 +737,7 @@ function ChatTextInput({
         <div
           data-testid="chat-preview-container"
           id="chat-preview-container"
-          className="absolute bottom-16 left-0 inline-flex w-fit max-w-full flex-nowrap overflow-x-auto items-end gap-2 p-2 border border-base-300/70 rounded-lg bg-base-200/40"
+          className="absolute bottom-16 left-0 inline-flex w-fit max-w-full flex-nowrap overflow-x-auto items-end gap-2 p-2 border-2 border-stroke/70 rounded-[10px] bg-base-200/40"
         >
           {/* Image Previews */}
           {uploadedImages.map((url, index) => (
@@ -747,7 +747,7 @@ function ChatTextInput({
                 const isLoaded = imagePreviewLoadedKeys.has(previewKey);
 
                 return (
-                  <div className="relative w-16 h-16 rounded-lg border border-base-300 overflow-hidden bg-base-200">
+                  <div className="relative w-16 h-16 rounded-lg border-2 border-stroke overflow-hidden bg-base-200">
                     {!isLoaded && <div className="absolute inset-0 animate-pulse bg-base-300" />}
                     <Image
                       src={url}
@@ -800,7 +800,7 @@ function ChatTextInput({
           {/* File Previews */}
           {uploadedFiles.map((url, index) => (
             <div key={index} className="relative flex-shrink-0">
-              <div className="flex items-center h-16 gap-2 bg-base-300 p-2 rounded-lg border border-base-300">
+              <div className="flex items-center h-16 gap-2 bg-base-300 p-2 rounded-lg border-2 border-stroke">
                 {isWordFileUrl(url) ? <GoogleDocIcon height={24} width={24} /> : <PdfIcon height={24} width={24} />}
                 <p className="text-sm max-w-[120px] truncate" title={url}>
                   {url.split("/").pop()}
@@ -837,7 +837,7 @@ function ChatTextInput({
         <div
           data-testid="chat-media-url-preview"
           id="chat-media-url-preview"
-          className="absolute bottom-16 left-0 w-full flex items-center gap-2 p-2 bg-base-100 border-t rounded-t-lg"
+          className="absolute bottom-16 left-0 w-full flex items-center gap-2 p-2 bg-card border-t-2 border-stroke rounded-t-[10px]"
         >
           <LinkIcon size={16} className="text-base-content" />
           <span className="text-sm truncate flex-1">{mediaUrls}</span>
@@ -857,7 +857,7 @@ function ChatTextInput({
         <div
           data-testid="chat-url-input-modal"
           id="chat-url-input-modal"
-          className="absolute bottom-16 left-0 w-full p-3 bg-base-100 border rounded-lg shadow-lg"
+          className="absolute bottom-16 left-0 w-full p-3 bg-card border-2 border-stroke rounded-[10px]"
         >
           <div className="flex gap-2 items-center">
             <input
@@ -868,7 +868,7 @@ function ChatTextInput({
               placeholder="Enter YouTube URL"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              className="input input-sm flex-1 border-base-300"
+              className="input input-sm flex-1 border-stroke"
               onKeyDown={(e) => {
                 if (e.key === "Enter") addMediaUrl();
                 if (e.key === "Escape") setShowUrlInput(false);
@@ -900,9 +900,7 @@ function ChatTextInput({
         <div
           data-testid="chat-validation-error"
           id="chat-validation-error"
-          className={`absolute left-0 w-full p-3 bg-error/10 border border-error/20 rounded-lg z-10 ${
-            hasPreviews ? "bottom-36" : "bottom-16"
-          }`}
+          className={`absolute left-0 w-full p-3 bg-error/10 border-2 border-error rounded-[10px] z-10 ${hasPreviews ? "bottom-36" : "bottom-16"}`}
         >
           <p className="text-sm text-error">{validationError || attachmentError}</p>
           {validationError && (
@@ -919,11 +917,7 @@ function ChatTextInput({
             id="chat-message-textarea"
             ref={inputRef}
             placeholder="Type here"
-            className={`textarea bg-base-100 textarea-bordered w-full max-h-[200px] resize-none overflow-y-auto h-auto ${
-              validationError || attachmentError
-                ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                : "focus:border-primary"
-            }`}
+            className={`textarea textarea-bordered w-full max-h-[200px] resize-none overflow-y-auto h-auto rounded-[10px] bg-card text-[13.5px] ${validationError || attachmentError ? "border-error focus:border-error" : "focus:border-acc"}`}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             rows={1}
@@ -969,9 +963,7 @@ function ChatTextInput({
                 data-testid="chat-attachment-button"
                 id="chat-attachment-button"
                 tabIndex={0}
-                className={`btn btn-circle transition-all duration-200 ${
-                  loading || uploading ? "btn-disabled bg-base-300" : "btn-ghost hover:btn-primary hover:scale-105"
-                }`}
+                className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full border-2 border-stroke transition-all duration-200 ${loading || uploading ? "bg-line text-soft" : "bg-card text-ink hover:bg-paper"}`}
                 disabled={loading || uploading}
               >
                 {uploading ? <span className="loading loading-spinner loading-sm"></span> : <Paperclip size={18} />}
@@ -981,7 +973,7 @@ function ChatTextInput({
             {/* DaisyUI Dropdown Content */}
             <ul
               tabIndex={0}
-              className="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-60 border border-base-300"
+              className="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-60 border-2 border-stroke"
             >
               <li className="menu-title">
                 <span className="text-xs font-semibold text-base-content/60">Attach files</span>
@@ -1075,11 +1067,7 @@ function ChatTextInput({
         <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
           <button
             id="chat-send-button"
-            className={`btn btn-circle transition-all duration-200 ${
-              loading || uploading
-                ? "btn-disabled"
-                : " btn hover:btn-primary-focus hover:scale-105 shadow-lg hover:shadow-xl"
-            }`}
+            className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full border-2 border-stroke transition-all duration-200 ${loading || uploading ? "bg-line text-soft cursor-not-allowed" : "bg-acc text-acc-ink hover:translate-x-[1px] hover:translate-y-[1px]"}`}
             onClick={() => {
               handleSendMessage();
             }}

@@ -123,7 +123,7 @@ const EmbedPreview = ({
   return (
     <div className="h-full flex flex-col">
       {showHeader && (
-        <div className="p-4 border-b border-base-300 flex items-center justify-between">
+        <div className="p-4 border-b-2 border-stroke flex items-center justify-between">
           <h3 className="text-sm font-semibold text-base-content">Live Preview</h3>
           <button
             onClick={handleReload}

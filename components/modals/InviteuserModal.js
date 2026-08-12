@@ -92,7 +92,7 @@ const InviteUserModal = () => {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-base-content/10">
+        <div className="flex justify-end gap-3 pt-4 border-t-2 border-stroke">
           <button
             data-testid="invite-user-cancel-button"
             id="invite-user-cancel-button"

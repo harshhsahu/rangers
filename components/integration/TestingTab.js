@@ -181,7 +181,7 @@ const TestingTab = ({ data, isTestingMode }) => {
           <div className="space-y-2">
             <div
               data-testid="integration-testing-send-data-input"
-              className="border border-base-300 rounded overflow-hidden"
+              className="border-2 border-stroke rounded overflow-hidden"
             >
               <CodeMirror
                 value={sendData ?? ""}

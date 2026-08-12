@@ -517,7 +517,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
     const hasFolders = ["agents", "apikeys", "tools", "knowledge_base"].includes(path[3]);
 
     return (
-      <div className="h-screen flex flex-col overflow-hidden">
+      <div className="h-screen flex flex-col overflow-hidden bg-base-200">
         <ThemeManager userType={themeUserType} />
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
@@ -527,11 +527,9 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
 
           {/* Main Content Area */}
           <div
-            className={`flex-1 ${path.length > 4 ? "ml-0  md:ml-12 lg:ml-12" : ""} flex flex-col overflow-hidden z-medium`}
+            className={`flex-1 ${path.length > 4 ? "ml-0 md:ml-12 lg:ml-12" : ""} flex flex-col overflow-hidden z-medium`}
           >
-            <div
-              className={`sticky top-0 z-medium bg-base-100 border-b border-base-300 ${hasFolders ? "ml-0" : "ml-2"}`}
-            >
+            <div className={`sticky top-0 z-medium bg-base-200 border-b-2 border-ink ${hasFolders ? "ml-0" : "ml-2"}`}>
               <Navbar params={resolvedParams} searchParams={resolvedSearchParams} />
             </div>
 
@@ -559,14 +557,14 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
     );
   } else {
     return (
-      <div className="h-screen flex flex-col overflow-hidden">
+      <div className="h-screen flex flex-col overflow-hidden bg-base-200">
         <ThemeManager userType={themeUserType} />
         <ServiceInitializer />
         {/* Main Content Area for Embed Users */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Sticky Navbar - hidden in historyEmbed mode */}
           {(!isEmbedUser || (isEmbedUser && !historyEmbed)) && (
-            <div className="sticky top-0 z-medium bg-base-100 border-b border-base-300 ml-2">
+            <div className="sticky top-0 z-medium bg-base-200 border-b-2 border-stroke ml-2">
               <Navbar params={resolvedParams} searchParams={resolvedSearchParams} />
             </div>
           )}

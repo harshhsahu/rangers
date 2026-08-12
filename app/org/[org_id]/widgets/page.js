@@ -242,17 +242,13 @@ const TemplatesPage = ({ params }) => {
                   >
                     <div className={`max-w-[75%] ${message.type === "user" ? "ml-16" : "mr-16"}`}>
                       <div
-                        className={`rounded-2xl px-5 py-4 shadow-sm ${
-                          message.type === "user"
-                            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-content"
-                            : "bg-base-100 text-base-content border border-base-200"
-                        }`}
+                        className={`rounded-2xl px-5 py-4 shadow-sm ${message.type === "user" ? "bg-gradient-to-r from-primary to-primary/90 text-primary-content" : "bg-base-100 text-base-content border-2 border-stroke"}`}
                       >
                         {/* Show JSON Preview with Save button for assistant messages with template_format */}
                         {message.type === "assistant" && message.template_format ? (
                           <div>
                             <div className="text-sm font-medium text-base-content/80 mb-3">Widget Preview</div>
-                            <div className="bg-base-200 rounded-lg p-4 border border-base-300 overflow-auto max-h-96 mb-4">
+                            <div className="bg-base-200 rounded-lg p-4 border-2 border-stroke overflow-auto max-h-96 mb-4">
                               <RenderNode node={message.preview_ui} />
                             </div>
                             {!savedMessageIds.has(message.id) && (
@@ -282,9 +278,7 @@ const TemplatesPage = ({ params }) => {
                         )}
 
                         <div
-                          className={`text-xs mt-3 ${
-                            message.type === "user" ? "text-primary-content/60" : "text-base-content/40"
-                          }`}
+                          className={`text-xs mt-3 ${message.type === "user" ? "text-primary-content/60" : "text-base-content/40"}`}
                         >
                           {message.timestamp.toLocaleTimeString()}
                         </div>
@@ -297,7 +291,7 @@ const TemplatesPage = ({ params }) => {
                 {isGenerating && (
                   <div className="flex justify-start animate-fade-in">
                     <div className="mr-16 max-w-[75%]">
-                      <div className="bg-base-100 border border-base-200 rounded-2xl px-5 py-4 shadow-sm">
+                      <div className="bg-base-100 border-2 border-stroke rounded-2xl px-5 py-4 shadow-sm">
                         <div className="flex items-center space-x-3">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></div>
@@ -322,14 +316,14 @@ const TemplatesPage = ({ params }) => {
               </div>
 
               {/* Bottom Input - Fixed at bottom */}
-              <div className="border-t border-base-300 bg-base-50/50 backdrop-blur-sm px-6 py-4">
+              <div className="border-t-2 border-stroke bg-base-50/50 backdrop-blur-sm px-6 py-4">
                 <div className="max-w-4xl mx-auto">
                   <div className="relative flex items-center w-full rounded-xl p-2 bg-base-300 backdrop-blur-sm transition-all ">
                     <input
                       autoComplete="off"
                       ref={inputRef}
                       type="text"
-                      className="input w-full outline-none border-none focus:outline-none focus:ring-0"
+                      className="input w-full outline-none border-none focus:outline-none "
                       placeholder="Continue the conversation..."
                       value={currentInput}
                       onChange={(e) => setCurrentInput(e.target.value)}
@@ -341,11 +335,7 @@ const TemplatesPage = ({ params }) => {
                       autoFocus
                     />
                     <button
-                      className={`p-2 rounded-lg transition-all duration-200 ${
-                        currentInput.trim() && !isGenerating
-                          ? "text-base-content hover:opacity-80"
-                          : "text-base-content/30 cursor-not-allowed"
-                      }`}
+                      className={`p-2 rounded-lg transition-all duration-200 ${currentInput.trim() && !isGenerating ? "text-base-content hover:opacity-80" : "text-base-content/30 cursor-not-allowed"}`}
                       onClick={handleSendMessage}
                       disabled={!currentInput.trim() || isGenerating}
                     >
@@ -364,16 +354,12 @@ const TemplatesPage = ({ params }) => {
           ) : (
             /* Initial Center Layout */
             <div
-              className={`flex flex-col items-center justify-center h-full transition-all duration-700 ease-out ${
-                isAnimating
-                  ? "transform translate-y-full opacity-0 scale-95"
-                  : "transform translate-y-0 opacity-100 scale-100"
-              }`}
+              className={`flex flex-col items-center justify-center h-full transition-all duration-700 ease-out ${isAnimating ? "transform translate-y-full opacity-0 scale-95" : "transform translate-y-0 opacity-100 scale-100"}`}
             >
               {isGenerating ? (
                 <div className="flex flex-col items-center">
                   <div className="relative w-28 h-28 mb-8">
-                    <div className="absolute inset-0 border-4 border-base-200 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-stroke rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                     <Sparkles className="absolute inset-0 m-auto text-primary animate-pulse" size={36} />
                   </div>
@@ -396,7 +382,7 @@ const TemplatesPage = ({ params }) => {
                       <input
                         autoComplete="off"
                         type="text"
-                        className="input w-full outline-none border-none focus:outline-none focus:ring-0"
+                        className="input w-full outline-none border-none focus:outline-none "
                         placeholder="Describe your widget..."
                         value={currentInput}
                         onChange={(e) => setCurrentInput(e.target.value)}
@@ -404,11 +390,7 @@ const TemplatesPage = ({ params }) => {
                         autoFocus
                       />
                       <button
-                        className={`p-2 rounded-lg transition-all duration-200 ${
-                          currentInput.trim()
-                            ? "text-base-content hover:opacity-80"
-                            : "text-base-content/30 cursor-not-allowed"
-                        }`}
+                        className={`p-2 rounded-lg transition-all duration-200 ${currentInput.trim() ? "text-base-content hover:opacity-80" : "text-base-content/30 cursor-not-allowed"}`}
                         onClick={handleSendMessage}
                         disabled={!currentInput.trim()}
                       >
@@ -464,7 +446,7 @@ const TemplatesPage = ({ params }) => {
                   className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow duration-200 group"
                 >
                   {/* Widget Preview */}
-                  <div className="h-32 bg-base-200 border-b border-base-300 relative overflow-hidden">
+                  <div className="h-32 bg-base-200 border-b-2 border-stroke relative overflow-hidden">
                     {widget.ui || widget.template_format ? (
                       <div className="absolute inset-0 p-2 overflow-hidden pointer-events-none">
                         <div className="transform scale-[0.5] origin-top-left w-[200%]">

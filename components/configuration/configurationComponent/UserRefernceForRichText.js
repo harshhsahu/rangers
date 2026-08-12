@@ -84,7 +84,7 @@ const UserReferenceForRichText = ({ params, searchParams, isPublished, isEditor 
                 )}
                 <span className="text-base-content text-sm ml-0">Rich Text Supported</span>
                 <InfoTooltip tooltipContent="Rich text supports buttons, tables, cards, and markdown for displaying structured and interactive content. This is a premium feature available in the Pro version.">
-                  <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+                  <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
                 </InfoTooltip>
               </div>
 
@@ -105,7 +105,7 @@ const UserReferenceForRichText = ({ params, searchParams, isPublished, isEditor 
               <div
                 data-testid="user-reference-status-section"
                 id="user-reference-status-section"
-                className="mt-3 p-3 bg-gradient-to-r from-base-200/40 to-base-300/20 rounded-lg border border-base-300/50"
+                className="mt-3 p-3 bg-gradient-to-r from-base-200/40 to-base-300/20 rounded-lg border-2 border-stroke/50"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ const UserReferenceForRichText = ({ params, searchParams, isPublished, isEditor 
                     data-testid="user-reference-edit-button"
                     id="user-reference-edit-button"
                     onClick={toggleExpansion}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-base-content bg-base-200 hover:bg-base-300 rounded-lg transition-all duration-200 border border-base-300 hover:shadow-sm"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-base-content bg-base-200 hover:bg-base-300 rounded-lg transition-all duration-200 border-2 border-stroke hover:shadow-sm"
                   >
                     <PencilIcon size={12} />
                     <span>{showInput ? "Hide" : "Edit"}</span>
@@ -135,7 +135,7 @@ const UserReferenceForRichText = ({ params, searchParams, isPublished, isEditor 
             <div
               data-testid="user-reference-input-section"
               id="user-reference-input-section"
-              className="border-t border-base-300 bg-gradient-to-b from-base-200/10 to-base-200/30"
+              className="border-t-2 border-stroke bg-gradient-to-b from-base-200/10 to-base-200/30"
             >
               <div className="p-4">
                 <div className="mb-3">
@@ -148,7 +148,7 @@ const UserReferenceForRichText = ({ params, searchParams, isPublished, isEditor 
                 <textarea
                   data-testid="user-reference-textarea"
                   id="user-reference-textarea"
-                  className="textarea bg-base-100 textarea-bordered w-full min-h-[7rem] resize-y border-base-300 focus:border-base-content/30 focus:outline-none transition-colors text-sm leading-relaxed placeholder:text-base-content/40"
+                  className="textarea bg-base-100 textarea-bordered w-full min-h-[7rem] resize-y border-stroke focus:border-stroke focus:outline-none transition-colors text-sm leading-relaxed placeholder:text-base-content/40"
                   defaultValue={userReference}
                   onBlur={handleUserReferenceChange}
                   key={userReference}

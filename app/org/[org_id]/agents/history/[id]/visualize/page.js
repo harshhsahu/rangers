@@ -341,7 +341,7 @@ export default function Page({ params, searchParams }) {
           target: level > 0,
           ui: {
             width: 320,
-            containerClass: "border border-base-300 p-3 bg-base-100",
+            containerClass: "border-2 border-stroke p-3 bg-base-100",
             render: () => (
               <BatchUI
                 agents={[
@@ -417,7 +417,7 @@ export default function Page({ params, searchParams }) {
           source: true,
           ui: {
             width: 260,
-            containerClass: "p-4 border border-base-300 ",
+            containerClass: "p-4 border-2 border-stroke ",
             render: () => (
               <UserPromptUI
                 text={recursiveMessage?.user || ""}
@@ -439,7 +439,7 @@ export default function Page({ params, searchParams }) {
           target: true,
           ui: {
             width: 320,
-            containerClass: "p-4 border border-base-300 ",
+            containerClass: "p-4 border-2 border-stroke ",
             render: () => (
               <MainAgentUI
                 name={mainAgentName}
@@ -501,7 +501,7 @@ export default function Page({ params, searchParams }) {
       {/* Navbar */}
       <div
         data-testid="visualize-navbar"
-        className="bg-base-100 border-b border-base-300 px-6 py-4 flex items-center justify-between z-10"
+        className="bg-base-100 border-b-2 border-stroke px-6 py-4 flex items-center justify-between z-10"
       >
         <div data-testid="visualize-navbar-title-group" className="flex items-center gap-3">
           <h1 data-testid="visualize-title" className="text-lg font-semibold text-base-content">

@@ -226,7 +226,7 @@ const PublishVersionDataComparisonView = ({ oldData, newData, params }) => {
             <span className="text-gray-400 italic">No Data Added</span>
           ) : (
             value.map((tool, index) => (
-              <div key={index} className="rounded-md border border-base-300 bg-base-100 px-3 py-2 text-xs">
+              <div key={index} className="rounded-md border-2 border-stroke bg-base-100 px-3 py-2 text-xs">
                 <div className="font-medium">{formatPreToolLabel(tool)}</div>
                 <div className="mt-1 text-base-content/70 break-all">
                   {tool?.type === "custom_function" ? (

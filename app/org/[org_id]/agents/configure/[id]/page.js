@@ -693,7 +693,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               defaultSize={panelSizes.config}
               minSize={3}
               maxSize={100}
-              className="bg-base-300"
+              className="bg-base-200 rounded-none"
               collapsible={false}
               onResize={(size) => {
                 const isCollapsed = size <= 5;
@@ -745,12 +745,12 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
             {(!isEmbedUser || (isEmbedUser && showPlayground)) && (
               <PanelResizeHandle
                 id="main-resize-handle"
-                className="w-2 bg-base-100 hover:bg-primary/50 transition-colors duration-200 relative flex items-center justify-center group"
+                className="w-[2px] bg-ink hover:bg-acc transition-colors duration-200 relative flex items-center justify-center group"
               >
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div
                     id="main-resize-line"
-                    className="w-0.5 h-6 bg-base-content/20 group-hover:bg-success/80 transition-colors duration-200 rounded-full"
+                    className="w-0.5 h-6 bg-transparent group-hover:bg-acc transition-colors duration-200 rounded-full"
                   />
                 </div>
               </PanelResizeHandle>
@@ -765,7 +765,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   ref={chatPanelRef}
                   defaultSize={panelSizes.chat}
                   minSize={3}
-                  className="bg-base-50"
+                  className="bg-base-200 rounded-none"
                   collapsible={false}
                   onResize={(size) => {
                     const isCollapsed = size <= 5;
@@ -834,7 +834,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   defaultSize={panelSizes.promptHelper}
                   minSize={3}
                   maxSize={100}
-                  className="bg-base-50"
+                  className="bg-base-200 rounded-none"
                   collapsible={false}
                   onResize={(size) => {
                     // Don't update state if we're manually keeping it collapsed
@@ -905,12 +905,12 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                 {uiState.showNotes && !isEmbedUser && (
                   <PanelResizeHandle
                     id="prompt-notes-resize-handle"
-                    className="w-2 bg-base-300 hover:bg-success/50 transition-colors duration-200 relative flex items-center justify-center group"
+                    className="w-[2px] bg-ink hover:bg-acc transition-colors duration-200 relative flex items-center justify-center group"
                   >
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div
                         id="prompt-notes-resize-line"
-                        className="w-0.5 h-6 bg-base-content/20 group-hover:bg-success/80 transition-colors duration-200 rounded-full"
+                        className="w-0.5 h-6 bg-transparent group-hover:bg-acc transition-colors duration-200 rounded-full"
                       />
                     </div>
                   </PanelResizeHandle>
@@ -924,7 +924,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     defaultSize={panelSizes.notes}
                     minSize={3}
                     maxSize={100}
-                    className="bg-base-50"
+                    className="bg-base-200 rounded-none"
                     collapsible={false}
                     onResize={(size) => {
                       const isCollapsed = size <= 5;
@@ -953,7 +953,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
         )
       ) : isAgentFlowView ? (
         <div id="mobile-agent-flow-container" className="overflow-y-auto w-full h-full">
-          <div id="mobile-agent-flow-content" className="min-h-screen border-b border-base-300 bg-base-100">
+          <div id="mobile-agent-flow-content" className="min-h-screen border-b-2 border-stroke bg-base-100">
             <div id="mobile-agent-flow-inner" className="py-4 px-4">
               <ConfigurationPage
                 id="mobile-agent-flow-configuration-page"
@@ -981,7 +981,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
         // Mobile: Simple stacked layout
         <div id="mobile-container" className="overflow-y-auto">
           {/* Configuration Panel */}
-          <div id="mobile-config-section" className="min-h-screen border-b border-base-300 bg-base-100">
+          <div id="mobile-config-section" className="min-h-screen border-b-2 border-stroke bg-base-100">
             <div className="py-4 px-4">
               <ConfigurationPage
                 id="mobile-configuration-page"

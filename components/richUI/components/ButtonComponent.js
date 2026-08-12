@@ -103,14 +103,7 @@ export default function ButtonComponent({
   return (
     <button
       type="button"
-      className={`
-                btn ${variantMap[variant] ?? "btn-primary"} ${sizeMap[size] ?? "btn-sm"}
-                ${loading ? "loading loading-spinner" : ""}
-                rounded-xl font-medium tracking-wide transition-all duration-150
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-current
-                ${fullWidthCls}
-                ${className}
-            `}
+      className={` btn ${variantMap[variant] ?? "btn-primary"} ${sizeMap[size] ?? "btn-sm"} ${loading ? "loading loading-spinner" : ""} rounded-xl font-medium tracking-wide transition-all duration-150 focus-visible:outline-none ${fullWidthCls} ${className} `}
       style={safeStyle}
       disabled={disabled || loading}
       onClick={handleClick}

@@ -90,12 +90,12 @@ const NewInputConfigComponent = ({ params }) => {
       <div className="flex justify-between items-center">
         <div className="label flex items-center gap-2">
           <span className="label-text capitalize font-medium">Prompt</span>
-          <div className="h-4 w-px bg-gray-300 mx-2"></div>
+          <div className="h-4 w-px bg-line mx-2"></div>
           <div className="flex items-center justify-center">
             <button
               data-testid="prompt-summary-button"
               id="prompt-summary-button"
-              className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text"
+              className="label-text capitalize font-medium bg-gradient-to-r from-acc to-orange-600 text-transparent bg-clip-text"
               onClick={() => {
                 openModal(MODAL_TYPE?.PROMPT_SUMMARY);
               }}
@@ -117,7 +117,7 @@ const NewInputConfigComponent = ({ params }) => {
             className="label cursor-pointer"
             onClick={() => openModal(MODAL_TYPE.OPTIMIZE_PROMPT)}
           >
-            <span className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text">
+            <span className="label-text capitalize font-medium bg-gradient-to-r from-acc to-orange-600 text-transparent bg-clip-text">
               Optimize Prompt
             </span>
           </div>
@@ -128,9 +128,7 @@ const NewInputConfigComponent = ({ params }) => {
           data-testid="prompt-editor-container"
           id="prompt-editor-container"
           ref={divRef}
-          className={`relative transition-all duration-300 min-h-[500px] border border-base-300 rounded-r-lg rounded-l-lg rounded-t-md ${
-            isFullscreen ? "fixed inset-0 w-full h-screen z-low" : "w-full"
-          }`}
+          className={`relative transition-all duration-300 min-h-[500px] border-2 border-stroke rounded-r-lg rounded-l-lg rounded-t-md ${isFullscreen ? "fixed inset-0 w-full h-screen z-low" : "w-full"}`}
           style={!isFullscreen ? { height: `${height}px` } : {}}
         >
           <div id="docStar-embed" className="w-full h-full" />
@@ -145,7 +143,7 @@ const NewInputConfigComponent = ({ params }) => {
               {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
             </button>
 
-            <span className="absolute -top-8 right-1 scale-0 group-hover:scale-100 bg-gray-800 text-base-content text-xs px-2 py-1 rounded transition-transform duration-200">
+            <span className="absolute -top-8 right-1 scale-0 group-hover:scale-100 bg-ink text-paper text-xs px-2 py-1 rounded-[6px] transition-transform duration-200">
               {isFullscreen ? "Minimize" : "Maximize"}
             </span>
           </div>
@@ -154,9 +152,7 @@ const NewInputConfigComponent = ({ params }) => {
             <div
               data-testid="prompt-resize-handle"
               id="prompt-resize-handle"
-              className={`absolute bottom-0 left-0 right-0 h-3 cursor-row-resize flex items-center justify-center group hover:bg-gray-100 transition-colors ${
-                isResizing ? "bg-gray-200" : ""
-              }`}
+              className={`absolute bottom-0 left-0 right-0 h-3 cursor-row-resize flex items-center justify-center group hover:bg-paper transition-colors ${isResizing ? "bg-line" : ""}`}
               onMouseDown={handleMouseDown}
             >
               <div className="w-8 h-1 bg-base-300 rounded-full group-hover:bg-base-200 transition-colors"></div>
@@ -166,7 +162,7 @@ const NewInputConfigComponent = ({ params }) => {
         <div
           data-testid="default-variables-collapse"
           id="default-variables-collapse"
-          className="collapse bg-gradient-to-r from-yellow-50 to-orange-50 border-t-0 border border-base-300 rounded-t-none mr-2"
+          className="collapse bg-gradient-to-r from-yellow-50 to-orange-50 border-t-0 border-2 border-stroke rounded-t-none mr-2"
         >
           <input
             autoComplete="off"

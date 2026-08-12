@@ -180,7 +180,7 @@ const Dropdown = ({
       disabled={disabled}
       onClick={() => !disabled && setOpen((s) => !s)}
       className={cx(
-        "btn btn-outline justify-between hover:bg-base-200 hover:text-base-content hover:border-base-content/20 overflow-hidden",
+        "btn btn-outline justify-between hover:bg-base-200 hover:text-base-content hover:border-stroke overflow-hidden",
         sizeCls,
         disabled ? "opacity-50 cursor-not-allowed" : "",
         fullWidth ? "w-full" : "",
@@ -220,10 +220,10 @@ const Dropdown = ({
   return (
     <div
       className={cx(
-        "dropdown rounded-md border-base-content/10 w-full",
+        "dropdown rounded-md border-stroke w-full",
         placementCls,
         open ? "dropdown-open" : "",
-        hasError ? "ring-2 ring-red-500 ring-offset-2" : ""
+        hasError ? " -500 " : ""
       )}
       style={
         hasError
@@ -241,9 +241,9 @@ const Dropdown = ({
         className={cx("dropdown-content z-[60] w-full hover:bg-base-200", menuClassName)}
         role="listbox"
       >
-        <div className="bg-base-100 rounded-box shadow-xl border border-base-content/20 w-full overflow-hidden">
+        <div className="bg-base-100 rounded-box shadow-xl border-2 border-stroke w-full overflow-hidden">
           {enableSearch && (
-            <div className="p-2 border-b border-base-content/10">
+            <div className="p-2 border-b-2 border-stroke">
               <input
                 autoComplete="off"
                 data-testid={`${testId}-search-input`}
@@ -412,7 +412,7 @@ const Dropdown = ({
           </div>
 
           {bottomOption && (
-            <div className="border-t border-base-content/10 p-1">
+            <div className="border-t-2 border-stroke p-1">
               <button
                 data-testid={bottomOption.testId || `${testId}-bottom-option`}
                 id={bottomOption.id || "dropdown-bottom-option"}

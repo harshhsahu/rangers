@@ -132,8 +132,8 @@ function CodeBlock({ inline, className, children, showCopy = true, plain = false
   // DaisyUI / Tailwind based container classes
   // In light mode use a very subtle background so the block doesn't look heavy on the white page
   const blockClasses = isDark
-    ? `text-sm w-full rounded-lg border border-base-300 bg-base-200 text-base-content overflow-hidden`
-    : `text-sm w-full rounded-lg border border-base-200 bg-base-100 text-base-content overflow-hidden`;
+    ? `text-sm w-full rounded-lg border-2 border-stroke bg-base-200 text-base-content overflow-hidden`
+    : `text-sm w-full rounded-lg border-2 border-stroke bg-base-100 text-base-content overflow-hidden`;
 
   const languageMap = {
     js: "JavaScript",
@@ -200,7 +200,7 @@ function CodeBlock({ inline, className, children, showCopy = true, plain = false
   return !inline ? (
     <div data-testid="code-block-container" id="code-block-container" className={blockClasses}>
       <div
-        className={`flex items-center justify-between px-3 py-2 border-b ${isDark ? "border-base-300 bg-base-100/70" : "border-base-200 bg-base-200/40"}`}
+        className={`flex items-center justify-between px-3 py-2 border-b-2 ${isDark ? "border-stroke bg-base-100/70" : "border-stroke bg-base-200/40"}`}
       >
         <span className="text-xs font-semibold uppercase tracking-wider text-base-content/70">
           {languageLabel || "Code"}
@@ -213,22 +213,14 @@ function CodeBlock({ inline, className, children, showCopy = true, plain = false
               <button
                 type="button"
                 onClick={() => setViewMode("code")}
-                className={`px-2.5 py-0.5 text-xs font-medium rounded transition-all ${
-                  viewMode === "code"
-                    ? "bg-base-100 text-base-content shadow-sm"
-                    : "text-base-content/60 hover:text-base-content"
-                }`}
+                className={`px-2.5 py-0.5 text-xs font-medium rounded transition-all ${viewMode === "code" ? "bg-base-100 text-base-content shadow-sm" : "text-base-content/60 hover:text-base-content"}`}
               >
                 Code
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("preview")}
-                className={`px-2.5 py-0.5 text-xs font-medium rounded transition-all ${
-                  viewMode === "preview"
-                    ? "bg-base-100 text-base-content shadow-sm"
-                    : "text-base-content/60 hover:text-base-content"
-                }`}
+                className={`px-2.5 py-0.5 text-xs font-medium rounded transition-all ${viewMode === "preview" ? "bg-base-100 text-base-content shadow-sm" : "text-base-content/60 hover:text-base-content"}`}
               >
                 Preview
               </button>

@@ -682,18 +682,12 @@ export const renderedOrganizations = (organizations, formState, handleSelectOrg)
     <div
       key={org.id || index}
       onClick={() => handleSelectOrg(org.id, org.name)}
-      className={`card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border-2 ${
-        formState.selectedOrg?.id === org.id
-          ? "border-primary bg-primary/5"
-          : "border-transparent hover:border-base-300"
-      }`}
+      className={`card bg-base-100 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border-2 ${formState.selectedOrg?.id === org.id ? "border-primary bg-primary/5" : "border-transparent hover:border-stroke"}`}
     >
       <div className="card-body p-4">
         <div className="flex items-center gap-3">
           <div
-            className={`p-2 rounded-lg ${
-              formState.selectedOrg?.id === org.id ? "bg-primary text-primary-content" : "bg-base-200"
-            }`}
+            className={`p-2 rounded-lg ${formState.selectedOrg?.id === org.id ? "bg-primary text-primary-content" : "bg-base-200"}`}
           >
             <BuildingIcon size={20} />
           </div>

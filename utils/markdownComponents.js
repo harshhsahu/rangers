@@ -7,15 +7,17 @@ const OrderedListContext = createContext(false);
 
 export const mdRemarkPlugins = [remarkGfm];
 
+const PROSE_BASE =
+  "prose prose-sm max-w-none prose-p:my-1 prose-headings:mb-1 prose-headings:mt-2 prose-pre:p-0 prose-pre:bg-transparent prose-pre:my-2 prose-a:no-underline hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none prose-a:text-acc prose-headings:text-inherit prose-strong:text-inherit prose-p:text-inherit prose-li:text-inherit prose-code:text-inherit";
+
 export const mdProseClass = {
-  dark: "prose prose-sm prose-invert max-w-none prose-p:my-1 prose-headings:mb-1 prose-headings:mt-2 prose-pre:p-0 prose-pre:bg-transparent prose-pre:my-2 prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none",
-  light:
-    "prose prose-sm max-w-none prose-p:my-1 prose-headings:mb-1 prose-headings:mt-2 prose-pre:p-0 prose-pre:bg-transparent prose-pre:my-2 prose-a:text-blue-500 prose-a:no-underline hover:prose-a:underline prose-code:before:content-none prose-code:after:content-none",
+  dark: PROSE_BASE,
+  light: PROSE_BASE,
 };
 
 export function buildMdComponents({ isDark = false } = {}) {
   const linkClass =
-    "text-blue-500 underline underline-offset-2 hover:text-blue-400 transition-colors duration-150 break-words";
+    "text-acc underline underline-offset-2 hover:opacity-80 transition-opacity duration-150 break-words";
 
   return {
     // ── Block elements ──────────────────────────────────────────────────────
@@ -58,7 +60,7 @@ export function buildMdComponents({ isDark = false } = {}) {
     },
 
     blockquote: ({ children }) => (
-      <blockquote className="border-l-4 border-base-content/30 pl-4 italic opacity-80 my-3 py-1">{children}</blockquote>
+      <blockquote className="border-l-4 border-stroke pl-4 italic opacity-80 my-3 py-1">{children}</blockquote>
     ),
 
     h1: ({ children }) => <h1 className="text-2xl font-bold mt-4 mb-2 leading-tight">{children}</h1>,
@@ -103,7 +105,7 @@ export function buildMdComponents({ isDark = false } = {}) {
 
     // ── Tables (enabled by remark-gfm) ───────────────────────────────────────
     table: ({ children }) => (
-      <div className="overflow-x-auto my-3 rounded-lg border border-base-content/15">
+      <div className="overflow-x-auto my-3 rounded-lg border-2 border-stroke">
         <table className="w-full text-sm border-collapse">{children}</table>
       </div>
     ),

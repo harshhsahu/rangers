@@ -11,10 +11,9 @@ const pillBase = [
   "transition-all duration-150",
 ].join(" ");
 
-const pillInactive = [
-  "bg-[var(--pill-bg)] hover:bg-[var(--pill-bg-hover)]",
-  "border-base-content/10 hover:border-base-content/25",
-].join(" ");
+const pillInactive = ["bg-[var(--pill-bg)] hover:bg-[var(--pill-bg-hover)]", "border-stroke hover:border-stroke"].join(
+  " "
+);
 
 const pillActive = [
   "bg-trace-gold-bg hover:bg-trace-gold-bg/80",
@@ -56,9 +55,7 @@ export function ThreadActionPill({
       ) : null}
 
       <span
-        className={`text-xs font-semibold tracking-[0.06em] uppercase ${
-          active ? "text-trace-gold" : "text-base-content/90"
-        }`}
+        className={`text-xs font-semibold tracking-[0.06em] uppercase ${active ? "text-trace-gold" : "text-base-content/90"}`}
       >
         {children}
       </span>
@@ -84,7 +81,7 @@ export function ThreadActionPill({
 export function ThreadInlinePanel({ children, className = "" }) {
   return (
     <div
-      className={`mt-2 block overflow-hidden rounded-xl border border-base-content/10 dark:border-base-content/20 dark:bg-base-200 ${className}`}
+      className={`mt-2 block overflow-hidden rounded-xl border-2 border-stroke dark:border-stroke dark:bg-base-200 ${className}`}
     >
       {children}
     </div>
@@ -95,7 +92,7 @@ export function ThreadInlinePanel({ children, className = "" }) {
 export function ThreadSystemPromptPanel({ children, className = "" }) {
   return (
     <div
-      className={`mt-2 block overflow-hidden rounded-xl border border-base-content/10 ${className}`}
+      className={`mt-2 block overflow-hidden rounded-xl border-2 border-stroke ${className}`}
       style={{ background: "var(--pill-bg)" }}
     >
       <div className="px-5 py-4 text-sm leading-relaxed text-base-content whitespace-pre-wrap break-words">

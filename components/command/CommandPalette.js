@@ -833,7 +833,7 @@ const CommandPalette = ({ isEmbedUser }) => {
         className="w-full max-w-2xl rounded-xl bg-base-100 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-b border-base-300">
+        <div className="border-b-2 border-stroke">
           {filterParam && (
             <div className="flex items-center justify-between bg-warning/10 px-3 py-2 text-sm">
               <div className="flex items-center gap-2">
@@ -887,9 +887,7 @@ const CommandPalette = ({ isEmbedUser }) => {
                 return (
                   <div key={cat.key} className="mb-1">
                     <div
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                        isCategoryActive ? "bg-primary text-primary-content" : "bg-base-200 hover:bg-base-300"
-                      }`}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${isCategoryActive ? "bg-primary text-primary-content" : "bg-base-200 hover:bg-base-300"}`}
                     >
                       <button
                         data-testid={`command-palette-category-${cat.key}`}
@@ -922,7 +920,7 @@ const CommandPalette = ({ isEmbedUser }) => {
                     </div>
 
                     {categoryItems.length > 0 && !isCategoryCollapsed && (
-                      <div className="mt-1 ml-2 border border-base-300 rounded-md bg-base-200/40">
+                      <div className="mt-1 ml-2 border-2 border-stroke rounded-md bg-base-200/40">
                         <ul className="pb-1">
                           {categoryItems.map((item, itemIndex) => {
                             const itemNavIndex = landingFlatList.findIndex(
@@ -938,9 +936,7 @@ const CommandPalette = ({ isEmbedUser }) => {
                                 key={`${item.type}-${item.id}`}
                                 data-nav-index={itemNavIndex}
                                 onClick={() => navigateTo(item)}
-                                className={`cursor-pointer px-3 py-2 flex items-center w-full justify-between text-sm rounded-md ${
-                                  isItemActive ? "bg-primary/20 border border-primary/40" : "hover:bg-base-200"
-                                }`}
+                                className={`cursor-pointer px-3 py-2 flex items-center w-full justify-between text-sm rounded-md ${isItemActive ? "bg-primary/20 border border-primary/40" : "hover:bg-base-200"}`}
                               >
                                 <div className="font-medium truncate">{item.title}</div>
                                 <span className="text-xs opacity-70 truncate">{item.subtitle}</span>
@@ -980,7 +976,7 @@ const CommandPalette = ({ isEmbedUser }) => {
                         </div>
 
                         {!isCollapsed && (
-                          <div className="mt-1 ml-2 border border-base-300 rounded-md bg-base-200/40">
+                          <div className="mt-1 ml-2 border-2 border-stroke rounded-md bg-base-200/40">
                             <ul className="pb-1">
                               {rows.map((row) => {
                                 const globalIdx = flatResults.findIndex((r) => r.id === row.id && r.type === row.type);
@@ -992,9 +988,7 @@ const CommandPalette = ({ isEmbedUser }) => {
                                     key={`${row.type}-${row.id}`}
                                     data-nav-index={globalIdx}
                                     onClick={() => navigateTo(row)}
-                                    className={`cursor-pointer px-3 py-2 flex items-center w-full justify-between text-sm rounded-md ${
-                                      active ? "bg-primary/20 border border-primary/40" : "hover:bg-base-200"
-                                    }`}
+                                    className={`cursor-pointer px-3 py-2 flex items-center w-full justify-between text-sm rounded-md ${active ? "bg-primary/20 border border-primary/40" : "hover:bg-base-200"}`}
                                   >
                                     <div className="font-medium truncate">{row.title}</div>
                                     <span className="text-xs opacity-70 truncate">{row.subtitle}</span>
@@ -1012,7 +1006,7 @@ const CommandPalette = ({ isEmbedUser }) => {
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between border-t border-base-300 p-2 text-xs opacity-70">
+        <div className="flex items-center justify-between border-t-2 border-stroke p-2 text-xs opacity-70">
           <div>Navigate with ↑ ↓ · Enter to open · Click to collapse/expand · Esc to close</div>
           <div>Cmd/Ctrl + K</div>
         </div>

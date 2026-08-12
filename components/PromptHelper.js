@@ -323,7 +323,7 @@ const PromptHelper = ({
       tabIndex={-1}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-base-300 bg-base-50">
+      <div className="flex items-center justify-between p-3 border-b-2 border-stroke bg-base-50">
         <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold text-base-content">Prompt Helper</h3>
         </div>

@@ -52,7 +52,7 @@ export const GenericSlider = ({
   const sliderStyles = {
     backdrop: "fixed inset-0 bg-black bg-opacity-50 transition-opacity",
     panel: `relative ml-auto w-full max-w-${maxWidth} bg-base-100 shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col`,
-    header: "flex items-center justify-between p-4 border-b border-base-300 bg-base-200 flex-shrink-0",
+    header: "flex items-center justify-between p-4 border-b-2 border-stroke bg-base-200 flex-shrink-0",
     title: "text-lg font-semibold text-base-content truncate flex-1 mr-4",
     closeButton: "btn btn-sm btn-ghost btn-circle",
     content: "flex-1 w-full overflow-hidden",

@@ -53,7 +53,7 @@ function ToolCallCount({ params, searchParams, isPublished, isEditor = true }) {
             "This feature sets a limit on function calls. By default, functions are called one at a time, but with 'Parallel Tools' enabled, multiple functions can be called simultaneously within a single function call."
           }
         >
-          <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+          <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
         </InfoTooltip>
       </div>
       <input

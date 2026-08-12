@@ -38,9 +38,9 @@ function BridgeSlider() {
         <>
           {title === "Archived Bridges" && (
             <div className="flex justify-center items-center my-4">
-              <p className="border-t border-base-300 w-full"></p>
+              <p className="border-t-2 border-stroke w-full"></p>
               <p className="bg-black text-base-100 py-1 px-2 rounded-full mx-4 whitespace-nowrap text-xs">{title}</p>
-              <p className="border-t border-base-300 w-full"></p>
+              <p className="border-t-2 border-stroke w-full"></p>
             </div>
           )}
           <ul
@@ -83,7 +83,7 @@ function BridgeSlider() {
           data={bridgesList}
           setFilterItems={setFilteredBridgesList}
           item="agents"
-          style="input input-sm input-bordered w-full mb-0 ml-0 border border-base-content/50"
+          style="input input-sm input-bordered w-full mb-0 ml-0 border-2 border-stroke"
         />
         <button
           id="bridge-slider-create-agent-button"

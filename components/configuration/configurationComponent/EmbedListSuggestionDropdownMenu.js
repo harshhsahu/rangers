@@ -116,7 +116,7 @@ function EmbedListSuggestionDropdownMenu({
                           key={index}
                           src={icon}
                           alt={`${title} icon ${index + 1}`}
-                          className="w-6 h-6 rounded-full border-2 border-base-100 flex-shrink-0 object-contain bg-white p-0.5 z-very-low"
+                          className="w-6 h-6 rounded-full border-2 border-stroke flex-shrink-0 object-contain bg-white p-0.5 z-very-low"
                           onError={(e) => {
                             e.target.style.display = "none";
                           }}
@@ -268,7 +268,7 @@ function EmbedListSuggestionDropdownMenu({
               <li
                 data-testid="embed-suggestion-add-new-button"
                 id="embed-suggestion-add-new-button"
-                className="border-t border-base-300 w-full sticky bottom-0 bg-base-100 py-2"
+                className="border-t-2 border-stroke w-full sticky bottom-0 bg-base-100 py-2"
                 onClick={() => {
                   const selectedVariablesPath = getSelectedVariablesPath(variablesPath);
                   const payload = {

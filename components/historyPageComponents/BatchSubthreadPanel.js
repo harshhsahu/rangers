@@ -37,8 +37,8 @@ const BatchSubthreadPanel = ({
   );
 
   const batchesColumn = showBatches && (
-    <div className="w-48 shrink-0 border-r border-base-300 last:border-r-0">
-      <div className="px-3 py-2 border-b border-base-300 text-xs font-semibold text-base-content/60 uppercase tracking-wider sticky top-0 bg-base-200 z-10 whitespace-nowrap">
+    <div className="w-48 shrink-0 border-r-2 border-stroke last:border-r-0">
+      <div className="px-3 py-2 border-b-2 border-stroke text-xs font-semibold text-base-content/60 uppercase tracking-wider sticky top-0 bg-base-200 z-10 whitespace-nowrap">
         Batch Values
       </div>
       <ul className="flex flex-col gap-1 p-2">
@@ -56,16 +56,12 @@ const BatchSubthreadPanel = ({
               data-testid={`batch-item-${msg.message_id || index}`}
               id={`batch-item-${msg.message_id || index}`}
               onClick={() => onSelectBatch(msg.message_id)}
-              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs transition-colors duration-150 ${
-                isActive
-                  ? "bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40 shadow-sm"
-                  : "hover:bg-base-300 text-base-content"
-              }`}
+              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs transition-colors duration-150 ${isActive ? "bg-acc text-acc-ink border-2 border-stroke dark:bg-primary dark:text-acc-ink dark:border-primary/40 shadow-sm" : "hover:bg-base-300 text-base-content"}`}
             >
               <span className="font-medium truncate flex-1" title={userVal || undefined}>
                 {batchLabel}
               </span>
-              <Icon size={13} className={isActive ? "text-blue-700 dark:text-base-100" : meta.className} />
+              <Icon size={13} className={isActive ? "text-acc-ink dark:text-acc-ink" : meta.className} />
             </li>
           );
         })}
@@ -75,7 +71,7 @@ const BatchSubthreadPanel = ({
 
   const subThreadsColumn = showSubThreads && (
     <div className="w-48 shrink-0">
-      <div className="px-3 py-2 border-b border-base-300 text-xs font-semibold text-base-content/60 uppercase tracking-wider sticky top-0 bg-base-200 z-10 whitespace-nowrap">
+      <div className="px-3 py-2 border-b-2 border-stroke text-xs font-semibold text-base-content/60 uppercase tracking-wider sticky top-0 bg-base-200 z-10 whitespace-nowrap">
         Sub Threads
       </div>
       <ul className="flex flex-col gap-1 p-2">
@@ -87,16 +83,12 @@ const BatchSubthreadPanel = ({
               data-testid={`subthread-item-${st.sub_thread_id}`}
               id={`subthread-item-${st.sub_thread_id}`}
               onClick={() => onSelectSubThread(st.sub_thread_id)}
-              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs transition-colors duration-150 ${
-                isActive
-                  ? "bg-[#EBF4FE] text-blue-900 border border-blue-200 dark:bg-primary dark:text-base-100 dark:border-primary/40 shadow-sm"
-                  : "hover:bg-base-300 text-base-content"
-              }`}
+              className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer text-xs transition-colors duration-150 ${isActive ? "bg-acc text-acc-ink border-2 border-stroke dark:bg-primary dark:text-acc-ink dark:border-primary/40 shadow-sm" : "hover:bg-base-300 text-base-content"}`}
             >
               <span className="truncate flex-1">{st.display_name || st.sub_thread_id}</span>
               {(st.updated_at || st.created_at) && (
                 <span
-                  className={`shrink-0 ${isActive ? "text-blue-700/70 dark:text-base-100/70" : "text-base-content/40"}`}
+                  className={`shrink-0 ${isActive ? "text-acc-ink/70 dark:text-acc-ink/70" : "text-base-content/40"}`}
                 >
                   {formatRelativeTime(st.updated_at || st.created_at)}
                 </span>
@@ -110,7 +102,7 @@ const BatchSubthreadPanel = ({
 
   return (
     <div
-      className="shrink-0 border-r border-base-300 bg-base-200 flex flex-row overflow-y-auto h-full transition-all duration-200"
+      className="shrink-0 border-r-2 border-stroke bg-base-200 flex flex-row overflow-y-auto h-full transition-all duration-200"
       style={{
         width: isVisible ? `${panelWidth}px` : "0px",
         minWidth: isVisible ? `${panelWidth}px` : "0px",

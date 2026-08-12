@@ -58,7 +58,7 @@ const ConnectedAgentsModal = ({ apiKey, orgId }) => {
     <button
       data-testid="connected-agents-close-button"
       id="connected-agents-close-button"
-      className="btn btn-sm focus:outline-none focus:ring-0"
+      className="btn btn-sm focus:outline-none "
       onClick={handleClose}
     >
       Close

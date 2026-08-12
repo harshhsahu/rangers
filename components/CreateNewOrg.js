@@ -175,7 +175,7 @@ const CreateOrg = ({ handleSwitchOrg }) => {
               <div
                 data-testid="create-org-timezone-trigger"
                 id="create-org-timezone-trigger"
-                className="relative w-full h-8 cursor-pointer border border-base-content/20 rounded-lg px-3 py-1 flex items-center justify-between hover:border-base-content/40 transition-colors duration-200 bg-base-100 text-xs"
+                className="relative w-full h-8 cursor-pointer border-2 border-stroke rounded-lg px-3 py-1 flex items-center justify-between hover:border-stroke transition-colors duration-200 bg-base-100 text-xs"
                 onClick={() => setShowTimezoneDropdown(!showTimezoneDropdown)}
               >
                 <span>
@@ -192,16 +192,16 @@ const CreateOrg = ({ handleSwitchOrg }) => {
                 <div
                   data-testid="create-org-timezone-dropdown"
                   id="create-org-timezone-dropdown"
-                  className="absolute mt-1 z-30 w-full bg-base-100 border border-base-content/20 rounded-lg max-h-56 overflow-hidden flex flex-col"
+                  className="absolute mt-1 z-30 w-full bg-base-100 border-2 border-stroke rounded-lg max-h-56 overflow-hidden flex flex-col"
                 >
-                  <div className="bg-base-100 p-2 border-b border-base-content/10">
+                  <div className="bg-base-100 p-2 border-b-2 border-stroke">
                     <input
                       autoComplete="off"
                       data-testid="create-org-timezone-search-input"
                       id="create-org-timezone-search-input"
                       type="text"
                       placeholder="Search timezone..."
-                      className="input input-xs w-full border-base-content/20 focus:border-primary text-xs"
+                      className="input input-xs w-full border-stroke focus:border-primary text-xs"
                       value={timezoneSearch}
                       onChange={(e) => setTimezoneSearch(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
@@ -215,11 +215,7 @@ const CreateOrg = ({ handleSwitchOrg }) => {
                       filteredTimezones.map((timezone) => (
                         <div
                           key={timezone.identifier}
-                          className={`p-2.5 hover:bg-base-200 cursor-pointer text-xs transition-colors duration-150 ${
-                            orgDetails.timezone === timezone.identifier
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-base-content"
-                          }`}
+                          className={`p-2.5 hover:bg-base-200 cursor-pointer text-xs transition-colors duration-150 ${orgDetails.timezone === timezone.identifier ? "bg-primary/10 text-primary font-medium" : "text-base-content"}`}
                           onClick={() => selectTimezone(timezone)}
                         >
                           <div className="font-semibold">{timezone.identifier}</div>

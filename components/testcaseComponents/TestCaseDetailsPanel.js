@@ -474,11 +474,11 @@ const TestCaseDetailsPanel = ({
   return (
     <div className="overflow-hidden h-full min-h-0" data-testid="testcase-details-panel">
       <div
-        className="bg-base-100 border border-base-200 rounded-xl overflow-hidden flex flex-col h-full min-h-0"
+        className="bg-base-100 border-2 border-stroke rounded-xl overflow-hidden flex flex-col h-full min-h-0"
         data-testid="testcase-details-panel-card"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-base-200 flex items-center justify-between bg-base-50">
+        <div className="px-6 py-4 border-b-2 border-stroke flex items-center justify-between bg-base-50">
           <div className="text-xs text-base-content/50">
             {selectedTestCase?.createdAt && <>Created: {new Date(selectedTestCase.createdAt).toLocaleString()}</>}
           </div>
@@ -521,11 +521,7 @@ const TestCaseDetailsPanel = ({
               }}
               disabled={isDeleting}
               title={isDeleting ? "Deleting test case..." : "Delete test case"}
-              className={`p-1.5 rounded-lg transition-colors ${
-                isDeleting
-                  ? "text-base-content/20 cursor-not-allowed"
-                  : "text-base-content/40 text-error hover:bg-error/10"
-              }`}
+              className={`p-1.5 rounded-lg transition-colors ${isDeleting ? "text-base-content/20 cursor-not-allowed" : "text-base-content/40 text-error hover:bg-error/10"}`}
             >
               {isDeleting ? (
                 <span className="loading loading-spinner loading-xs inline-block"></span>
@@ -544,7 +540,7 @@ const TestCaseDetailsPanel = ({
               <button
                 data-testid="testcase-conversation-toggle"
                 onClick={() => setIsConversationOpen(!isConversationOpen)}
-                className="w-full flex items-center justify-between bg-base-50 hover:bg-base-100 rounded-lg px-4 py-3 border border-base-200 transition-colors"
+                className="w-full flex items-center justify-between bg-base-50 hover:bg-base-100 rounded-lg px-4 py-3 border-2 border-stroke transition-colors"
               >
                 <div className="flex items-center gap-2.5">
                   <span className="text-sm font-medium text-base-content">Conversation History</span>
@@ -558,7 +554,7 @@ const TestCaseDetailsPanel = ({
                 />
               </button>
               {isConversationOpen && (
-                <div className="mt-3 bg-base-100 rounded-lg px-6 py-4 border border-base-200 space-y-4">
+                <div className="mt-3 bg-base-100 rounded-lg px-6 py-4 border-2 border-stroke space-y-4">
                   {editedConversation.slice(0, -1).map((message, idx) => {
                     const isStringContent = typeof message?.content === "string";
                     const isUser = message?.role === "user";
@@ -572,11 +568,7 @@ const TestCaseDetailsPanel = ({
                         </span>
                         <div className={`flex ${isUser ? "flex-row-reverse" : "flex-row"} items-end gap-2 group`}>
                           <div
-                            className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
-                              isUser
-                                ? "bg-primary text-primary-content rounded-br-none"
-                                : "bg-base-200 text-base-content rounded-bl-none"
-                            }`}
+                            className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${isUser ? "bg-primary text-primary-content rounded-br-none" : "bg-base-200 text-base-content rounded-bl-none"}`}
                           >
                             <ExpandCollapse collapsedHeight={160} fadeHeight={60}>
                               {isStringContent ? (
@@ -670,7 +662,7 @@ const TestCaseDetailsPanel = ({
                   Input
                 </div>
                 <div
-                  className="bg-base-50 rounded-lg px-4 py-3 border border-base-200"
+                  className="bg-base-50 rounded-lg px-4 py-3 border-2 border-stroke"
                   data-testid="testcase-input-panel"
                 >
                   <ExpandCollapse collapsedHeight={160} fadeHeight={60}>
@@ -747,7 +739,7 @@ const TestCaseDetailsPanel = ({
               Expected Output
             </div>
             <div
-              className="bg-base-50 rounded-lg border border-base-200 px-4 pt-3 pb-2"
+              className="bg-base-50 rounded-lg border-2 border-stroke px-4 pt-3 pb-2"
               data-testid="testcase-expected-panel"
             >
               <ExpandCollapse collapsedHeight={160} fadeHeight={60}>
@@ -770,7 +762,7 @@ const TestCaseDetailsPanel = ({
                           <img
                             src={url}
                             alt={`Expected image ${idx + 1}`}
-                            className="max-w-full h-auto rounded-lg border border-base-200"
+                            className="max-w-full h-auto rounded-lg border-2 border-stroke"
                             style={{ maxHeight: "300px" }}
                             onError={(e) => {
                               e.target.style.display = "none";
@@ -809,9 +801,7 @@ const TestCaseDetailsPanel = ({
                     onDrop={(e) => handleVersionDrop(e, version)}
                     onDragEnd={handleVersionDragEnd}
                     title="Drag to reorder"
-                    className={`px-2 py-1 bg-primary/10 border border-primary/30 rounded-md text-xs font-semibold text-primary cursor-grab active:cursor-grabbing select-none transition-opacity ${
-                      draggedVersion === version ? "opacity-40" : ""
-                    }`}
+                    className={`px-2 py-1 bg-primary/10 border border-primary/30 rounded-md text-xs font-semibold text-primary cursor-grab active:cursor-grabbing select-none transition-opacity ${draggedVersion === version ? "opacity-40" : ""}`}
                   >
                     V{versions.indexOf(version) + 1}
                   </span>
@@ -938,11 +928,7 @@ const TestCaseDetailsPanel = ({
                       onDragOver={handleVersionDragOver}
                       onDrop={(e) => handleVersionDrop(e, version)}
                       onDragEnd={handleVersionDragEnd}
-                      className={`bg-base-50 border rounded-lg p-4 h-fit relative transition-all cursor-grab active:cursor-grabbing ${
-                        draggedVersion === version ? "opacity-50" : ""
-                      } ${draggedVersion && draggedVersion !== version ? "ring-2 ring-primary/30" : ""} ${
-                        isVersionPending ? "border-primary/40" : runErrorMessage ? "border-error/40" : "border-base-200"
-                      }`}
+                      className={`bg-base-50 border-2 rounded-lg p-4 h-fit relative transition-all cursor-grab active:cursor-grabbing ${draggedVersion === version ? "opacity-50" : ""} ${draggedVersion && draggedVersion !== version ? " " : ""} ${isVersionPending ? "border-primary/40" : runErrorMessage ? "border-error/40" : "border-stroke"}`}
                     >
                       {isVersionPending ? (
                         <div className="flex flex-col items-center justify-center py-8 gap-3">
@@ -982,11 +968,7 @@ const TestCaseDetailsPanel = ({
                                     aria-selected={isActive}
                                     title={tabTitle}
                                     onClick={() => setActiveModelByVersion((prev) => ({ ...prev, [version]: tab.key }))}
-                                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors ${
-                                      isActive
-                                        ? "bg-primary/10 text-primary border border-primary/30"
-                                        : "bg-base-200/60 text-base-content/60 border border-transparent hover:bg-base-200"
-                                    }`}
+                                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors ${isActive ? "bg-primary/10 text-primary border border-primary/30" : "bg-base-200/60 text-base-content/60 border border-transparent hover:bg-base-200"}`}
                                   >
                                     {displayService && (
                                       <span className="inline-flex items-center mt-1 flex-shrink-0">
@@ -1008,7 +990,7 @@ const TestCaseDetailsPanel = ({
                               })}
                             </div>
                           )}
-                          <div className="flex flex-col gap-1.5 mb-3 pb-3 border-b border-base-200">
+                          <div className="flex flex-col gap-1.5 mb-3 pb-3 border-b-2 border-stroke">
                             {/* Top row: version label + score/error + pagination */}
                             <div className="flex flex-wrap items-center justify-between gap-2 w-full">
                               <div className="flex items-center gap-2 min-w-0">
@@ -1055,7 +1037,7 @@ const TestCaseDetailsPanel = ({
                                       }
                                     >
                                       <button
-                                        className="w-5 h-5 flex items-center justify-center rounded-full border border-base-300 bg-base-100 text-base-content/60 hover:bg-base-200 hover:text-base-content/80 transition-colors"
+                                        className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-stroke bg-base-100 text-base-content/60 hover:bg-base-200 hover:text-base-content/80 transition-colors"
                                         title="View reason"
                                       >
                                         <Info size={14} />
@@ -1068,7 +1050,7 @@ const TestCaseDetailsPanel = ({
                                     <button
                                       onClick={goPrev}
                                       disabled={safeIdx >= totalRuns - 1}
-                                      className="w-6 h-6 flex items-center justify-center rounded border border-base-300 bg-base-100 text-base-content/70 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                                      className="w-6 h-6 flex items-center justify-center rounded border-2 border-stroke bg-base-100 text-base-content/70 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed"
                                       title="Previous run (older)"
                                     >
                                       <ChevronLeft size={14} />
@@ -1079,7 +1061,7 @@ const TestCaseDetailsPanel = ({
                                     <button
                                       onClick={goNext}
                                       disabled={safeIdx <= 0}
-                                      className="w-6 h-6 flex items-center justify-center rounded border border-base-300 bg-base-100 text-base-content/70 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                                      className="w-6 h-6 flex items-center justify-center rounded border-2 border-stroke bg-base-100 text-base-content/70 hover:bg-base-200 disabled:opacity-30 disabled:cursor-not-allowed"
                                       title="Next run (newer)"
                                     >
                                       <ChevronRight size={14} />
@@ -1133,7 +1115,7 @@ const TestCaseDetailsPanel = ({
                                   <div className="ml-auto flex items-center gap-1">
                                     <button
                                       onClick={() => handleMoveToExpected(version, modelOutput)}
-                                      className="h-6 px-2 flex items-center gap-1 rounded border border-base-300 bg-base-100 text-[10px] font-semibold text-base-content/70 hover:bg-base-200"
+                                      className="h-6 px-2 flex items-center gap-1 rounded border-2 border-stroke bg-base-100 text-[10px] font-semibold text-base-content/70 hover:bg-base-200"
                                       title="Set this response as the expected output"
                                       data-testid={`testcase-version-move-to-expected-${versions.indexOf(version) + 1}`}
                                     >
@@ -1151,7 +1133,7 @@ const TestCaseDetailsPanel = ({
                                     </button>
                                     <button
                                       onClick={() => handleCopyResponse(version, modelOutput)}
-                                      className="w-6 h-6 flex items-center justify-center rounded border border-base-300 bg-base-100 text-base-content/70 hover:bg-base-200"
+                                      className="w-6 h-6 flex items-center justify-center rounded border-2 border-stroke bg-base-100 text-base-content/70 hover:bg-base-200"
                                       title="Copy response"
                                       data-testid={`testcase-version-copy-${versions.indexOf(version) + 1}`}
                                     >
@@ -1187,13 +1169,7 @@ const TestCaseDetailsPanel = ({
                                   return (
                                     <div
                                       key={toolIdx}
-                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs font-medium transition-colors ${
-                                        isRAGTool
-                                          ? "bg-info/10 border-info/30 text-info hover:bg-info/20 cursor-default"
-                                          : isAgentTool
-                                            ? "bg-base-200/50 border-base-300 text-base-content/70 cursor-default"
-                                            : "bg-base-200/50 border-base-300 text-base-content/70 hover:bg-base-300 cursor-pointer"
-                                      }`}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 border-2 rounded-md text-xs font-medium transition-colors ${isRAGTool ? "bg-info/10 border-info/30 text-info hover:bg-info/20 cursor-default" : isAgentTool ? "bg-base-200/50 border-stroke text-base-content/70 cursor-default" : "bg-base-200/50 border-stroke text-base-content/70 hover:bg-base-300 cursor-pointer"}`}
                                       onClick={() => {
                                         if (!isUnclickable) handleToolPrimaryClick(toolEntry);
                                       }}
@@ -1251,7 +1227,7 @@ const TestCaseDetailsPanel = ({
                                         <img
                                           src={urlObj.permanent_url}
                                           alt={`Generated image ${idx + 1}`}
-                                          className="max-w-full h-auto rounded-lg border border-base-200"
+                                          className="max-w-full h-auto rounded-lg border-2 border-stroke"
                                           style={{ maxHeight: "300px" }}
                                         />
                                       )}
@@ -1294,7 +1270,7 @@ const TestCaseDetailsPanel = ({
               </div>
             ) : (
               <div
-                className="bg-base-50 border border-dashed border-base-200 rounded-lg px-4 py-8 text-center"
+                className="bg-base-50 border-2 border-dashed border-stroke rounded-lg px-4 py-8 text-center"
                 data-testid="testcase-version-output-empty-state"
               >
                 <p className="text-sm text-base-content/60">Add a version above to start comparing outputs.</p>
@@ -1320,7 +1296,7 @@ const TestCaseDetailsPanel = ({
                             [versionId]: !prev[versionId],
                           }))
                         }
-                        className="w-full flex items-center justify-between px-4 py-3 bg-base-50 hover:bg-base-100 rounded-lg border border-base-200 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-3 bg-base-50 hover:bg-base-100 rounded-lg border-2 border-stroke transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-semibold text-primary">v{versionIndex}</span>
@@ -1353,10 +1329,10 @@ const TestCaseDetailsPanel = ({
                             return (
                               <div
                                 key={runIdx}
-                                className={`bg-base-50 border rounded-lg p-4 h-fit ${runErrorMessage ? "border-error/40" : "border-base-200"}`}
+                                className={`bg-base-50 border-2 rounded-lg p-4 h-fit ${runErrorMessage ? "border-error/40" : "border-stroke"}`}
                               >
                                 {/* Header with Run Number and Score */}
-                                <div className="flex items-center justify-between mb-3 pb-3 border-b border-base-200">
+                                <div className="flex items-center justify-between mb-3 pb-3 border-b-2 border-stroke">
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs font-bold text-primary uppercase tracking-wide">
                                       Run #{totalRuns - runIdx}
@@ -1406,13 +1382,7 @@ const TestCaseDetailsPanel = ({
                                         return (
                                           <div
                                             key={toolIdx}
-                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs font-medium transition-colors ${
-                                              isRAGTool
-                                                ? "bg-info/10 border-info/30 text-info hover:bg-info/20 cursor-default"
-                                                : isAgentTool
-                                                  ? "bg-base-200/50 border-base-300 text-base-content/70 cursor-default"
-                                                  : "bg-base-200/50 border-base-300 text-base-content/70 hover:bg-base-300 cursor-pointer"
-                                            }`}
+                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 border-2 rounded-md text-xs font-medium transition-colors ${isRAGTool ? "bg-info/10 border-info/30 text-info hover:bg-info/20 cursor-default" : isAgentTool ? "bg-base-200/50 border-stroke text-base-content/70 cursor-default" : "bg-base-200/50 border-stroke text-base-content/70 hover:bg-base-300 cursor-pointer"}`}
                                             onClick={() => {
                                               if (!isUnclickable) handleToolPrimaryClick(toolEntry);
                                             }}
@@ -1462,7 +1432,7 @@ const TestCaseDetailsPanel = ({
                                               <img
                                                 src={urlObj.permanent_url}
                                                 alt={`Generated image ${idx + 1}`}
-                                                className="max-w-full h-auto rounded-lg border border-base-200"
+                                                className="max-w-full h-auto rounded-lg border-2 border-stroke"
                                                 style={{ maxHeight: "300px" }}
                                               />
                                             )}

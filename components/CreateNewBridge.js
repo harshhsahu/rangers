@@ -41,7 +41,7 @@ function AgentCreateAiLoading({ stepIndex }) {
             AI creation in progress
           </span>
 
-          <div className="mx-auto mt-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-8 ring-primary/5">
+          <div className="mx-auto mt-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ">
             <div className="relative h-16 w-16">
               <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
               <span className="absolute inset-2 rounded-full bg-primary/10 animate-pulse" />
@@ -67,18 +67,10 @@ function AgentCreateAiLoading({ stepIndex }) {
               return (
                 <li
                   key={step.label}
-                  className={`flex items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-500 sm:px-5 sm:py-4 ${
-                    active ? "border-primary/25 bg-primary/10 shadow-sm" : "border-base-200 bg-base-100"
-                  }`}
+                  className={`flex items-start gap-3 rounded-2xl border-2 px-4 py-3 transition-all duration-500 sm:px-5 sm:py-4 ${active ? "border-primary/25 bg-primary/10 shadow-sm" : "border-stroke bg-base-100"}`}
                 >
                   <span
-                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                      done
-                        ? "bg-success text-success-content"
-                        : active
-                          ? "bg-primary text-primary-content"
-                          : "bg-base-300 text-base-content/50"
-                    }`}
+                    className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${done ? "bg-success text-success-content" : active ? "bg-primary text-primary-content" : "bg-base-300 text-base-content/50"}`}
                   >
                     {done ? "✓" : active ? <span className="loading loading-spinner loading-xs" /> : index + 1}
                   </span>
@@ -377,14 +369,14 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "api", allowB
         <div
           data-testid="create-new-bridge-modal-container"
           id="create-new-bridge-modal-container"
-          className="modal-box max-h-[90vh] max-w-2xl w-full mx-4 overflow-y-auto bg-gradient-to-br from-base-100 to-base-200 shadow-2xl border border-base-300"
+          className="modal-box max-h-[90vh] max-w-2xl w-full mx-4 overflow-y-auto bg-gradient-to-br from-base-100 to-base-200 shadow-2xl border-2 border-stroke"
         >
           {state.isAiLoading ? (
             <AgentCreateAiLoading stepIndex={aiStepIndex} />
           ) : (
             <>
               {/* Modal Header */}
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-300">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-stroke">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                     <BotIcon size={20} className="text-primary" />
@@ -458,11 +450,7 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "api", allowB
                         autoFocus
                         onChange={handlePurposeInput}
                         disabled={state.isAiLoading || state.isLoading}
-                        className={`textarea textarea-bordered w-full min-h-[150px] max-h-[150px] bg-base-100 transition-all duration-300 text-base resize-none placeholder:text-base-content/40 ${
-                          state.validationErrors.purpose
-                            ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                            : "border-base-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        }`}
+                        className={`textarea textarea-bordered w-full min-h-[150px] max-h-[150px] bg-base-100 transition-all duration-300 text-base resize-none placeholder:text-base-content/40 ${state.validationErrors.purpose ? "border-error focus:border-error " : "border-stroke focus:border-primary "}`}
                         aria-label="Agent purpose description"
                         maxLength={300}
                       />
@@ -496,7 +484,7 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "api", allowB
               </div>
 
               {/* Modal Actions */}
-              <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-base-300">
+              <div className="flex justify-end gap-3 mt-8 pt-4 border-t-2 border-stroke">
                 <button
                   data-testid="create-new-bridge-cancel-button"
                   id="create-new-bridge-cancel-button"

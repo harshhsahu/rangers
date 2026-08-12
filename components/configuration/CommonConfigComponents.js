@@ -94,7 +94,7 @@ const CommonConfigComponents = ({
 
         {/* Parameters Section with Border */}
         {((showAdvancedParameters && isEmbedUser) || !isEmbedUser) && (
-          <div data-testid="parameters-section" id="parameters-section" className="border-t border-base-200 pt-6">
+          <div data-testid="parameters-section" id="parameters-section" className="border-t-2 border-stroke pt-6">
             <div className="mb-4">
               <h2 className="text-base-content text-md font-medium">Parameters</h2>
             </div>

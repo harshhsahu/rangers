@@ -83,7 +83,7 @@ export function ExpandCollapse({
           {/* Show-more button on top of the gradient */}
           <button
             type="button"
-            className="relative z-10 mb-2 inline-flex items-center gap-1.5 rounded-full border border-base-content/15 bg-base-100 px-3 py-1 text-xs font-medium text-base-content/70 shadow-sm transition-all duration-200 hover:border-base-content/30 hover:bg-base-200 hover:text-base-content group-hover/shade:-translate-y-0.5"
+            className="relative z-10 mb-2 inline-flex items-center gap-1.5 rounded-full border-2 border-stroke bg-base-100 px-3 py-1 text-xs font-medium text-base-content/70 shadow-sm transition-all duration-200 hover:border-stroke hover:bg-base-200 hover:text-base-content group-hover/shade:-translate-y-0.5"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(true);
@@ -100,7 +100,7 @@ export function ExpandCollapse({
         <div className="flex justify-center mt-2">
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 rounded-full border border-base-content/15 bg-base-100 px-3 py-1 text-xs font-medium text-base-content/60 shadow-sm transition-all duration-200 hover:border-base-content/30 hover:bg-base-200 hover:text-base-content hover:-translate-y-0.5 active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-stroke bg-base-100 px-3 py-1 text-xs font-medium text-base-content/60 shadow-sm transition-all duration-200 hover:border-stroke hover:bg-base-200 hover:text-base-content hover:-translate-y-0.5 active:scale-95"
             onClick={() => setExpanded(false)}
           >
             <ChevronUp size={12} className="shrink-0" />

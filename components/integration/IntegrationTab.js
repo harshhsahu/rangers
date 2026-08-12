@@ -62,7 +62,7 @@ window.addEventListener('message', (event) => {
   return (
     <div className="space-y-6" data-testid="integration-tab">
       {/* Step 1: Generate Embed Token */}
-      <div className="card bg-base-100 border border-base-300" data-testid="integration-tab-step1">
+      <div className="card bg-base-100 border-2 border-stroke" data-testid="integration-tab-step1">
         <div className="card-body">
           <h4 className="card-title text-base">Step 1: Generate Embed Token</h4>
           <div className="space-y-6">
@@ -103,7 +103,7 @@ window.addEventListener('message', (event) => {
       </div>
 
       {/* Step 2: Add Script */}
-      <div className="card bg-base-100 border border-base-300" data-testid="integration-tab-step2">
+      <div className="card bg-base-100 border-2 border-stroke" data-testid="integration-tab-step2">
         <div className="card-body">
           <h4 className="card-title text-base">Step 2: Add Script</h4>
           <div className="form-control">
@@ -134,7 +134,7 @@ window.addEventListener('message', (event) => {
       </div>
 
       {/* Configure Interface */}
-      <div className="card bg-base-100 border border-base-300" data-testid="integration-tab-configure-interface">
+      <div className="card bg-base-100 border-2 border-stroke" data-testid="integration-tab-configure-interface">
         <div className="card-body">
           <h4 className="card-title text-base">Configure Interface</h4>
           <div className="form-control">
@@ -147,7 +147,7 @@ window.addEventListener('message', (event) => {
       </div>
 
       {/* Step 3: Integration Functions */}
-      <div className="card bg-base-100 border border-base-300" data-testid="integration-tab-step3">
+      <div className="card bg-base-100 border-2 border-stroke" data-testid="integration-tab-step3">
         <div className="card-body">
           <h4 className="card-title text-base">Step 3: Integration Functions</h4>
           <div className="form-control">
@@ -160,7 +160,7 @@ window.addEventListener('message', (event) => {
       </div>
 
       {/* Add Meta Data */}
-      <div className="card bg-base-100 border border-base-300">
+      <div className="card bg-base-100 border-2 border-stroke">
         <div className="card-body">
           <h4 className="card-title text-base">Add Meta Data</h4>
           <div className="form-control space-y-4">
@@ -181,7 +181,7 @@ window.addEventListener('message', (event) => {
       </div>
 
       {/* Get Agent Data Using User ID */}
-      <div className="card bg-base-100 border border-base-300">
+      <div className="card bg-base-100 border-2 border-stroke">
         <div className="card-body">
           <h4 className="card-title text-base">Get Agent Data Using User ID</h4>
           <div className="form-control">
@@ -200,7 +200,7 @@ window.addEventListener('message', (event) => {
       </div>
 
       {/* Event Listener */}
-      <div className="card bg-base-100 border border-base-300" data-testid="integration-tab-event-listener">
+      <div className="card bg-base-100 border-2 border-stroke" data-testid="integration-tab-event-listener">
         <div className="card-body">
           <h4 className="card-title text-base">Add Event Listener</h4>
           <div className="form-control">

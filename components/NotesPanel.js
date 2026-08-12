@@ -59,7 +59,7 @@ const NotesPanel = ({ isVisible, params, isEmbedUser, onClose, showCloseButton =
   return (
     <div data-testid="notes-panel-container" id="notes-panel-container" className="h-full bg-base-100 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-base-300 bg-base-50">
+      <div className="flex items-center justify-between p-3 border-b-2 border-stroke bg-base-50">
         <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold text-base-content">Notes</h3>
         </div>
@@ -78,15 +78,13 @@ const NotesPanel = ({ isVisible, params, isEmbedUser, onClose, showCloseButton =
       </div>
 
       {/* Version Tabs */}
-      <div className="flex gap-1 px-2 pt-2 border-b border-base-300 overflow-x-auto">
+      <div className="flex gap-1 px-2 pt-2 border-b-2 border-stroke overflow-x-auto">
         {/* Base tab — always shown, uses raw bridgeId for old notes */}
         <button
           data-testid="notes-version-tab-base"
           id="notes-version-tab-base"
           onClick={() => handleTabClick(null)}
-          className={`btn btn-xs rounded-b-none flex-shrink-0 ${
-            selectedVersion === null ? "btn-primary" : "btn-ghost"
-          }`}
+          className={`btn btn-xs rounded-b-none flex-shrink-0 ${selectedVersion === null ? "btn-primary" : "btn-ghost"}`}
         >
           Old Notes
         </button>
@@ -98,9 +96,7 @@ const NotesPanel = ({ isVisible, params, isEmbedUser, onClose, showCloseButton =
             data-testid={`notes-version-tab-${versionId}`}
             id={`notes-version-tab-${versionId}`}
             onClick={() => handleTabClick(versionId)}
-            className={`btn btn-xs rounded-b-none flex-shrink-0 ${
-              selectedVersion === versionId ? "btn-primary" : "btn-ghost"
-            }`}
+            className={`btn btn-xs rounded-b-none flex-shrink-0 ${selectedVersion === versionId ? "btn-primary" : "btn-ghost"}`}
           >
             V{index + 1}
             {publishedVersionId === versionId && (

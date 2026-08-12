@@ -177,11 +177,11 @@ function ConfigHistorySlider({ versionId }) {
     <aside
       id="default-config-history-slider"
       data-testid="config-history-sidebar"
-      className="sidebar-container fixed z-very-high flex flex-col top-0 right-0 p-4 w-full md:w-1/3 lg:w-1/4 opacity-100 h-screen bg-base-200 transition-all duration-300 border-l border-base-300 overflow-hidden translate-x-full "
+      className="sidebar-container fixed z-very-high flex flex-col top-0 right-0 p-4 w-full md:w-1/3 lg:w-1/4 opacity-100 h-screen bg-base-200 transition-all duration-300 border-l-2 border-stroke overflow-hidden translate-x-full "
       aria-label="Config History Slider"
     >
       <div className="flex flex-col w-full gap-4 h-full min-h-0">
-        <div className="flex justify-between items-center border-b border-base-300 pb-4 shrink-0">
+        <div className="flex justify-between items-center border-b-2 border-stroke pb-4 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <FileTextIcon className="w-4 h-4 text-primary" />
@@ -200,7 +200,7 @@ function ConfigHistorySlider({ versionId }) {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-base-100 rounded-lg p-4 border border-base-300 shrink-0">
+        <div className="bg-base-100 rounded-lg p-4 border-2 border-stroke shrink-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
             <div>
               <label className="block text-xs font-medium mb-1">Filter by User</label>
@@ -286,7 +286,7 @@ function ConfigHistorySlider({ versionId }) {
                           <li
                             id={`config-history-item-${item?.id ?? index}`}
                             key={item?.id ?? index}
-                            className="px-3 py-2.5 rounded-lg bg-base-100 border border-base-300 border-l-2 border-l-primary/30 hover:border-l-primary hover:bg-primary/5 hover:border-base-content/10 transition-all duration-150"
+                            className="px-3 py-2.5 rounded-lg bg-base-100 border-2 border-stroke border-l-2 border-l-primary/30 hover:border-l-primary hover:bg-primary/5 hover:border-stroke transition-all duration-150"
                           >
                             {/* Top row: feature name + time */}
                             <div className="flex items-center justify-between gap-2 mb-1">

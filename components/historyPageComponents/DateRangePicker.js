@@ -79,7 +79,7 @@ const DateRangePicker = ({
     <div
       data-testid="history-date-range-picker"
       id="history-date-range-picker"
-      className="border-b border-base-300 sticky flex flex-col gap-2 top-0 bg-base-200 z-low"
+      className="border-b-2 border-stroke sticky flex flex-col gap-2 top-0 bg-base-200 z-low"
     >
       <div>
         <label htmlFor="from" className="block text-sm font-medium text-base-content ">
@@ -90,7 +90,7 @@ const DateRangePicker = ({
           data-testid="history-date-range-from-input"
           id="from"
           type="datetime-local"
-          className="w-full p-2 border border-base-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full p-2 border-2 border-stroke rounded-md focus:outline-none focus:border-transparent"
           placeholder="Select date"
           value={startingDate}
           max={endingDate}
@@ -107,7 +107,7 @@ const DateRangePicker = ({
           data-testid="history-date-range-to-input"
           id="to"
           type="datetime-local"
-          className="w-full p-2 border border-base-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full p-2 border-2 border-stroke rounded-md focus:outline-none focus:border-transparent"
           placeholder="Select date"
           value={endingDate}
           min={startingDate}

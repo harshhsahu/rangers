@@ -90,7 +90,7 @@ const UsageLimitModal = ({ data, onConfirm, item }) => {
           </select>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-base-content/10">
+        <div className="flex justify-end gap-2 pt-2 border-t-2 border-stroke">
           <button
             data-testid="usage-limit-cancel-button"
             id="usage-limit-cancel-button"

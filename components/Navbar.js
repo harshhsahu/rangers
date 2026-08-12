@@ -401,11 +401,7 @@ const Navbar = ({ isEmbedUser, params }) => {
     <div data-testid="navbar" className="bg-base-100 z-medium">
       {/* Main navigation header */}
       <div
-        className={`sticky top-0 z-high transition-all duration-300 ${
-          isScrolled
-            ? "bg-base-100/95 backdrop-blur-sm shadow-md border-b border-base-300"
-            : "bg-base-100 border-b border-base-200 "
-        }`}
+        className={`sticky top-0 z-high transition-all duration-300 ${isScrolled ? "bg-base-100/95 backdrop-blur-sm shadow-md border-b-2 border-stroke" : "bg-base-100 border-b-2 border-stroke "}`}
       >
         {/* Top bar with breadcrumb/home and actions */}
         <div className="flex w-full items-center justify-between px-2 sm:px-4 lg:px-6 h-10 min-w-0">
@@ -447,7 +443,7 @@ const Navbar = ({ isEmbedUser, params }) => {
                       <span
                         data-testid="navbar-agent-name-display"
                         id="navbar-agent-name-display"
-                        className="font-semibold text-sm text-base-content truncate flex-shrink"
+                        className="font-mono text-[15px] font-bold text-ink truncate flex-shrink"
                         title={`${agentName} - Click to edit`}
                       >
                         {agentName}
@@ -545,8 +541,7 @@ const Navbar = ({ isEmbedUser, params }) => {
                           data-testid={`navbar-tab-${tab.id}`}
                           id={`navbar-tab-${tab.id}`}
                           onClick={() => handleTabChange(tab.id)}
-                          className={`relative z-10 h-8 flex items-center justify-center gap-2 text-sm font-medium transition-colors
-                ${isActive ? "text-primary-content" : "text-base-content/70 hover:text-base-content"}`}
+                          className={`relative z-10 h-8 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${isActive ? "text-primary-content" : "text-base-content/70 hover:text-base-content"}`}
                           style={{ width: `${TAB_WIDTH}px` }} // 🔒 lock tab width
                         >
                           <tab.icon
@@ -598,7 +593,7 @@ const Navbar = ({ isEmbedUser, params }) => {
       </div>
 
       {/* Mobile agent name bar */}
-      <div id="navbar-mobile-agent-name-display" className="sm:hidden bg-base-100 border-b border-base-200 px-2 py-2">
+      <div id="navbar-mobile-agent-name-display" className="sm:hidden bg-base-100 border-b-2 border-stroke px-2 py-2">
         <div className="flex items-center justify-between gap-2">
           {/* Agent Name - Editable */}
           <div className="flex items-center min-w-0 flex-1">

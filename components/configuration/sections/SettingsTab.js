@@ -60,7 +60,7 @@ const SettingsTab = () => {
               <div
                 data-testid="agent-flow-section"
                 id="agent-flow-section"
-                className="border border-base-200 p-3 flex items-center justify-between gap-4"
+                className="border-2 border-stroke p-3 flex items-center justify-between gap-4"
               >
                 <div>
                   <p className="text-sm font-medium text-base-content">Connected Agent Flow</p>
@@ -99,7 +99,7 @@ const SettingsTab = () => {
               <div
                 data-testid="cached-response-section"
                 id="cached-response-section"
-                className="border border-base-200 p-3 flex items-center justify-between gap-4"
+                className="border-2 border-stroke p-3 flex items-center justify-between gap-4"
               >
                 <div>
                   <p className="text-sm font-medium text-base-content">Allow Cached Response</p>

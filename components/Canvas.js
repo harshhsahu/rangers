@@ -168,7 +168,7 @@ function Canvas({
       className="flex flex-col bg-base-100"
     >
       {/* Header with Reset Button */}
-      <div className="flex  items-center pb-1 mb-1 pl-2" style={{ justifyContent: "flex-end" }}>
+      <div className="flex items-center pb-1 mb-1 pl-2" style={{ justifyContent: "flex-end" }}>
         {messages?.length > 0 && (
           <button
             data-testid="canvas-reset-chat-button"

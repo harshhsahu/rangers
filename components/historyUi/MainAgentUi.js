@@ -57,7 +57,7 @@ export function MainAgentUI({
               <div
                 key={`${tool?.name || "tool"}-${index}`}
                 data-testid={`main-agent-tool-${index}`}
-                className="flex items-center justify-between border border-base-300 hover:border-primary p-2 hover:bg-primary/10 cursor-pointer"
+                className="flex items-center justify-between border-2 border-stroke hover:border-primary p-2 hover:bg-primary/10 cursor-pointer"
                 onClick={() => handleToolClick(tool)}
               >
                 <div data-testid={`main-agent-tool-content-${index}`} className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export function MainAgentUI({
                   data-testid={`main-agent-tool-log-${index}`}
                   type="button"
                   onClick={(event) => handleToolSliderClick(event, tool)}
-                  className="p-1 border border-base-300 rounded hover:border-primary hover:text-primary"
+                  className="p-1 border-2 border-stroke rounded hover:border-primary hover:text-primary"
                   title="Open tool logs"
                 >
                   <FileClockIcon size={14} />
@@ -97,7 +97,7 @@ export function MainAgentUI({
           </div>
           <div
             data-testid="main-agent-response-preview"
-            className="border border-base-300 hover:border-success p-3 hover:bg-success/10 cursor-pointer transition-all"
+            className="border-2 border-stroke hover:border-success p-3 hover:bg-success/10 cursor-pointer transition-all"
             onClick={onResponseClick}
           >
             <div data-testid="main-agent-response-status" className="flex items-center gap-2 mb-2">

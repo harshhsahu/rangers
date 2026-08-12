@@ -185,7 +185,7 @@ const PromptHelper = ({
       tabIndex={-1}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-1 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-1 border-b bg-paper">
         <h3 className="font-medium">Prompt Helper</h3>
         <button className="p-1 rounded-full hover:text-error transition-colors z-10" onClick={() => onClose("prompt")}>
           <CloseIcon />
@@ -196,7 +196,7 @@ const PromptHelper = ({
       <div className="flex flex-col h-[calc(100vh-60px)]">
         {/* Notes Section */}
         <div className={`${getNotesHeight()} transition-all duration-300 ease-in-out border-b mt-2`}>
-          <div className="p-3 border-b bg-gray-50">
+          <div className="p-3 border-b bg-paper">
             <div className="flex items-center gap-2">
               <BookIcon size={14} />
               <span className="text-sm font-medium">Notes</span>
@@ -216,7 +216,7 @@ const PromptHelper = ({
 
         {/* Prompt Builder Section */}
         <div className={`${getPromptBuilderHeight()} transition-all duration-300 ease-in-out`}>
-          <div className="p-3 border-b bg-gray-50">
+          <div className="p-3 border-b bg-paper">
             <div className="flex items-center gap-2">
               <BrainIcon size={14} />
               <span className="text-sm font-medium">Prompt Builder</span>
@@ -247,7 +247,7 @@ const PromptHelper = ({
               </div>
 
               {/* Optimized prompt section */}
-              <div className="w-2/5 border rounded-md bg-gray-50 flex flex-col">
+              <div className="w-2/5 border rounded-md bg-paper flex flex-col">
                 <div className="p-2 border-b">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-medium">Current Optimized Prompt</span>

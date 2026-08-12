@@ -56,7 +56,7 @@ function ReasoningAccordion({ reasoning, isStreaming, messageContent }) {
   if (!reasoning) return null;
 
   return (
-    <div className="r-entry mb-2 rounded-lg border border-base-300 bg-base-200/60 text-xs overflow-hidden">
+    <div className="r-entry mb-2 rounded-lg border-2 border-stroke bg-base-200/60 text-xs overflow-hidden">
       <button
         type="button"
         className="flex w-full items-center gap-2 px-3 py-2 text-left font-medium text-base-content/70 hover:text-base-content transition-colors duration-150"
@@ -83,7 +83,7 @@ function ReasoningAccordion({ reasoning, isStreaming, messageContent }) {
 
       <div
         ref={scrollRef}
-        className={`r-body border-t border-base-300 px-3 py-2 font-mono text-base-content/60 whitespace-pre-wrap leading-relaxed overflow-y-auto ${open ? "open" : "closed"}`}
+        className={`r-body border-t-2 border-stroke px-3 py-2 font-mono text-base-content/60 whitespace-pre-wrap leading-relaxed overflow-y-auto ${open ? "open" : "closed"}`}
       >
         {chunks.map(({ id, text, dur }) => (
           <span key={id} className="r-chunk" style={{ "--dur": `${dur}s` }}>

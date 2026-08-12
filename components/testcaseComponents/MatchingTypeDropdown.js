@@ -36,7 +36,7 @@ const MatchingTypeDropdown = ({
       <button
         data-testid="matching-type-dropdown-btn"
         onClick={() => setIsOpen((o) => !o)}
-        className="flex items-center gap-2 px-2 py-1.5 bg-transparent border border-base-content/20 rounded-lg text-xs font-semibold text-base-content/70 cursor-pointer hover:bg-base-200 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 bg-transparent border-2 border-stroke rounded-lg text-xs font-semibold text-base-content/70 cursor-pointer hover:bg-base-200 transition-colors"
       >
         {label}:
         <span className="text-primary font-bold">
@@ -56,8 +56,8 @@ const MatchingTypeDropdown = ({
             data-testid="matching-type-dropdown-backdrop"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-[calc(100%+8px)] left-0 z-[100] w-[300px] bg-base-100 border border-base-300 rounded-2xl shadow-lg p-2">
-            <div className="text-[11px] font-bold tracking-[0.05em] text-base-content/50 px-2.5 pt-1.5 pb-2.5 uppercase border-b border-base-200 mb-1.5">
+          <div className="absolute top-[calc(100%+8px)] left-0 z-[100] w-[300px] bg-base-100 border-2 border-stroke rounded-2xl shadow-lg p-2">
+            <div className="text-[11px] font-bold tracking-[0.05em] text-base-content/50 px-2.5 pt-1.5 pb-2.5 uppercase border-b-2 border-stroke mb-1.5">
               Matching Type
             </div>
 
@@ -73,22 +73,16 @@ const MatchingTypeDropdown = ({
                   data-testid={`matching-type-option-${opt.id}`}
                   onClick={() => !opt.disabled && handleMatchingTypeClick(opt.id)}
                   disabled={isActive}
-                  className={`w-full flex items-start gap-2.5 px-2.5 py-2.5 rounded-[10px] text-left mb-0.5 transition-colors ${
-                    isActive ? "bg-primary/10 cursor-pointer" : "bg-transparent hover:bg-base-200 cursor-pointer"
-                  }`}
+                  className={`w-full flex items-start gap-2.5 px-2.5 py-2.5 rounded-[10px] text-left mb-0.5 transition-colors ${isActive ? "bg-primary/10 cursor-pointer" : "bg-transparent hover:bg-base-200 cursor-pointer"}`}
                 >
                   <span
-                    className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-md flex-shrink-0 mt-px ${
-                      isActive ? "bg-primary border-0" : "bg-base-200 border-[1.5px] border-base-300"
-                    }`}
+                    className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-md flex-shrink-0 mt-px ${isActive ? "bg-primary border-0" : "bg-base-200 border-[1.5px] border-stroke"}`}
                   >
                     {isActive && <Check size={11} strokeWidth={3.5} className="text-primary-content" />}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div
-                      className={`text-[13.5px] ${
-                        isActive ? "font-bold text-primary" : "font-medium text-base-content/70"
-                      }`}
+                      className={`text-[13.5px] ${isActive ? "font-bold text-primary" : "font-medium text-base-content/70"}`}
                     >
                       {opt.label}
                     </div>
@@ -99,11 +93,11 @@ const MatchingTypeDropdown = ({
             })}
 
             {/* Conversation History placeholder */}
-            {conversation && conversation.length > 0 && <div className="border-t border-base-200 mt-1.5 pt-2.5 px-1" />}
+            {conversation && conversation.length > 0 && <div className="border-t-2 border-stroke mt-1.5 pt-2.5 px-1" />}
 
             {/* Custom prompt — only shown when AI is selected */}
             {matchingType === "AI" && (
-              <div className="border-t border-base-200 mt-1.5 pt-2.5 px-1">
+              <div className="border-t-2 border-stroke mt-1.5 pt-2.5 px-1">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-base-content/70 tracking-wide">
                     How AI should work
@@ -112,7 +106,7 @@ const MatchingTypeDropdown = ({
                       <button
                         data-testid="matching-type-clear-prompt-btn"
                         onClick={handleClearPrompt}
-                        className="px-2.5 py-1 rounded-md border border-base-300 bg-base-100 text-[11px] font-semibold text-base-content/60 cursor-pointer hover:bg-base-200 transition-colors"
+                        className="px-2.5 py-1 rounded-md border-2 border-stroke bg-base-100 text-[11px] font-semibold text-base-content/60 cursor-pointer hover:bg-base-200 transition-colors"
                       >
                         Clear
                       </button>
@@ -125,18 +119,14 @@ const MatchingTypeDropdown = ({
                   onChange={(e) => setLocalCustomPrompt(e.target.value)}
                   placeholder="e.g. Score the response 0-100 based on accuracy, tone, and conciseness. Return only the score."
                   rows={4}
-                  className="w-full resize-y px-3 py-2.5 text-[13px] leading-relaxed rounded-[10px] border border-base-300 bg-base-200 text-base-content outline-none box-border font-[inherit] focus:border-primary focus:bg-base-100 transition-colors"
+                  className="w-full resize-y px-3 py-2.5 text-[13px] leading-relaxed rounded-[10px] border-2 border-stroke bg-base-200 text-base-content outline-none box-border-2 font-[inherit] focus:border-primary focus:bg-base-100 transition-colors"
                 />
                 <div className="flex justify-end gap-2 mt-2">
                   <button
                     data-testid="matching-type-save-prompt-btn"
                     onClick={handleSavePrompt}
                     disabled={!canSave}
-                    className={`px-3.5 py-[7px] rounded-[9px] border-0 text-[13px] font-bold transition-colors ${
-                      canSave
-                        ? "bg-primary text-primary-content cursor-pointer hover:bg-primary/90"
-                        : "bg-base-300 text-base-content/50 cursor-not-allowed"
-                    }`}
+                    className={`px-3.5 py-[7px] rounded-[9px] border-0 text-[13px] font-bold transition-colors ${canSave ? "bg-primary text-primary-content cursor-pointer hover:bg-primary/90" : "bg-base-300 text-base-content/50 cursor-not-allowed"}`}
                   >
                     Save
                   </button>

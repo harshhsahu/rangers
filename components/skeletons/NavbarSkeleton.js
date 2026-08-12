@@ -2,7 +2,7 @@ import React from "react";
 
 const NavbarSkeleton = () => {
   return (
-    <div className="bg-base-100 border-b border-base-200 animate-pulse">
+    <div className="bg-base-100 border-b-2 border-stroke animate-pulse">
       {/* Main navigation header */}
       <div className="flex w-full items-center justify-between px-4 lg:px-6 h-10">
         {/* Left: Agent Name and Versions */}
@@ -58,7 +58,7 @@ const NavbarSkeleton = () => {
       </div>
 
       {/* Mobile Version Dropdown Skeleton */}
-      <div className="sm:hidden bg-base-100 border-b border-base-200 px-2 py-2">
+      <div className="sm:hidden bg-base-100 border-b-2 border-stroke px-2 py-2">
         <div className="flex items-center justify-between gap-2">
           {/* Agent Name Skeleton */}
           <div className="h-4 bg-base-300 rounded w-24"></div>

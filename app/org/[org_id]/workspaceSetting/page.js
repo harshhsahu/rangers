@@ -108,25 +108,21 @@ export default function SettingsPage({ params }) {
           </div>
 
           {isContentOpen && (
-            <div className="mt-4 border border-base-300 rounded-lg p-4">
+            <div className="mt-4 border-2 border-stroke rounded-lg p-4">
               <input
                 autoComplete="off"
                 type="text"
                 placeholder="Search timezone..."
-                className="w-full p-2 border border-base-300 rounded mb-3 text-sm"
+                className="w-full p-2 border-2 border-stroke rounded mb-3 text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <div className="h-48 overflow-y-auto border border-base-300 rounded">
+              <div className="h-48 overflow-y-auto border-2 border-stroke rounded">
                 {filteredTimezones.map((timezone) => (
                   <div
                     key={timezone.identifier}
                     onClick={() => handleTimezoneChange(timezone)}
-                    className={`p-2 text-sm cursor-pointer ${
-                      timezone.identifier === selectedTimezone?.identifier
-                        ? "bg-primary text-white"
-                        : "hover:bg-gray-50"
-                    }`}
+                    className={`p-2 text-sm cursor-pointer ${timezone.identifier === selectedTimezone?.identifier ? "bg-primary text-white" : "hover:bg-gray-50"}`}
                   >
                     {timezone.identifier} {timezone.offSet ? `(${timezone.offSet})` : ""}
                   </div>

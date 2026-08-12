@@ -89,7 +89,7 @@ const ChatbotConfigDetailView = ({ params, embedToken }) => {
             {/* Sidebar */}
             <Panel defaultSize={20} minSize={15} maxSize={40}>
               <div className="h-full" data-testid="chatbot-config-sidebar">
-                <div className="bg-base-100 pt-6 border border-base-300 rounded-lg p-2 h-full flex flex-col overflow-hidden">
+                <div className="bg-base-100 pt-6 border-2 border-stroke rounded-lg p-2 h-full flex flex-col overflow-hidden">
                   {!isConfigMode && !isTestingMode ? (
                     // Main Navigation Tabs with Back Button
                     <div
@@ -115,12 +115,7 @@ const ChatbotConfigDetailView = ({ params, embedToken }) => {
                               key={tab.id}
                               data-testid={`chatbot-config-tab-${tab.id}`}
                               onClick={() => handleTabChange(tab.id)}
-                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                            ${
-                              isActive
-                                ? "bg-primary text-primary-content"
-                                : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
-                            }`}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? "bg-primary text-primary-content" : "text-base-content/70 hover:bg-base-200 hover:text-base-content"}`}
                             >
                               {tab.icon}
                               <span>{tab.label}</span>
@@ -195,7 +190,7 @@ const ChatbotConfigDetailView = ({ params, embedToken }) => {
             <Panel minSize={30}>
               <div className="h-full overflow-hidden" data-testid="chatbot-config-content-area">
                 <div
-                  className={`h-full border border-base-300 rounded-lg bg-base-100 ${activeTab !== "configuration" ? "overflow-y-auto" : ""}`}
+                  className={`h-full border-2 border-stroke rounded-lg bg-base-100 ${activeTab !== "configuration" ? "overflow-y-auto" : ""}`}
                 >
                   {activeTab === "integration" && <ChatbotIntegrationGuideTab params={params} chatBotId={chatBotId} />}
                   {activeTab === "configuration" && <ChatbotPreview embedToken={embedToken} params={params} />}

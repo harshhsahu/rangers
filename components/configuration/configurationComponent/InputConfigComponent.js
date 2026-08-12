@@ -459,7 +459,7 @@ const InputConfigComponent = memo(
                               "") && (
                             <button
                               type="button"
-                              className="btn btn-xs btn-ghost border border-base-300"
+                              className="btn btn-xs btn-ghost border-2 border-stroke"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
                                 const savedVal =
@@ -481,11 +481,7 @@ const InputConfigComponent = memo(
                         {field.showPromptHelper && !field.deprecated && !isPublished && isEditor && (
                           <button
                             type="button"
-                            className={`btn btn-xs gap-1 ${
-                              promptState.activeHelperField === field.name && uiState.isPromptHelperOpen
-                                ? "btn-primary"
-                                : "btn-ghost border border-base-300"
-                            }`}
+                            className={`btn btn-xs gap-1 ${promptState.activeHelperField === field.name && uiState.isPromptHelperOpen ? "btn-primary" : "btn-ghost border-2 border-stroke"}`}
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
                               if (promptState.activeHelperField === field.name && uiState.isPromptHelperOpen) {
@@ -514,9 +510,7 @@ const InputConfigComponent = memo(
                   <div className="relative">
                     {field.type === "textarea" ? (
                       <textarea
-                        className={`textarea textarea-bordered w-full text-sm leading-relaxed resize-y min-h-32 pr-8 ${
-                          field.deprecated ? "opacity-60" : ""
-                        }`}
+                        className={`textarea textarea-bordered w-full text-sm leading-relaxed resize-y min-h-32 pr-8 ${field.deprecated ? "opacity-60" : ""}`}
                         value={activeEmbedFieldValues[field.name] || ""}
                         onChange={(e) => !field.deprecated && handleEmbedFieldChange(field.name, e.target.value)}
                         readOnly={field.deprecated}
@@ -540,9 +534,7 @@ const InputConfigComponent = memo(
                       <input
                         autoComplete="off"
                         type="text"
-                        className={`input input-bordered w-full text-sm input-sm pr-8 ${
-                          field.deprecated ? "opacity-60" : ""
-                        }`}
+                        className={`input input-bordered w-full text-sm input-sm pr-8 ${field.deprecated ? "opacity-60" : ""}`}
                         value={activeEmbedFieldValues[field.name] || ""}
                         onChange={(e) => !field.deprecated && handleEmbedFieldChange(field.name, e.target.value)}
                         readOnly={field.deprecated}

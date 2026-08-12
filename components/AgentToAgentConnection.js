@@ -122,11 +122,7 @@ function BridgeNode({ data }) {
         data-testid="bridge-node-button"
         id="bridge-node-button"
         onClick={handleBridgeClick}
-        className={`text-white rounded-full w-20 h-20 flex flex-col items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform nodrag relative overflow-hidden ${
-          bridgeConfig
-            ? `bg-gradient-to-r ${bridgeConfig.color} hover:opacity-90`
-            : "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700"
-        }`}
+        className={`text-white rounded-full w-20 h-20 flex flex-col items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 transform nodrag relative overflow-hidden ${bridgeConfig ? `bg-gradient-to-r ${bridgeConfig.color} hover:opacity-90` : "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700"}`}
         title={
           bridgeConfig
             ? `${bridgeConfig.name} Bridge - Click to ${data?.hasMasterAgent ? "change" : "add agent"}`
@@ -221,11 +217,7 @@ function AgentNode({ id, data }) {
           )}
 
           <div
-            className={`relative border-2 rounded-full shadow-xl hover:shadow-2xl p-6 z-20 transition-all duration-300 group-hover:shadow-blue-100 cursor-pointer ${
-              isMasterAgent
-                ? "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-400 hover:border-amber-500"
-                : "bg-gradient-to-br from-white to-slate-50 border-slate-300 hover:border-blue-400"
-            }`}
+            className={`relative border-2 rounded-full shadow-xl hover:shadow-2xl p-6 z-20 transition-all duration-300 group-hover:shadow-blue-100 cursor-pointer ${isMasterAgent ? "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-400 hover:border-amber-500" : "bg-gradient-to-br from-white to-slate-50 border-slate-300 hover:border-blue-400"}`}
             onClick={handleUpdateVariable}
           >
             <Handle
@@ -237,11 +229,7 @@ function AgentNode({ id, data }) {
 
             <div className="flex items-center justify-center">
               <div
-                className={`text-base-primary rounded-full p-4 shadow-inner relative ${
-                  isMasterAgent
-                    ? "bg-gradient-to-br from-amber-100 to-amber-200"
-                    : "bg-gradient-to-br from-primary/50 to-primary/70"
-                }`}
+                className={`text-base-primary rounded-full p-4 shadow-inner relative ${isMasterAgent ? "bg-gradient-to-br from-amber-100 to-amber-200" : "bg-gradient-to-br from-primary/50 to-primary/70"}`}
               >
                 <div className="flex items-center justify-center">
                   <span
@@ -282,11 +270,7 @@ function AgentNode({ id, data }) {
         <div className="mt-4 text-center">
           <div className="flex items-center justify-center gap-2">
             <div
-              className={`px-4 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-300 rounded-xl shadow-sm hover:shadow-md border ${
-                isMasterAgent
-                  ? "text-amber-800 hover:text-amber-900 bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200 hover:border-amber-300"
-                  : "text-base-content hover:text-base-content "
-              }`}
+              className={`px-4 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-300 rounded-xl shadow-sm hover:shadow-md border ${isMasterAgent ? "text-amber-800 hover:text-amber-900 bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200 hover:border-amber-300" : "text-base-content hover:text-base-content "}`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenConfig();

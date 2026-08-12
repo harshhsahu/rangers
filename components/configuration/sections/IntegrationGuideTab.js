@@ -115,9 +115,7 @@ const IntegrationGuideTab = ({ isPublished }) => {
                 data-testid={`integration-tab-${tab.id}`}
                 id={`integration-tab-${tab.id}`}
                 key={tab.id}
-                className={`tab flex-1 transition-colors ${
-                  activeTab === tab.id ? "tab-active bg-base-200 font-medium shadow-sm" : "hover:bg-base-200/50"
-                }`}
+                className={`tab flex-1 transition-colors ${activeTab === tab.id ? "tab-active bg-base-200 font-medium shadow-sm" : "hover:bg-base-200/50"}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 {tab.label}

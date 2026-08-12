@@ -151,7 +151,7 @@ const TestCaseVariablesModal = ({
             {Object.entries(editableVariables).map(([key, value]) => (
               <div
                 key={key}
-                className="bg-base-200/40 rounded-lg p-4 border border-base-content/10"
+                className="bg-base-200/40 rounded-lg p-4 border-2 border-stroke"
                 data-testid={`testcase-variables-item-${key}`}
               >
                 <div className="grid grid-cols-2 gap-4 items-start">
@@ -163,7 +163,7 @@ const TestCaseVariablesModal = ({
                       Key
                     </label>
                     <div
-                      className="text-[11px] font-mono bg-base-200 px-3 py-2 rounded text-base-content break-all whitespace-pre-wrap border border-base-content/10 select-all"
+                      className="text-[11px] font-mono bg-base-200 px-3 py-2 rounded text-base-content break-all whitespace-pre-wrap border-2 border-stroke select-all"
                       data-testid={`testcase-variables-key-value-${key}`}
                     >
                       {key}

@@ -53,7 +53,7 @@ const LoginPage = ({ loading }) => {
                   <div className="relative">
                     {/* Rotating box positioned behind the logo - offset to match reference image */}
                     <div
-                      className="absolute border-[0.5px] border-base-content/20 opacity-30"
+                      className="absolute border-[0.5px] border-stroke opacity-30"
                       style={{
                         width: "100px",
                         height: "100px",
@@ -75,7 +75,7 @@ const LoginPage = ({ loading }) => {
                 </div>
               </a>
               <div
-                className="absolute border-[0.5px] border-base-content/20 opacity-30"
+                className="absolute border-[0.5px] border-stroke opacity-30"
                 style={{
                   width: "80px",
                   height: "80px",
@@ -87,7 +87,7 @@ const LoginPage = ({ loading }) => {
                 }}
               ></div>
               <div
-                className="absolute border-[0.5px] border-base-content/20 opacity-30"
+                className="absolute border-[0.5px] border-stroke opacity-30"
                 style={{
                   width: "50px",
                   height: "50px",
@@ -114,9 +114,9 @@ const LoginPage = ({ loading }) => {
           <div className="flex flex-col items-center justify-center">
             <div className="w-full max-w-md">
               {/* Corner borders */}
-              <div className="bg-base-100/20 backdrop-blur-xl border border-base-content/10 shadow-lg p-12 relative animate-[fadeInUp_0.8s_ease-out_0.1s_both]">
-                <div className="absolute -top-px -left-px w-16 h-16 border-l-2 border-t-2 border-base-content/20"></div>
-                <div className="absolute -bottom-px -right-px w-16 h-16 border-r-2 border-b-2 border-base-content/20"></div>
+              <div className="bg-base-100/20 backdrop-blur-xl border-2 border-stroke shadow-lg p-12 relative animate-[fadeInUp_0.8s_ease-out_0.1s_both]">
+                <div className="absolute -top-px -left-px w-16 h-16 border-l-2 border-t-2 border-stroke"></div>
+                <div className="absolute -bottom-px -right-px w-16 h-16 border-r-2 border-b-2 border-stroke"></div>
 
                 {/* Welcome Text */}
                 <div className="text-center mb-6">
@@ -137,15 +137,15 @@ const LoginPage = ({ loading }) => {
 
             {/* Stats Section - Below login card */}
             <div className="grid grid-cols-3  gap-8 mt-10 w-full max-w-md">
-              <div className="text-center border border-base-content/20 px-2 py-4">
+              <div className="text-center border-2 border-stroke px-2 py-4">
                 <div className="text-sm font-semibold text-base-content">2000+</div>
                 <div className="text-xs text-base-content/60">INTEGRATIONS</div>
               </div>
-              <div className="text-center border border-base-content/20 px-2 py-4">
+              <div className="text-center border-2 border-stroke px-2 py-4">
                 <div className="text-sm font-semibold text-base-content">99.9%</div>
                 <div className="text-xs text-base-content/60">UPTIME</div>
               </div>
-              <div className="text-center border border-base-content/20 px-2 py-4">
+              <div className="text-center border-2 border-stroke px-2 py-4">
                 <div className="text-sm font-semibold text-base-content">24/7</div>
                 <div className="text-xs text-base-content/60">SUPPORT</div>
               </div>

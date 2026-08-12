@@ -358,7 +358,7 @@ const PreEmbedList = ({ params, searchParams, isPublished, isEditor = true, isEm
                 onFocusCapture={() => setIsAddPreToolDropdownFocused(true)}
                 onBlurCapture={handleAddPreToolDropdownBlur}
               >
-                <div className="border-2 border-base-200 border-dashed text-center">
+                <div className="rounded-[8px] border-2 border-dashed border-stroke text-center">
                   <InfoTooltip
                     tooltipContent="A prefunction prepares data before passing it to the main function for the GPT call."
                     disabled={isAddPreToolDropdownFocused}

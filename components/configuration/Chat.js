@@ -85,9 +85,7 @@ const ChatImage = ({ src, alt, onClick }) => {
 
   return (
     <div
-      className={`relative group cursor-pointer inline-flex flex-col w-full max-w-[250px] sm:max-w-[400px] rounded-lg overflow-hidden border border-base-content/10 shadow-sm transition-all duration-300 ${
-        isLoading ? "skeleton min-h-[200px] bg-base-300/50" : "bg-base-200/50"
-      }`}
+      className={`relative group cursor-pointer inline-flex flex-col w-full max-w-[250px] sm:max-w-[400px] rounded-lg overflow-hidden border-2 border-stroke shadow-sm transition-all duration-300 ${isLoading ? "skeleton min-h-[200px] bg-base-300/50" : "bg-base-200/50"}`}
       onClick={onClick}
     >
       <img
@@ -143,7 +141,7 @@ function ToolCallItem({ toolCall, isMessageComplete }) {
   const canToggle = hasBody;
 
   return (
-    <div className="rounded-lg border border-base-300 bg-base-200 text-xs overflow-hidden">
+    <div className="rounded-lg border-2 border-stroke bg-base-200 text-xs overflow-hidden">
       <div
         className={`flex items-center gap-2 px-3 py-1.5 select-none ${canToggle ? "cursor-pointer" : "cursor-default"}`}
         onClick={() => canToggle && setOpen((v) => !v)}
@@ -163,7 +161,7 @@ function ToolCallItem({ toolCall, isMessageComplete }) {
         )}
       </div>
       {open && hasBody && (
-        <div className="border-t border-base-300 px-3 py-2 bg-base-100 whitespace-pre-wrap break-all max-h-48 overflow-y-auto">
+        <div className="border-t-2 border-stroke px-3 py-2 bg-base-100 whitespace-pre-wrap break-all max-h-48 overflow-y-auto">
           {toolCall.status === "done" ? (
             // Final tool result
             typeof parsedResult === "object" ? (
@@ -822,7 +820,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
         )}
 
         {hasYoutube && (
-          <div className="bg-base-200 p-3 rounded-lg border border-base-content/30">
+          <div className="bg-base-200 p-3 rounded-lg border-2 border-stroke">
             <div className="flex items-center gap-2 mb-2">
               <PlayIcon size={16} className="text-red-500" />
               <span className="text-sm font-medium">YouTube Video</span>
@@ -833,7 +831,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
               href={message.youtube_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline block truncate"
+              className="text-xs text-acc hover:underline block truncate"
             >
               {message.youtube_url}
             </a>
@@ -961,7 +959,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
             <div
               data-testid="chat-testcase-sidebar"
               id="chat-testcase-sidebar"
-              className="relative w-[70%] h-full border border-base-content/30 rounded-md bg-base-100 shadow-lg z-very-high animate-slideIn"
+              className="relative w-[70%] h-full border-2 border-stroke rounded-md bg-base-100 shadow-lg z-very-high animate-slideIn"
             >
               <TestCaseSidebar
                 params={params}
@@ -986,7 +984,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
               id="chat-loading-overlay"
               className="absolute inset-0 bg-base-100/80 backdrop-blur-sm flex items-center justify-center rounded-md z-50"
             >
-              <div className="flex items-center gap-3 bg-base-100 p-4 rounded-lg shadow-lg border border-base-content/20">
+              <div className="flex items-center gap-3 bg-base-100 p-4 rounded-lg shadow-lg border-2 border-stroke">
                 <span className="loading loading-spinner loading-md text-primary"></span>
                 <span className="text-base font-medium">Loading test case conversation...</span>
               </div>
@@ -1019,7 +1017,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                           key={i}
                           data-testid={`chat-starter-question-${i}`}
                           id={`chat-starter-question-${i}`}
-                          className="flex items-center justify-between gap-3 w-full px-4 py-3 rounded-xl border border-base-content/10 bg-base-200/40 hover:bg-base-200/80 hover:border-primary/30 transition-all duration-150 text-left group"
+                          className="flex items-center justify-between gap-3 w-full px-4 py-3 rounded-xl border-2 border-stroke bg-base-200/40 hover:bg-base-200/80 hover:border-primary/30 transition-all duration-150 text-left group"
                           onClick={() => {
                             if (handleSendMessageRef.current && inputRef.current) {
                               inputRef.current.value = question;
@@ -1046,9 +1044,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                     data-testid={`chat-message-${index}`}
                     id={`chat-message-${index}`}
                     key={index}
-                    className={`chat show-on-hover ${
-                      message.sender === "user" ? "chat-end flex flex-col mt-2" : "chat-start"
-                    }`}
+                    className={`chat show-on-hover ${message.sender === "user" ? "chat-end flex flex-col mt-2" : "chat-start"}`}
                   >
                     <div className="chat-image avatar"></div>
                     <div className="chat-header flex items-start gap-1.5 mb-1">
@@ -1099,7 +1095,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                         {Object.entries(message.tools_call_data).map(([functionName]) => (
                           <div
                             key={functionName}
-                            className="bg-base-200 border border-base-content/20 rounded-md p-2 min-w-[120px] max-w-[200px] shadow-sm"
+                            className="bg-base-200 border-2 border-stroke rounded-md p-2 min-w-[120px] max-w-[200px] shadow-sm"
                           >
                             <div className="flex items-center justify-center space-x-1 mb-1">
                               <div className="w-4 h-4 bg-primary/10 rounded-full flex items-center justify-center">
@@ -1143,7 +1139,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                               </button>
                               <ul
                                 tabIndex={0}
-                                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-28 z-40 text-xs border border-base-200"
+                                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-28 z-40 text-xs border-2 border-stroke"
                               >
                                 <li>
                                   <button
@@ -1204,13 +1200,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                     <div className="flex items-center gap-2">
                                       <div className="w-12 bg-neutral-content/20 rounded-full h-1.5">
                                         <div
-                                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                                            message.testCaseResult.score >= 0.8
-                                              ? "bg-success"
-                                              : message.testCaseResult.score >= 0.6
-                                                ? "bg-warning"
-                                                : "bg-error"
-                                          }`}
+                                          className={`h-1.5 rounded-full transition-all duration-300 ${message.testCaseResult.score >= 0.8 ? "bg-success" : message.testCaseResult.score >= 0.6 ? "bg-warning" : "bg-error"}`}
                                           style={{ width: `${Math.max(message.testCaseResult.score * 100, 8)}%` }}
                                         ></div>
                                       </div>
@@ -1255,9 +1245,9 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                 data-testid={`playground-ai-response-message-${message.id}`}
                                 className={`gap-0 justify-start relative min-w-0 ${
                                   message.sender === "assistant"
-                                    ? `mr-8 w-full rounded-xl break-words ${message.content ? "px-4 py-3 border border-base-content/20" : ""}`
+                                    ? `mr-8 w-full rounded-[14px] break-words ${message.content ? "px-4 py-3 border-2 border-ink bg-card" : ""}`
                                     : message.sender === "error"
-                                      ? "rounded-xl w-full overflow-hidden bg-error/10 border border-error/30 text-error px-4 py-3 text-sm"
+                                      ? "rounded-[14px] w-full overflow-hidden bg-error/10 border-2 border-error text-error px-4 py-3 text-sm"
                                       : "chat-bubble w-fit max-w-full text-sm text-neutral-content break-words whitespace-pre-wrap"
                                 } ${isRichUiMessage(message) ? "!bg-transparent !shadow-none !p-0 !border-0" : ""}`}
                               >
@@ -1471,7 +1461,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                           [message.id]: !prev[message.id],
                                         }));
                                       }}
-                                      className="flex items-center gap-2 text-xs text-base-content/70 hover:text-base-content transition-colors px-2 py-1 rounded-full bg-base-100 border border-base-content/20 shadow-sm hover:bg-base-200/50"
+                                      className="flex items-center gap-2 text-xs text-base-content/70 hover:text-base-content transition-colors px-2 py-1 rounded-full bg-base-100 border-2 border-stroke shadow-sm hover:bg-base-200/50"
                                     >
                                       {showTestCaseResults[message.id] ? (
                                         <>
@@ -1483,13 +1473,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                           <ToggleLeft className="h-3 w-3" />
                                           <span>Test Details</span>
                                           <span
-                                            className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${
-                                              message.testCaseResult.score >= 0.8
-                                                ? "bg-success/20 text-success"
-                                                : message.testCaseResult.score >= 0.6
-                                                  ? "bg-warning/20 text-warning"
-                                                  : "bg-error/20 text-error"
-                                            }`}
+                                            className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-medium ${message.testCaseResult.score >= 0.8 ? "bg-success/20 text-success" : message.testCaseResult.score >= 0.6 ? "bg-warning/20 text-warning" : "bg-error/20 text-error"}`}
                                           >
                                             {(message.testCaseResult.score * 100).toFixed(1)}%
                                           </span>
@@ -1503,7 +1487,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                     <div className="see-on-hover transition-opacity duration-200 inline-flex flex-wrap items-center gap-1.5 text-[10px] text-base-content/60 font-medium select-none">
                                       {message.usage?.cost > 0 && (
                                         <span
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-base-200 border border-base-content/15 shadow-sm"
+                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-base-200 border-2 border-stroke shadow-sm"
                                           title="Estimated cost"
                                         >
                                           <span className="font-semibold text-base-content/70">Cost:</span>
@@ -1511,13 +1495,13 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                         </span>
                                       )}
                                       {message.latency?.over_all_time > 0 && (
-                                        <span className="group inline-flex items-center w-fit px-1.5 py-0.5 rounded bg-base-200 border border-base-content/15 shadow-sm hover:bg-base-300/60 transition-all duration-200 cursor-pointer">
+                                        <span className="group inline-flex items-center w-fit px-1.5 py-0.5 rounded bg-base-200 border-2 border-stroke shadow-sm hover:bg-base-300/60 transition-all duration-200 cursor-pointer">
                                           <span className="font-semibold text-base-content/70">Time:</span>
-                                          <span className="ml-1  text-base-content/90">
+                                          <span className="ml-1 text-base-content/90">
                                             {message.latency.over_all_time.toFixed(2)}s
                                           </span>
                                           {message.latency.model_execution_time > 0 && (
-                                            <span className="inline-flex items-center max-w-0 opacity-0 overflow-hidden group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out pl-0 group-hover:pl-1.5 ml-0 group-hover:ml-1.5 border-l border-transparent group-hover:border-base-content/20 text-base-content/50  text-[9px] whitespace-nowrap">
+                                            <span className="inline-flex items-center max-w-0 opacity-0 overflow-hidden group-hover:max-w-xs group-hover:opacity-100 transition-all duration-300 ease-in-out pl-0 group-hover:pl-1.5 ml-0 group-hover:ml-1.5 border-l-2 border-transparent group-hover:border-stroke text-base-content/50 text-[9px] whitespace-nowrap">
                                               Model: {message.latency.model_execution_time.toFixed(2)}s
                                               {message.latency.over_all_time - message.latency.model_execution_time >
                                                 0 &&
@@ -1527,7 +1511,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                         </span>
                                       )}
                                       {message.usage?.total_tokens > 0 && (
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-base-200 border border-base-content/15 shadow-sm">
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-base-200 border-2 border-stroke shadow-sm">
                                           <span className="font-semibold text-base-content/70">Tokens:</span>
                                           <span className="text-base-content/90">
                                             {message.usage.total_tokens.toLocaleString()}
@@ -1586,11 +1570,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
               })}
             </div>
 
-            <div
-              data-testid="chat-input-wrapper"
-              id="chat-input-wrapper"
-              className="border-base-content/30 pt-4 pb-4 w-full"
-            >
+            <div data-testid="chat-input-wrapper" id="chat-input-wrapper" className="border-stroke pt-4 pb-4 w-full">
               <div className="relative flex flex-col gap-4 w-full">
                 <div className="flex flex-row gap-2">
                   <ChatTextInput

@@ -1118,13 +1118,13 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
     <aside
       id={SLIDER_ID}
       data-testid="variable-collection-slider"
-      className="sidebar-container fixed z-very-high flex flex-col top-0 right-0 p-6 w-full md:w-[50%] lg:w-[50%] opacity-100 h-screen bg-base-200 transition-all duration-300 border-l border-base-300 overflow-y-auto translate-x-full"
+      className="sidebar-container fixed z-very-high flex flex-col top-0 right-0 p-6 w-full md:w-[50%] lg:w-[50%] opacity-100 h-screen bg-base-200 transition-all duration-300 border-l-2 border-stroke overflow-y-auto translate-x-full"
       aria-label="Variable collection slider"
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >
       <div className="flex flex-col gap-6 h-full w-full">
-        <header className="border-b border-base-300 pb-4">
+        <header className="border-b-2 border-stroke pb-4">
           <div>
             <h1 className="text-2xl font-semibold text-base-content">Variables</h1>
             <p className="mt-1 text-sm text-base-content/70 leading-relaxed">
@@ -1151,8 +1151,8 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
           </button>
         </header>
 
-        <section className="bg-base-100 border border-base-300 rounded-lg shadow-sm p-4 flex-1 flex flex-col">
-          <div className="flex items-center justify-between border-b border-base-200 pb-3">
+        <section className="bg-base-100 border-2 border-stroke rounded-lg shadow-sm p-4 flex-1 flex flex-col">
+          <div className="flex items-center justify-between border-b-2 border-stroke pb-3">
             <div />
 
             <div className="flex gap-2">
@@ -1194,8 +1194,8 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
           </div>
 
           {!bulkEditMode && (
-            <div className="mt-4 overflow-hidden rounded-lg border border-base-200 bg-base-100">
-              <div className="grid grid-cols-[1fr,1.2fr,1fr,0.8fr,0.6fr,auto] gap-2 border-b border-base-200 bg-base-200/60 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content/60">
+            <div className="mt-4 overflow-hidden rounded-lg border-2 border-stroke bg-base-100">
+              <div className="grid grid-cols-[1fr,1.2fr,1fr,0.8fr,0.6fr,auto] gap-2 border-b-2 border-stroke bg-base-200/60 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-base-content/60">
                 <span>Key</span>
                 <span>Value</span>
                 <span>Default Value</span>
@@ -1218,18 +1218,14 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
                     return (
                       <div
                         key={variable.id || `${variable.key}-${index}`}
-                        className="px-3 py-3 text-sm border-b border-base-200 hover:bg-base-200/30 transition-colors"
+                        className="px-3 py-3 text-sm border-b-2 border-stroke hover:bg-base-200/30 transition-colors"
                       >
                         <div className="grid grid-cols-[1fr,1.2fr,1fr,0.8fr,0.6fr,auto] gap-2 items-center">
                           <input
                             autoComplete="off"
                             id={`variable-key-input-${index}`}
                             type="text"
-                            className={`input input-xs input-bordered w-full ${
-                              missingVariables.includes(variable.key)
-                                ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                                : ""
-                            }`}
+                            className={`input input-xs input-bordered w-full ${missingVariables.includes(variable.key) ? "border-error focus:border-error " : ""}`}
                             value={variable.key}
                             disabled={!isCurrentRowEnabled}
                             onChange={(event) => handleFieldChange(index, "key", event.target.value)}
@@ -1240,11 +1236,7 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
                           {variable.type === "boolean" ? (
                             <select
                               id={`variable-value-select-${index}`}
-                              className={`select select-xs select-bordered w-full ${
-                                missingVariables.includes(variable.key)
-                                  ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                                  : ""
-                              }`}
+                              className={`select select-xs select-bordered w-full ${missingVariables.includes(variable.key) ? "border-error focus:border-error " : ""}`}
                               disabled={!isCurrentRowEnabled || !variable.key.trim()}
                               value={variable.value === "false" ? "false" : variable.value === "true" ? "true" : ""}
                               onChange={(event) => {
@@ -1262,11 +1254,7 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
                               id={`variable-value-number-${index}`}
                               type="number"
                               step="any"
-                              className={`input input-xs input-bordered w-full ${
-                                missingVariables.includes(variable.key)
-                                  ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                                  : ""
-                              }`}
+                              className={`input input-xs input-bordered w-full ${missingVariables.includes(variable.key) ? "border-error focus:border-error " : ""}`}
                               disabled={!isCurrentRowEnabled || !variable.key.trim()}
                               value={variable.value}
                               onChange={(event) => handleFieldChange(index, "value", event.target.value)}
@@ -1278,11 +1266,7 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
                               autoComplete="off"
                               id={`variable-value-text-${index}`}
                               type="text"
-                              className={`input input-xs input-bordered w-full ${
-                                missingVariables.includes(variable.key)
-                                  ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                                  : ""
-                              }`}
+                              className={`input input-xs input-bordered w-full ${missingVariables.includes(variable.key) ? "border-error focus:border-error " : ""}`}
                               disabled={!isCurrentRowEnabled || !variable.key.trim()}
                               value={variable.value}
                               onChange={(event) => handleFieldChange(index, "value", event.target.value)}
@@ -1291,11 +1275,7 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
                             />
                           ) : variable.type === "object" || variable.type === "array" ? (
                             <textarea
-                              className={`textarea textarea-xs textarea-bordered w-full min-h-[90px] font-mono text-xs ${
-                                missingVariables.includes(variable.key)
-                                  ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
-                                  : ""
-                              }`}
+                              className={`textarea textarea-xs textarea-bordered w-full min-h-[90px] font-mono text-xs ${missingVariables.includes(variable.key) ? "border-error focus:border-error " : ""}`}
                               disabled={!isCurrentRowEnabled || !variable.key.trim()}
                               value={variable.value}
                               onChange={(event) => handleFieldChange(index, "value", event.target.value)}
@@ -1481,7 +1461,7 @@ Option 2 - JSON object:
 
         {/* Run Anyway Button at the bottom - Only show when there are missing variables */}
         {missingVariables.length > 0 && (
-          <div className="border-t border-base-300 pt-4 mt-auto">
+          <div className="border-t-2 border-stroke pt-4 mt-auto">
             <div className="flex justify-center">
               <button
                 type="button"

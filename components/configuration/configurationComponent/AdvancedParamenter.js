@@ -496,7 +496,7 @@ const AdvancedParameters = ({
             <span className={labelTextClass}>{displayName}</span>
             {displayDescription && (
               <InfoTooltip tooltipContent={displayDescription}>
-                <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+                <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
               </InfoTooltip>
             )}
             {field === "boolean" &&
@@ -568,7 +568,7 @@ const AdvancedParameters = ({
                     handleInputChange(e, key);
                   }
                 }}
-                className={`input border-base-200 ${inputSizeClass} w-full bg-base-300 text-base-content/70 text-sm`}
+                className={`input border-stroke ${inputSizeClass} w-full bg-base-300 text-base-content/70 text-sm`}
                 name={key}
                 disabled={isReadOnly}
                 placeholder="default"
@@ -599,7 +599,7 @@ const AdvancedParameters = ({
                     handleInputChange(e, key);
                   }
                 }}
-                className={`input border-base-200 ${inputSizeClass} w-full bg-base-300 text-base-content/70 text-sm`}
+                className={`input border-stroke ${inputSizeClass} w-full bg-base-300 text-base-content/70 text-sm`}
                 name={key}
                 disabled={isReadOnly}
                 placeholder="default"
@@ -695,7 +695,7 @@ const AdvancedParameters = ({
                       >
                         <span
                           data-testid={`advanced-param-json-schema-build-visually-${key}`}
-                          className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
+                          className="label-text capitalize font-medium bg-gradient-to-r from-acc to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
                           onClick={() => {
                             guardedResponseTypeAction(() => {
                               openModal(MODAL_TYPE.JSON_SCHEMA_BUILDER);
@@ -707,7 +707,7 @@ const AdvancedParameters = ({
                         <span className="text-xs text-base-content/50">|</span>
                         <span
                           data-testid={`advanced-param-json-schema-build-ai-${key}`}
-                          className="label-text capitalize font-medium bg-gradient-to-r from-blue-800 to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
+                          className="label-text capitalize font-medium bg-gradient-to-r from-acc to-orange-600 text-transparent bg-clip-text cursor-pointer hover:opacity-80 transition-opacity text-xs"
                           onClick={() => {
                             guardedResponseTypeAction(() => {
                               openModal(MODAL_TYPE.JSON_SCHEMA);
@@ -776,9 +776,7 @@ const AdvancedParameters = ({
                       )}
                       <div
                         data-testid={`advanced-param-json-schema-editor-border-${key}`}
-                        className={`w-full text-xs font-mono rounded overflow-hidden border transition-colors duration-200 ${
-                          jsonSchemaError ? "border-red-600" : "border-base-300"
-                        }`}
+                        className={`w-full text-xs font-mono rounded overflow-hidden border-2 transition-colors duration-200 ${jsonSchemaError ? "border-error" : "border-stroke"}`}
                       >
                         <CodeMirror
                           id={`advanced-param-json-schema-textarea-${key}`}
@@ -964,7 +962,7 @@ const AdvancedParameters = ({
                   data-testid={`advanced-param-slider-min-btn-${key}`}
                   id={`advanced-param-slider-min-btn-${key}`}
                   type="button"
-                  className={`btn ${buttonSizeClass} btn-ghost border border-base-content/20`}
+                  className={`btn ${buttonSizeClass} btn-ghost border-2 border-stroke`}
                   disabled={isReadOnly}
                   onClick={() => {
                     if (isDefaultValue) {
@@ -1015,7 +1013,7 @@ const AdvancedParameters = ({
                   data-testid={`advanced-param-slider-max-btn-${key}`}
                   id={`advanced-param-slider-max-btn-${key}`}
                   type="button"
-                  className={`btn ${buttonSizeClass} btn-ghost border border-base-content/20 text-sm`}
+                  className={`btn ${buttonSizeClass} btn-ghost border-2 border-stroke text-sm`}
                   disabled={isReadOnly}
                   onClick={() => {
                     if (isDefaultValue) {
@@ -1056,7 +1054,7 @@ const AdvancedParameters = ({
                   <div
                     data-testid={`advanced-param-dropdown-menu-${key}`}
                     id={`advanced-param-dropdown-menu-${key}`}
-                    className="absolute top-full left-0 right-0 bg-base-300 border border-base-200 rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto mt-1 p-2"
+                    className="absolute top-full left-0 right-0 bg-base-300 border-2 border-stroke rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto mt-1 p-2"
                   >
                     <div className="p-2 top-0 bg-base-100">
                       <input
@@ -1096,7 +1094,7 @@ const AdvancedParameters = ({
                               disabled={isReadOnly}
                             />
                             <span className="font-medium text-xs">{option}</span>
-                            <span className="text-gray-500 text-xs">
+                            <span className="text-soft text-xs">
                               {option === "none"
                                 ? "Model won't call a function; it will generate a message."
                                 : option === "auto"

@@ -13,11 +13,11 @@ export function ChildAgentUI({ name, onToolClick, tools = [] }) {
     <div className="space-y-3 z-10">
       {/* Agent Header */}
       <div className="flex flex-col items-center gap-2">
-        <div className="w-8 h-8 flex items-center justify-center border border-blue-400 rounded-none bg-base-200">
+        <div className="w-8 h-8 flex items-center justify-center border-2 border-stroke rounded-[8px] bg-card">
           <Bot size={16} className="text-base-content" />
         </div>
         <div className="text-xs text-base-content/60 font-semibold">CHILD AGENT</div>
-        <div className="font-semibold border border-blue-400 text-blue-400 text-sm p-2 bg-blue-400/10">{name}</div>
+        <div className="font-semibold border-2 border-stroke rounded-[8px] text-ink text-sm p-2 bg-cool">{name}</div>
       </div>
 
       {/* Tools Section - Only direct tools, not child agents */}
@@ -29,7 +29,7 @@ export function ChildAgentUI({ name, onToolClick, tools = [] }) {
               <div
                 key={`${tool?.name || "tool"}-${index}`}
                 data-testid={`child-agent-tool-${index}`}
-                className="flex items-center justify-between border border-base-300 hover:border-primary p-2 hover:bg-primary/10 cursor-pointer"
+                className="flex items-center justify-between border-2 border-stroke hover:border-primary p-2 hover:bg-primary/10 cursor-pointer"
                 onClick={() => handleToolClick(tool)}
               >
                 <div className="flex items-center gap-2">

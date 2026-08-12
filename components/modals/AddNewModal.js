@@ -589,7 +589,7 @@ export default function AddNewModelModal({ disableServiceChange = false }) {
       const isProtected = key === "creativity_level" || key === "model";
 
       return (
-        <div key={key} className="border border-base-300 bg-base-100 rounded-box">
+        <div key={key} className="border-2 border-stroke bg-base-100 rounded-box">
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -796,7 +796,7 @@ export default function AddNewModelModal({ disableServiceChange = false }) {
                 <h2 className="text-lg font-semibold mb-3">Model Capabilities</h2>
                 <p className="text-sm text-base-content/60 mb-4">Enable/disable the features this model supports.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="form-control p-4 rounded-lg border border-base-300">
+                  <div className="form-control p-4 rounded-lg border-2 border-stroke">
                     <label className="label cursor-pointer justify-start gap-4">
                       <input
                         autoComplete="off"
@@ -810,7 +810,7 @@ export default function AddNewModelModal({ disableServiceChange = false }) {
                       <span className="label-text font-medium">Supports Vision</span>
                     </label>
                   </div>
-                  <div className="form-control p-4 rounded-lg border border-base-300">
+                  <div className="form-control p-4 rounded-lg border-2 border-stroke">
                     <label className="label cursor-pointer justify-start gap-4">
                       <input
                         autoComplete="off"
@@ -824,7 +824,7 @@ export default function AddNewModelModal({ disableServiceChange = false }) {
                       <span className="label-text font-medium">Supports Tools</span>
                     </label>
                   </div>
-                  <div className="form-control p-4 rounded-lg border border-base-300">
+                  <div className="form-control p-4 rounded-lg border-2 border-stroke">
                     <label className="label cursor-pointer justify-start gap-4">
                       <input
                         autoComplete="off"
@@ -838,7 +838,7 @@ export default function AddNewModelModal({ disableServiceChange = false }) {
                       <span className="label-text font-medium">Support System Prompt</span>
                     </label>
                   </div>
-                  <div className="form-control p-4 rounded-lg border border-base-300">
+                  <div className="form-control p-4 rounded-lg border-2 border-stroke">
                     <label className="label">
                       <span className="label-text font-medium">Model Type</span>
                     </label>

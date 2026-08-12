@@ -46,7 +46,7 @@ const AdvancedSettingsButton = ({
         data-testid="advanced-settings-toggle-button"
         id="advanced-settings-toggle-button"
         type="button"
-        className={`btn btn-sm border-base-content/20 ${showAdvancedSettings ? "btn-active text-primary border-primary/60" : "btn-ghost"}`}
+        className={`btn btn-sm border-stroke ${showAdvancedSettings ? "btn-active text-primary border-primary/60" : "btn-ghost"}`}
         onClick={() => setShowAdvancedSettings((prev) => !prev)}
         title="LLM Advanced Parameters"
       >
@@ -57,7 +57,7 @@ const AdvancedSettingsButton = ({
         <div
           data-testid="advanced-settings-dropdown"
           id="advanced-settings-dropdown"
-          className="absolute right-0 top-full z-high mt-2 w-[320px] max-h-[60vh] overflow-y-auto rounded-lg border border-base-content/30 bg-base-100 p-3 shadow-lg"
+          className="absolute right-0 top-full z-high mt-2 w-[320px] max-h-[60vh] overflow-y-auto rounded-lg border-2 border-stroke bg-base-100 p-3 shadow-lg"
         >
           <AdvancedParameters
             params={params}

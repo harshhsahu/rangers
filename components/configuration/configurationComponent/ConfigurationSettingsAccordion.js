@@ -33,7 +33,7 @@ const ConfigurationSettingsAccordion = ({ isEmbedUser, isPublished, isEditor = t
       tabIndex={0}
     >
       <div
-        className={`px-2 py-1.5 ${isOpen ? "border border-base-content/20 rounded-x-lg rounded-t-lg" : "border border-base-content/20 rounded-lg"} flex items-center justify-between font-medium w-full !cursor-pointer`}
+        className={`px-2 py-1.5 ${isOpen ? "border-2 border-stroke rounded-x-lg rounded-t-lg" : "border-2 border-stroke rounded-lg"} flex items-center justify-between font-medium w-full !cursor-pointer`}
         onClick={() => setIsOpen((prev) => !prev)}
       >
         <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ const ConfigurationSettingsAccordion = ({ isEmbedUser, isPublished, isEditor = t
 
       <div
         data-testid="configuration-settings-content"
-        className={`transition-all duration-300 ease-in-out ${isOpen ? "px-2 py-2 border-x border-b border-base-content/20 rounded-x-lg rounded-b-lg opacity-100" : "max-h-0 opacity-0 overflow-hidden border border-base-content/20 rounded-lg p-0"}`}
+        className={`transition-all duration-300 ease-in-out ${isOpen ? "px-2 py-2 border-x-2 border-b-2 border-stroke rounded-x-lg rounded-b-lg opacity-100" : "max-h-0 opacity-0 overflow-hidden border-2 border-stroke rounded-lg p-0"}`}
       >
         {/* Settings Content */}
         <div className="flex flex-col gap-6">
@@ -65,7 +65,7 @@ const ConfigurationSettingsAccordion = ({ isEmbedUser, isPublished, isEditor = t
           {modelType !== "image" && (
             <>
               {!isEmbedUser && (
-                <div className="bg-base-100 rounded-lg border border-base-200 p-3 flex items-center justify-between gap-4">
+                <div className="bg-base-100 rounded-lg border-2 border-stroke p-3 flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-medium text-base-content">Connected Agent Flow</p>
                     <p className="text-xs text-base-content/60">Switch to orchestral flow builder.</p>

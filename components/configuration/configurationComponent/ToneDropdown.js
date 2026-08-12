@@ -85,7 +85,7 @@ const ToneDropdown = ({ params, searchParams, isPublished, isEditor = true }) =>
       <div className="flex items-center gap-1">
         <span className="label-text font-medium">Tone</span>
         <InfoTooltip tooltipContent="Select the tone of voice for your AI agent's responses. This affects how the agent communicates with users.">
-          <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+          <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
         </InfoTooltip>
       </div>
 

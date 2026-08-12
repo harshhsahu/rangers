@@ -69,19 +69,19 @@ const TestCaseLoadingSkeleton = () => (
     {/* Main grid skeleton */}
     <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
       {/* Left panel */}
-      <div className="col-span-4 bg-base-100 border border-base-200 rounded-xl overflow-hidden">
+      <div className="col-span-4 bg-base-100 border-2 border-stroke rounded-xl overflow-hidden">
         <div className="h-full flex flex-col">
           <div className="flex-1 space-y-2 p-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="h-12 bg-base-200 rounded-lg"></div>
             ))}
           </div>
-          <div className="h-12 border-t border-base-200 bg-base-50"></div>
+          <div className="h-12 border-t-2 border-stroke bg-base-50"></div>
         </div>
       </div>
 
       {/* Right panel */}
-      <div className="col-span-8 bg-base-100 border border-base-200 rounded-xl p-4">
+      <div className="col-span-8 bg-base-100 border-2 border-stroke rounded-xl p-4">
         <div className="space-y-4">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="h-8 bg-base-200 rounded-lg"></div>
@@ -189,7 +189,7 @@ const ScoreBreakdownModalBody = ({ breakdown, getScoreColor, getScoreMessage, ge
         return (
           <div
             key={key}
-            className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-base-200/30 hover:bg-base-200/60 border border-base-content/5 transition-all"
+            className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-base-200/30 hover:bg-base-200/60 border-2 border-stroke transition-all"
           >
             <span className="inline-flex items-center mt-0.5 flex-shrink-0">
               {run?.service ? getIconOfService(run.service, 16, 16) : null}
@@ -772,7 +772,7 @@ function TestCases({ params }) {
                 <div className="dropdown">
                   <button
                     tabIndex={0}
-                    className="flex items-center gap-2 px-2 py-1.5 bg-transparent border border-base-content/20 rounded-lg text-xs font-semibold text-base-content/70 cursor-pointer hover:bg-base-200 transition-colors"
+                    className="flex items-center gap-2 px-2 py-1.5 bg-transparent border-2 border-stroke rounded-lg text-xs font-semibold text-base-content/70 cursor-pointer hover:bg-base-200 transition-colors"
                   >
                     <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-[7px] bg-primary text-primary-content text-xs font-extrabold">
                       {selectedVersions.length}
@@ -782,9 +782,9 @@ function TestCases({ params }) {
                   </button>
                   <div
                     tabIndex={0}
-                    className="dropdown-content w-[230px] bg-base-100 border border-base-300 rounded-xl shadow-lg z-50 p-2"
+                    className="dropdown-content w-[230px] bg-base-100 border-2 border-stroke rounded-xl shadow-lg z-50 p-2"
                   >
-                    <div className="flex justify-between items-center px-2 pt-1.5 pb-2.5 border-b border-base-200 mb-1.5">
+                    <div className="flex justify-between items-center px-2 pt-1.5 pb-2.5 border-b-2 border-stroke mb-1.5">
                       <span className="text-[11px] font-bold tracking-[0.05em] text-base-content/50 uppercase">
                         Select versions
                       </span>
@@ -822,14 +822,10 @@ function TestCases({ params }) {
                               })
                             }
                             title={hasNoApiKey ? `No API key for ${versionService}` : ""}
-                            className={`flex items-center gap-2.5 bg-transparent rounded-[9px] px-2.5 py-2 text-sm transition-colors ${
-                              isLast ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-base-200"
-                            }`}
+                            className={`flex items-center gap-2.5 bg-transparent rounded-[9px] px-2.5 py-2 text-sm transition-colors ${isLast ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-base-200"}`}
                           >
                             <span
-                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-md flex-shrink-0 ${
-                                isSelected ? "bg-primary border-0" : "bg-base-100 border-[1.5px] border-base-300"
-                              }`}
+                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-md flex-shrink-0 ${isSelected ? "bg-primary border-0" : "bg-base-100 border-[1.5px] border-stroke"}`}
                             >
                               {isSelected && <Check size={11} strokeWidth={3.5} className="text-primary-content" />}
                             </span>
@@ -870,18 +866,11 @@ function TestCases({ params }) {
                         ? "Select at least one version to run"
                         : ""
                   }
-                  className={`flex items-center gap-2 text-primary-content border border-primary rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
-                    isloading ||
-                    runningTestCaseId !== null ||
-                    selectedVersions.length === 0 ||
-                    versionsWithoutApiKeys.length > 0
-                      ? "bg-primary text-base-content/50 cursor-not-allowed shadow-none"
-                      : "bg-primary cursor-pointer shadow-[0_4px_12px_rgba(37,99,235,0.3)] hover:bg-primary/90"
-                  }`}
+                  className={`flex items-center gap-2 text-primary-content border border-primary rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 ${isloading || runningTestCaseId !== null || selectedVersions.length === 0 || versionsWithoutApiKeys.length > 0 ? "bg-primary text-acc-ink/60 cursor-not-allowed shadow-none" : "bg-primary cursor-pointer shadow-sm hover:bg-primary/90"}`}
                 >
                   {isloading ? (
                     <>
-                      <span className="inline-block w-3 h-3 rounded-full border-2 border-primary-content border-t-transparent animate-spin" />
+                      <span className="inline-block w-3 h-3 rounded-full border-2 border-stroke-content border-t-transparent animate-spin" />
                       {testRun?.total ? `Running ${testRun?.completed || 0}/${testRun.total}` : "Running"}
                     </>
                   ) : (
@@ -899,11 +888,7 @@ function TestCases({ params }) {
 
                 {/* Model Dropdown with Label */}
                 <div
-                  className={`flex items-center gap-2 py-1 pl-2 pr-2.5 rounded-lg ${
-                    selectedModels.length === 0
-                      ? "bg-transparent border border-base-content/20"
-                      : "bg-primary/10 border border-primary/30"
-                  }`}
+                  className={`flex items-center gap-2 py-1 pl-2 pr-2.5 rounded-lg ${selectedModels.length === 0 ? "bg-transparent border-2 border-stroke" : "bg-primary/10 border-2 border-primary/30"}`}
                 >
                   <span className="text-[10px] font-bold text-base-content/50 tracking-wide uppercase whitespace-nowrap">
                     Run with
@@ -918,11 +903,7 @@ function TestCases({ params }) {
                 </div>
                 <button
                   onClick={openDeleteAllTestCasesModal}
-                  className={`flex items-center gap-2 border border-error rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 ${
-                    isBulkDeleting || !Array.isArray(testCases) || testCases.length === 0
-                      ? "bg-error text-white/50 cursor-not-allowed shadow-none"
-                      : "bg-error text-white cursor-pointer shadow-[0_4px_12px_rgba(239,68,68,0.3)] hover:bg-error/90"
-                  }`}
+                  className={`flex items-center gap-2 border border-error rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-200 ${isBulkDeleting || !Array.isArray(testCases) || testCases.length === 0 ? "bg-error text-white/50 cursor-not-allowed shadow-none" : "bg-error text-white cursor-pointer shadow-[0_4px_12px_rgba(239,68,68,0.3)] hover:bg-error/90"}`}
                   disabled={isBulkDeleting || !Array.isArray(testCases) || testCases.length === 0}
                 >
                   {isBulkDeleting ? (
@@ -942,7 +923,7 @@ function TestCases({ params }) {
         /* Empty State - only show when fully loaded and no testcases */
         <div className="flex-1 flex items-center justify-center px-6 pb-6 pt-6" data-testid="testcase-empty-state">
           <div
-            className="flex flex-col items-center justify-center text-center max-w-md py-16 px-8 bg-base-100 border border-dashed border-base-300 rounded-xl w-full"
+            className="flex flex-col items-center justify-center text-center max-w-md py-16 px-8 bg-base-100 border-2 border-dashed border-stroke rounded-xl w-full"
             data-testid="testcase-empty-state-card"
           >
             <div className="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4">
@@ -981,11 +962,11 @@ function TestCases({ params }) {
               defaultSize={33}
               minSize={20}
               maxSize={70}
-              className="bg-base-100 border border-base-200 rounded-xl overflow-hidden flex flex-col h-full relative z-10 shadow-lg"
+              className="bg-base-100 border-2 border-stroke rounded-xl overflow-hidden flex flex-col h-full relative z-10 shadow-lg"
               data-testid="testcase-list-panel"
             >
               {/* Search Bar */}
-              <div className="px-4 py-3 border-b border-base-200 bg-base-100">
+              <div className="px-4 py-3 border-b-2 border-stroke bg-base-100">
                 <div className="relative">
                   <Search
                     size={16}
@@ -997,7 +978,7 @@ function TestCases({ params }) {
                     placeholder="Search test cases..."
                     value={searchKeyword}
                     onChange={(e) => handleSearchChange(e.target.value)}
-                    className="input input-sm input-bordered w-full pl-9 pr-9 bg-base-50 text-base-content placeholder-base-content/40 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30"
+                    className="input input-sm input-bordered w-full pl-9 pr-9 bg-base-50 text-base-content placeholder-base-content/40 focus:outline-none focus:border-primary "
                   />
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
                     {searchKeyword && (
@@ -1069,7 +1050,7 @@ function TestCases({ params }) {
                       data-testid="testcase-list-table"
                     >
                       <thead className="bg-base-50" data-testid="testcase-list-table-head">
-                        <tr className="border-b border-base-200">
+                        <tr className="border-b-2 border-stroke">
                           <th
                             style={{ top: 0, left: 0, width: 36, minWidth: 36 }}
                             className="px-2 py-3 text-left text-xs font-semibold text-base-content uppercase tracking-wider sticky bg-base-50 z-30"
@@ -1264,7 +1245,7 @@ function TestCases({ params }) {
                 </div>
               )}
               <div
-                className="px-4 py-3 border-t border-base-200 text-xs text-base-content/60 bg-base-50"
+                className="px-4 py-3 border-t-2 border-stroke text-xs text-base-content/60 bg-base-50"
                 data-testid="testcase-list-footer"
               >
                 {testCasesTotal > 0 ? `${testCasesTotal} testcases` : "0 testcases"}
@@ -1289,7 +1270,7 @@ function TestCases({ params }) {
             >
               {isSearching ? (
                 <div
-                  className="bg-base-100 border border-base-200 rounded-xl p-4 h-full animate-pulse space-y-4"
+                  className="bg-base-100 border-2 border-stroke rounded-xl p-4 h-full animate-pulse space-y-4"
                   data-testid="testcase-details-search-skeleton"
                 >
                   {[...Array(6)].map((_, i) => (
@@ -1297,7 +1278,7 @@ function TestCases({ params }) {
                   ))}
                 </div>
               ) : Array.isArray(testCases) && testCases.length === 0 && searchKeyword ? (
-                <div className="bg-base-100 border border-base-200 rounded-xl p-6 h-full flex items-center justify-center">
+                <div className="bg-base-100 border-2 border-stroke rounded-xl p-6 h-full flex items-center justify-center">
                   <div className="text-center max-w-md">
                     <div className="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center mb-4 mx-auto">
                       <FileText size={28} className="text-base-content/50" />

@@ -1,17 +1,21 @@
 const defaultTheme = require("./public/themes/default-user-theme.json");
 
+/* Neo-brutalist paper shapes: hard 2px ink strokes, pill buttons, soft-cornered boxes. */
 const shapeTokens = {
-  "--rounded-box": "0.3rem",
-  "--rounded-btn": "0.1rem",
-  "--rounded-badge": "0.3rem",
-  "--border-btn": "0.3px",
-  "--tab-radius": "0.3rem",
+  "--rounded-box": "0.875rem",
+  "--rounded-btn": "9999px",
+  "--rounded-badge": "9999px",
+  "--border-btn": "2px",
+  "--tab-radius": "0.5rem",
   "--btn-text-case": "none",
+  "--animation-btn": "0.15s",
+  "--animation-input": "0.15s",
+  "--btn-focus-scale": "1",
 };
 
 const shapeTokensDark = {
   ...shapeTokens,
-  "--border-select": "0.3px",
+  "--border-select": "2px",
 };
 
 const buildTheme = (tokens, colorScheme = "light") => ({
@@ -61,9 +65,27 @@ module.exports = {
         "trace-blue": "oklch(var(--trace-blue) / <alpha-value>)",
         "trace-green": "oklch(var(--trace-green) / <alpha-value>)",
         "history-page": "var(--history-page-bg)",
+        /* Raw design tokens from the GTWY paper design system */
+        paper: "var(--paper)",
+        card: "var(--card)",
+        ink: "var(--ink)",
+        soft: "var(--soft)",
+        line: "var(--line)",
+        acc: "var(--acc)",
+        "acc-ink": "var(--accInk)",
+        cool: "var(--cool)",
+        stroke: "var(--stroke)",
+        "stroke-strong": "var(--stroke-strong)",
       },
       fontFamily: {
-        sans: ['"DM Sans"', "sans-serif"],
+        sans: ["var(--font-bricolage)", '"Bricolage Grotesque"', "system-ui", "sans-serif"],
+        mono: ["var(--font-jetbrains)", '"JetBrains Mono"', "ui-monospace", "monospace"],
+        display: ["var(--font-bricolage)", '"Bricolage Grotesque"', "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        hard: "4px 4px 0 var(--shd-col)",
+        "hard-sm": "2px 2px 0 var(--shd-col)",
+        "hard-lg": "6px 6px 0 var(--shd-col)",
       },
       zIndex: {
         "very-low": "0",
@@ -115,6 +137,18 @@ module.exports = {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        rgTick: {
+          "0%,49%": { opacity: 1 },
+          "50%,100%": { opacity: 0 },
+        },
+        rgHalo: {
+          "0%,100%": { transform: "scale(1)", opacity: 1 },
+          "50%": { transform: "scale(1.9)", opacity: 0 },
+        },
+        rgMarquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "fade-in-scale": "fade-in-scale 300ms ease-out",
@@ -122,6 +156,9 @@ module.exports = {
         scaleIn: "scaleIn 300ms ease-out",
         scroll: "scroll 20s linear infinite",
         slideIn: "slideIn 0.3s ease-out forwards",
+        "rg-tick": "rgTick 1s steps(1) infinite",
+        "rg-halo": "rgHalo 2.2s ease-out infinite",
+        "rg-marquee": "rgMarquee 34s linear infinite",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -140,81 +177,89 @@ module.exports = {
       addBase({
         /* Custom themed tokens */
         ':root, [data-theme="light"]': {
-          "--base-50": "oklch(0.985 0.002 247.84)",
+          /* GTWY paper design system — raw values, used by hard shadows/strokes */
+          "--paper": "#EFEAE0",
+          "--card": "#FFFDF8",
+          "--ink": "#14110D",
+          "--soft": "#6A6357",
+          "--line": "#D8D0C2",
+          "--acc": "#F2540B",
+          "--accInk": "#FFF6EE",
+          "--cool": "#C9DCC4",
+          /* Borders: the design's hard ink stroke. --stroke and --shd-col are
+             the single knob for border/shadow weight across the whole app. */
+          "--stroke": "#14110D",
+          "--stroke-strong": "#14110D",
+          "--shd-col": "#14110D",
+          "--bd": "2px",
+          "--shd": "4px 4px 0 #14110D",
+          "--base-50": "#FFFDF8",
           "--trace-gold": "0.52 0.11 62",
           "--trace-gold-bg": "0.98 0.012 75",
           "--trace-gold-border": "0.93 0.025 75",
           "--trace-blue": "0.55 0.14 250",
           "--trace-green": "0.52 0.12 165",
-          "--history-page-bg": "#F6F6F4",
-          "--pill-bg": "#F3F3F0",
-          "--pill-bg-hover": "#E8E8E4",
-          "--ai-config-header-bg": "#F3F3F1",
-          "--ai-config-container-bg": "#FFFFFF",
-          "--ai-config-section-header": "#F3F3F1",
-          "--ai-config-section-bg": "#F6F7F9",
-          "--final-response-bg": "#F3F0EB",
+          "--history-page-bg": "#EFEAE0",
+          "--pill-bg": "#EFEAE0",
+          "--pill-bg-hover": "#E4DDD0",
+          "--ai-config-header-bg": "#EFEAE0",
+          "--ai-config-container-bg": "#FFFDF8",
+          "--ai-config-section-header": "#EFEAE0",
+          "--ai-config-section-bg": "#FFFDF8",
+          "--final-response-bg": "#FFF6EE",
         },
         '[data-theme="dark"]': {
-          "--base-50": "oklch(0.20 0.002 247.84)",
+          /* Inverted paper: ink canvas, cream strokes, same orange accent */
+          "--paper": "#14110D",
+          "--card": "#221D18",
+          "--ink": "#EFEAE0",
+          "--soft": "#9A9184",
+          "--line": "#3A332A",
+          "--acc": "#F2540B",
+          "--accInk": "#1A1611",
+          "--cool": "#2E3A2C",
+          "--stroke": "#EFEAE0",
+          "--stroke-strong": "#EFEAE0",
+          "--shd-col": "#EFEAE0",
+          "--bd": "2px",
+          "--shd": "4px 4px 0 #EFEAE0",
+          "--base-50": "#221D18",
           "--trace-gold": "0.72 0.13 70",
           "--trace-gold-bg": "0.26 0.025 70",
           "--trace-gold-border": "0.36 0.035 70",
           "--trace-blue": "0.70 0.12 250",
           "--trace-green": "0.68 0.11 155",
-          "--history-page-bg": "#0A0A0B",
-          "--pill-bg": "#141417",
-          "--pill-bg-hover": "#1e1e22",
-          "--ai-config-header-bg": "#141417",
-          "--ai-config-container-bg": "#0E0E11",
-          "--ai-config-section-header": "#141417",
-          "--ai-config-section-bg": "#0C0C0E",
-          "--final-response-bg": "#120E0B",
+          "--history-page-bg": "#14110D",
+          "--pill-bg": "#221D18",
+          "--pill-bg-hover": "#2C261F",
+          "--ai-config-header-bg": "#221D18",
+          "--ai-config-container-bg": "#1A1611",
+          "--ai-config-section-header": "#221D18",
+          "--ai-config-section-bg": "#1A1611",
+          "--final-response-bg": "#241C14",
         },
-        /* Light Theme Scrollbar */
-        '[data-theme="light"] ::-webkit-scrollbar': {
-          width: "8px",
+        /* Ink scrollbar — matches the design's clipped hard thumb */
+        "::-webkit-scrollbar": {
+          width: "12px",
+          height: "12px",
         },
-        '[data-theme="light"] ::-webkit-scrollbar-thumb': {
-          background: "rgba(200, 200, 200, 0.7)",
-          borderRadius: "4px",
-          border: "2px solid transparent",
-          backgroundClip: "padding-box",
-          transition: "background 0.3s ease-in-out",
+        "::-webkit-scrollbar-track": {
+          background: "transparent",
         },
-        '[data-theme="light"] ::-webkit-scrollbar-thumb:hover': {
-          background: "rgba(180, 180, 180, 0.9)",
+        "::-webkit-scrollbar-thumb": {
+          background: "var(--ink)",
+          border: "3px solid transparent",
+          backgroundClip: "content-box",
+          borderRadius: "99px",
         },
-        '[data-theme="light"] ::-webkit-scrollbar-track': {
-          background: "rgba(240, 240, 240, 0.6)",
-          borderRadius: "4px",
+        "::-webkit-scrollbar-thumb:hover": {
+          background: "var(--acc)",
+          border: "3px solid transparent",
+          backgroundClip: "content-box",
         },
-        /* Dark Theme Scrollbar */
-        '[data-theme="dark"] ::-webkit-scrollbar': {
-          width: "8px",
-        },
-        '[data-theme="dark"] ::-webkit-scrollbar-thumb': {
-          background: "rgba(80, 80, 80, 0.7)",
-          borderRadius: "4px",
-          border: "2px solid transparent",
-          backgroundClip: "padding-box",
-          transition: "background 0.3s ease-in-out",
-        },
-        '[data-theme="dark"] ::-webkit-scrollbar-thumb:hover': {
-          background: "rgba(100, 100, 100, 0.9)",
-        },
-        '[data-theme="dark"] ::-webkit-scrollbar-track': {
-          background: "rgba(34, 34, 34, 0.6)",
-          borderRadius: "4px",
-        },
-        /* Firefox support */
-        '[data-theme="light"] *': {
+        "*": {
           scrollbarWidth: "thin",
-          scrollbarColor: "rgba(200, 200, 200, 0.4) rgba(240, 240, 240, 0.3)",
-        },
-        '[data-theme="dark"] *': {
-          scrollbarWidth: "thin",
-          scrollbarColor: "rgba(80, 80, 80, 0.6) rgba(34, 34, 34, 0.3)",
+          scrollbarColor: "var(--ink) transparent",
         },
       });
 

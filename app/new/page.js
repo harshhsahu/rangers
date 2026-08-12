@@ -171,7 +171,7 @@ function Page() {
     <div className="min-h-screen bg-base-200 p-6">
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         {/* Organizations List */}
-        <div className="card bg-base-100 border border-base-200 shadow-sm">
+        <div className="card bg-base-100 border-2 border-stroke shadow-sm">
           <div className="card-body p-5">
             <h2 className="text-lg font-semibold text-base-content">Organizations</h2>
             <div className="form-control mt-3">
@@ -194,7 +194,7 @@ function Page() {
         </div>
 
         {isTemplateFlow ? (
-          <div className="card bg-base-100 border border-base-200 shadow-sm">
+          <div className="card bg-base-100 border-2 border-stroke shadow-sm">
             <div className="card-body p-6 md:p-8 flex flex-col min-h-[70vh]">
               <h2 className="text-2xl font-semibold text-base-content">Create Template Agent</h2>
               <div className="divider my-4" />
@@ -246,7 +246,7 @@ function Page() {
             </div>
           </div>
         ) : (
-          <div className="card bg-base-100 border border-base-200 shadow-sm">
+          <div className="card bg-base-100 border-2 border-stroke shadow-sm">
             <div className="card-body p-6 md:p-8 flex flex-col min-h-[70vh]">
               <h2 className="text-2xl font-semibold text-base-content">Create New Agent</h2>
               <div className="divider my-4" />

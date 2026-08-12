@@ -77,7 +77,7 @@ const ConfigurationPage = ({
   const renderHelpSection = useMemo(
     () => () => {
       return (
-        <div className="mt-4 mb-4 border-t border-base-content/10 border-b-0 ">
+        <div className="mt-4 mb-4 border-t-2 border-stroke border-b-0 ">
           <div className="flex flex-row gap-6 mt-4 items-center">
             {/* Speak to us */}
             {!isEmbedUser && (
@@ -229,9 +229,7 @@ const ConfigurationPage = ({
           <div
             data-testid="published-data-banner"
             id="published-banner"
-            className={`sticky top-0 z-40 bg-primary/20 backdrop-blur-lg border-b border-primary/20 py-2 ${
-              bannerState.animatingPublished ? "animate-slide-out-to-navbar" : "animate-slide-in-from-navbar"
-            }`}
+            className={`sticky top-0 z-40 bg-primary/20 backdrop-blur-lg border-b border-primary/20 py-2 ${bannerState.animatingPublished ? "animate-slide-out-to-navbar" : "animate-slide-in-from-navbar"}`}
           >
             <div className="flex items-center justify-center gap-2 text-sm">
               <Lock className="h-4 w-4 text-info" />

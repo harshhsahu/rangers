@@ -80,6 +80,462 @@
 
 body {
   @apply font-sans;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   GTWY paper design system
+   Hard 2px ink strokes, pill controls, offset drop shadows, warm paper canvas.
+   These rules sit after DaisyUI in the components layer, so they re-skin every
+   DaisyUI component in the app while Tailwind utilities still win per-element.
+   ========================================================================== */
+@layer components {
+  /* ------------------------------- Typography ---------------------------- */
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    text-wrap: balance;
+  }
+
+  code,
+  pre,
+  kbd,
+  .font-mono {
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  /* Small uppercase mono field labels used throughout the design. */
+  .label-text,
+  .label-text-alt {
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+
+  /* Config tabs (Prompt / Model / Connectors / Memory / Settings) label every
+     field with the design's small uppercase mono caption. Scoped to the tab
+     panel so ordinary labels elsewhere in the app keep their own styling. */
+  #tabs-layout-content label:not(.label):not(.btn):not(.swap):not(.toggle):not(.input):not(.cursor-pointer),
+  #tabs-layout-content .config-label {
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+
+  /* --------------------------------- Buttons ----------------------------- */
+  .btn {
+    border: 2px solid var(--stroke);
+    border-radius: 9999px;
+    font-weight: 700;
+    text-transform: none;
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease,
+      background 0.12s ease;
+  }
+
+  .btn:hover {
+    border-color: var(--stroke);
+  }
+
+  /* Solid CTAs carry the offset ink shadow and press into it on click. */
+  .btn-primary,
+  .btn-neutral,
+  .btn-secondary {
+    box-shadow: 4px 4px 0 var(--shd-col);
+  }
+
+  .btn-primary:hover,
+  .btn-neutral:hover,
+  .btn-secondary:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 3px 3px 0 var(--shd-col);
+  }
+
+  .btn-primary:active,
+  .btn-neutral:active,
+  .btn-secondary:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--shd-col);
+  }
+
+  /* Ghost / link buttons stay flat — they are used for dense icon controls. */
+  .btn-ghost,
+  .btn-link {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .btn-ghost:hover {
+    border-color: transparent;
+    background: var(--line);
+  }
+
+  .btn-link {
+    color: var(--acc);
+  }
+
+  .btn-outline {
+    box-shadow: none;
+  }
+
+  /* DaisyUI's disabled state paints the label and the fill both at ink/20%,
+     which renders the text invisible ("faded" save buttons). Keep disabled
+     clearly inactive but still readable. */
+  .btn:disabled,
+  .btn[disabled],
+  .btn-disabled {
+    background-color: var(--paper);
+    color: var(--soft);
+    border-color: var(--line);
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+  }
+
+  /* -------------------------- Surfaces & containers ---------------------- */
+  .card,
+  .modal-box,
+  .stats,
+  .alert,
+  .collapse:not(.collapse-arrow):not(.collapse-plus) {
+    border: 2px solid var(--stroke);
+    border-radius: 16px;
+  }
+
+  .card {
+    background: var(--card);
+  }
+
+  .card.shadow,
+  .card.shadow-md,
+  .card.shadow-lg,
+  .card.shadow-xl,
+  .stats {
+    box-shadow: 4px 4px 0 var(--shd-col);
+  }
+
+  .modal-box {
+    box-shadow: 6px 6px 0 var(--shd-col);
+  }
+
+  .divider:before,
+  .divider:after {
+    background: var(--line);
+    height: 1px;
+  }
+
+  /* ------------------------------ Form controls -------------------------- */
+  .input,
+  .textarea,
+  .select,
+  .file-input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="url"],
+  input[type="tel"],
+  textarea {
+    border: 2px solid var(--stroke);
+    border-radius: 11px;
+    background: var(--card);
+    color: var(--ink);
+  }
+
+  /* Focus is shown by switching the stroke to accent — never by a ring or
+     outline (see the no-outline block at the end of this file). */
+  .input:focus,
+  .input:focus-within,
+  .textarea:focus,
+  .select:focus,
+  .file-input:focus,
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--acc);
+    box-shadow: none;
+  }
+
+  .input::placeholder,
+  .textarea::placeholder,
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--soft);
+  }
+
+  /* Toggles: DaisyUI draws the knob as negative space — background-color is the
+     KNOB colour and --tglbg is the TRACK, carved out by two inset shadows. So
+     the knob must stay ink while only --tglbg changes; setting both to the same
+     colour (as before) made the knob vanish once toggled on. */
+  .toggle {
+    border: 2px solid var(--stroke);
+    background-color: var(--ink);
+    color: var(--ink);
+    --tglbg: var(--card);
+  }
+
+  .toggle:checked,
+  .toggle[aria-checked="true"],
+  .toggle[data-checked="true"] {
+    background-color: var(--ink);
+    color: var(--ink);
+    --tglbg: var(--acc);
+  }
+
+  .checkbox,
+  .radio {
+    border: 2px solid var(--stroke);
+  }
+
+  .checkbox:checked,
+  .checkbox[aria-checked="true"] {
+    background-color: var(--acc);
+    border-color: var(--stroke);
+  }
+
+  .radio:checked {
+    background-image: none;
+    box-shadow: inset 0 0 0 4px var(--card);
+    background-color: var(--acc);
+    border-color: var(--stroke);
+  }
+
+  /* Parameter sliders: a 9px ink capsule that fills orange to the left of the
+     thumb (DaisyUI draws that fill with a wide inset shadow on the thumb). */
+  .range {
+    --range-shdw: var(--acc);
+    height: 9px;
+    border: 2px solid var(--stroke);
+    border-radius: 9999px;
+    background: var(--card);
+  }
+
+  .range::-webkit-slider-runnable-track {
+    height: 100%;
+    background: transparent;
+  }
+
+  .range::-moz-range-track {
+    height: 100%;
+    background: transparent;
+  }
+
+  .range::-webkit-slider-thumb {
+    border: 2px solid var(--stroke);
+    background: var(--acc);
+  }
+
+  .range::-moz-range-thumb {
+    border: 2px solid var(--stroke);
+    background: var(--acc);
+  }
+
+  /* ------------------------------ Chat bubbles --------------------------- */
+  .chat-bubble {
+    border: 2px solid var(--stroke);
+    font-size: 13.5px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  .chat-start .chat-bubble {
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 14px 14px 14px 4px;
+  }
+
+  .chat-end .chat-bubble {
+    background: var(--acc);
+    color: var(--accInk);
+    border-radius: 14px 14px 4px 14px;
+  }
+
+  /* --------------------------------- Badges ------------------------------ */
+  .badge {
+    border: 2px solid var(--stroke);
+    border-radius: 9999px;
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge-ghost {
+    border-color: var(--line);
+    background: var(--paper);
+    color: var(--soft);
+  }
+
+  /* --------------------------------- Tables ------------------------------ */
+  .table thead tr th,
+  .table tfoot tr th {
+    background: var(--paper);
+    border-bottom: 2px solid var(--stroke);
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: lowercase;
+    color: var(--soft);
+  }
+
+  .table tbody tr {
+    border-bottom: 1px dashed var(--line);
+  }
+
+  .table tbody tr:hover {
+    background: var(--paper);
+  }
+
+  /* ---------------------------------- Tabs ------------------------------- */
+  .tab {
+    font-weight: 700;
+  }
+
+  .tabs-bordered .tab {
+    border-bottom-width: 3px;
+    border-bottom-color: transparent;
+  }
+
+  /* DaisyUI paints the active underline via a (0,4,0) selector
+     (`.tab:is(.tab-active,…):not(.tab-disabled):not([disabled])`).
+     Mirror its :not() chain so the accent underline actually wins. */
+  .tabs-bordered .tab.tab-active:not(.tab-disabled):not([disabled]),
+  .tabs-bordered .tab[aria-selected="true"]:not(.tab-disabled):not([disabled]) {
+    --tab-border-color: var(--acc);
+    border-bottom-color: var(--acc);
+    color: var(--ink);
+  }
+
+  .tabs-boxed .tab-active,
+  .tabs-boxed .tab[aria-selected="true"] {
+    background: var(--acc);
+    color: var(--accInk);
+  }
+
+  /* ------------------------------ Menus & popovers ----------------------- */
+  .menu li > *:not(ul):not(.menu-title):not(details) {
+    border-radius: 9px;
+    font-weight: 600;
+  }
+
+  .menu li > *:not(ul):not(.menu-title):not(details):hover {
+    background: var(--paper);
+  }
+
+  .menu li > *.active,
+  .menu li > *:active {
+    background: var(--acc);
+    color: var(--accInk);
+  }
+
+  .menu-title {
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+
+  .dropdown-content > .menu,
+  .dropdown-content > ul,
+  .dropdown-content > .card {
+    border: 2px solid var(--stroke);
+    border-radius: 12px;
+    box-shadow: 4px 4px 0 var(--shd-col);
+    background: var(--card);
+  }
+
+  .tooltip:before {
+    border: 2px solid var(--stroke);
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* -------------------------------- Progress ----------------------------- */
+  .progress {
+    border: 2px solid var(--stroke);
+    background: var(--card);
+    border-radius: 9999px;
+    height: 9px;
+  }
+
+  .progress::-webkit-progress-value {
+    background: var(--acc);
+  }
+
+  .progress::-moz-progress-bar {
+    background: var(--acc);
+  }
+
+  .loading {
+    color: var(--acc);
+  }
+
+  /* --------------------------------- Alerts ------------------------------ */
+  .alert {
+    box-shadow: 4px 4px 0 var(--shd-col);
+  }
+
+  /* Keyboard hint chips (⌘K and friends) */
+  kbd,
+  .kbd {
+    border: 2px solid var(--stroke);
+    border-radius: 9999px;
+    background: var(--card);
+    color: var(--ink);
+    font-size: 11px;
+    box-shadow: none;
+  }
+}
+
+/* Landing / marketing motion, mirrored from the design source. */
+@keyframes rgTick {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes rgHalo {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes rgMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* CodeMirror editor contrast in light theme */
@@ -252,5 +708,94 @@ html {
   body {
     font-size: 81.25%;
     /* Reduces to 13px if base is 16px */
+  }
+}
+
+/* ==========================================================================
+   No outlines anywhere — focus is communicated by the accent stroke instead.
+   Kept outside @layer so it also neutralises Tailwind ring utilities and
+   DaisyUI's own focus-visible outlines.
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  outline: none !important;
+  outline-offset: 0 !important;
+}
+
+*:focus,
+*:focus-visible,
+*:focus-within,
+.btn:focus,
+.btn:focus-visible,
+.tab:focus,
+.tab:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible {
+  outline: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-width: 0 !important;
+}
+
+/* Focused controls take the accent stroke rather than a halo.
+   .toggle is deliberately excluded — its knob IS a box-shadow, so clearing the
+   shadow on focus would erase the knob the moment you click it. */
+.btn:focus-visible,
+.tab:focus-visible,
+.select:focus,
+.checkbox:focus,
+.checkbox:focus-visible,
+.radio:focus,
+.radio:focus-visible {
+  border-color: var(--acc);
+  box-shadow: none !important;
+}
+
+.toggle:focus,
+.toggle:focus-visible {
+  border-color: var(--acc);
+}
+
+/* Rounder corners for nested boxes: anything carrying the design stroke gets a
+   soft corner by default, so bordered child divs never render as hard squares.
+   Must live inside @layer components — an unlayered rule would outrank the
+   explicit rounded-* utilities on cards and pills and flatten them to 10px. */
+@layer components {
+  /* Legibility safety net: a surface fill implies its contrasting text colour,
+     so nothing inherits ink-on-ink or cream-on-cream. Explicit text-* utilities
+     still win, since the utilities layer outranks this. */
+  .bg-ink {
+    color: var(--paper);
+  }
+
+  .bg-acc {
+    color: var(--accInk);
+  }
+
+  .bg-cool,
+  .bg-paper,
+  .bg-card {
+    color: var(--ink);
+  }
+
+  /* :where() keeps this at single-class specificity (0,1,0). Tailwind's @layer
+     is compile-time ordering, not native cascade layers, so a 2-class selector
+     here would outrank `rounded-[16px]`/`rounded-full` and flatten every card
+     and pill to 10px. At equal specificity the later utilities win, which is
+     exactly what we want: this is only a fallback for boxes with no radius. */
+  .border-stroke:where(:not(.rounded-none)) {
+    border-radius: 10px;
+  }
+
+  /* Single-edge strokes are rules and dividers — they must stay square.
+     Declared after the fallback above so it wins, still losing to utilities. */
+  .border-t-2:where(.border-stroke),
+  .border-b-2:where(.border-stroke),
+  .border-l-2:where(.border-stroke),
+  .border-r-2:where(.border-stroke),
+  .border-x-2:where(.border-stroke),
+  .border-y-2:where(.border-stroke) {
+    border-radius: 0;
   }
 }

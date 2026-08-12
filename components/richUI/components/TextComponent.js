@@ -53,18 +53,7 @@ export default function TextComponent({
     ? { WebkitLineClamp: lines, display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" }
     : {};
 
-  const sharedCls = `
-        ${sizeMap[size] ?? "text-sm"}
-        ${weightMap[weight] ?? "font-normal"}
-        ${alignMap[resolvedAlign] ?? "text-left"}
-        ${colorCls}
-        ${bgCls} ${roundedCls}
-        ${italic ? "italic" : ""}
-        ${underline ? "underline" : ""}
-        ${truncate ? "truncate" : ""}
-        leading-relaxed
-        ${className}
-    `;
+  const sharedCls = ` ${sizeMap[size] ?? "text-sm"} ${weightMap[weight] ?? "font-normal"} ${alignMap[resolvedAlign] ?? "text-left"} ${colorCls} ${bgCls} ${roundedCls} ${italic ? "italic" : ""} ${underline ? "underline" : ""} ${truncate ? "truncate" : ""} leading-relaxed ${className} `;
 
   /* ── Editable mode ── */
   if (editable) {
@@ -84,12 +73,7 @@ export default function TextComponent({
         required={required}
         placeholder={placeholder}
         onBlur={handleBlur}
-        className={`
-                    bg-transparent border-0 border-b border-base-content/20
-                    focus:border-primary focus:outline-none
-                    ${sharedCls}
-                    h-auto py-0.5
-                `}
+        className={` bg-transparent border-0 border-b-2 border-stroke focus:border-primary focus:outline-none ${sharedCls} h-auto py-0.5 `}
         style={{ ...widthStyle, ...padStyle, ...clampStyle, ...colorStyle, ...bgStyle, ...safeStyle }}
         aria-label={name}
       />

@@ -161,10 +161,10 @@ export default function PrebuiltPromptsPage() {
     <MainLayout withPadding={false}>
       <div className="min-h-screen bg-base-100">
         {/* Header */}
-        <div className="bg-base-200 border-b border-base-300 sticky top-5 z-10">
+        <div className="bg-base-200 border-b-2 border-stroke sticky top-5 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Top */}
-            <div className="py-4 border-b border-base-300">
+            <div className="py-4 border-b-2 border-stroke">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h1 className="text-2xl font-bold">
@@ -184,11 +184,7 @@ export default function PrebuiltPromptsPage() {
                 {Object.entries(processedPrompts).map(([key, agent]) => (
                   <button
                     key={key}
-                    className={`px-3 btn btn-sm rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                      selectedAgent === key
-                        ? "bg-primary text-primary-content hover:text-primary-content hover:bg-primary"
-                        : "bg-base-100 hover:bg-base-300 border border-base-300"
-                    }`}
+                    className={`px-3 btn btn-sm rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedAgent === key ? "bg-primary text-primary-content hover:text-primary-content hover:bg-primary" : "bg-base-100 hover:bg-base-300 border-2 border-stroke"}`}
                     onClick={() => setSelectedAgent(key)}
                   >
                     <span className="truncate max-w-[120px] sm:max-w-none">{agent.name}</span>
@@ -232,7 +228,7 @@ export default function PrebuiltPromptsPage() {
               {/* Full Height Textarea */}
               <div className="flex-1 flex flex-col">
                 <textarea
-                  className="textarea bg-base-100 textarea-bordered flex-1 w-full font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="textarea bg-base-100 textarea-bordered flex-1 w-full font-mono text-sm resize-none focus:outline-none "
                   value={prompts[selectedAgent] || ""}
                   onChange={(e) => handlePromptChange(selectedAgent, e.target.value)}
                   placeholder="Enter the system prompt that defines how this agent should behave and respond to user requests"

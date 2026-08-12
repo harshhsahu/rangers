@@ -144,13 +144,11 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
     >
       <div className="flex flex-col gap-4">
         {isConnected ? (
-          <div className="rounded-lg border border-base-300 bg-base-200/40 p-3 flex flex-col gap-2">
+          <div className="rounded-lg border-2 border-stroke bg-base-200/40 p-3 flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-medium">Connection</span>
               <span
-                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  channel?.telegram?.webhookSet ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100"
-                }`}
+                className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${channel?.telegram?.webhookSet ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100"}`}
               >
                 {channel?.telegram?.webhookSet ? "Active" : "Saved"}
               </span>
@@ -162,7 +160,7 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
           </div>
         ) : (
           <>
-            <div className="rounded-lg border border-base-300 bg-base-200/40 p-3 text-xs text-base-content/70 leading-relaxed">
+            <div className="rounded-lg border-2 border-stroke bg-base-200/40 p-3 text-xs text-base-content/70 leading-relaxed">
               Open Telegram → search <span className="font-medium text-base-content">@BotFather</span> →{" "}
               <span className="font-medium text-base-content">/newbot</span> or{" "}
               <span className="font-medium text-base-content">/token</span> → copy the token (looks like{" "}

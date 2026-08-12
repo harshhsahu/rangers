@@ -122,12 +122,12 @@ const ResponseFormatSelector = ({ params, searchParams, isPublished, isEditor = 
       <div className="flex items-center gap-2">
         <span className="label-text">Select Response Format</span>
         <InfoTooltip tooltipContent="Choose the format in which you want to receive responses from your agent. The 'Default' option will use the standard response format, while the 'Custom' option allows you to specify a webhook URL and headers for more control over how responses are delivered.">
-          <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+          <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
         </InfoTooltip>
       </div>
       {responseOptions.map(({ value, label }) => (
         <div className="form-control w-fit" key={value}>
-          <label className="label  cursor-pointer mx-w-sm flex items-center gap-5">
+          <label className="label cursor-pointer mx-w-sm flex items-center gap-5">
             <input
               autoComplete="off"
               data-testid={`response-format-radio-${value}`}
@@ -146,8 +146,8 @@ const ResponseFormatSelector = ({ params, searchParams, isPublished, isEditor = 
           </label>
         </div>
       ))}
-      <div className={`${selectedOption === "custom" ? "border border-base-300 rounded" : ""}`}>
-        <div className={`border-t border-base-300 pt-4 px-4 ${selectedOption === "custom" ? "" : "hidden"}`}>
+      <div className={`${selectedOption === "custom" ? "border-2 border-stroke rounded" : ""}`}>
+        <div className={`border-t-2 border-stroke pt-4 px-4 ${selectedOption === "custom" ? "" : "hidden"}`}>
           <label className="form-control w-full mb-4">
             <span className="text-sm block mb-2">Webhook URL</span>
             <input

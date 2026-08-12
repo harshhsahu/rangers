@@ -24,7 +24,7 @@ export const MoveToFolderMenu = ({ folders, onMove, currentFolderId }) => {
   });
 
   return (
-    <div className="bg-base-100 rounded-box w-48 shadow-lg border border-base-300 flex flex-col max-h-72">
+    <div className="bg-base-100 rounded-box w-48 shadow-lg border-2 border-stroke flex flex-col max-h-72">
       {!isUncategorized && (
         <>
           <ul className="menu menu-xs p-1 pb-0 shrink-0">

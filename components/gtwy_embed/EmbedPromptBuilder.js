@@ -230,8 +230,8 @@ const EmbedPromptBuilder = ({ configuration, onChange, onPromptBlur, onValidate,
 
   return (
     <>
-      <h5 className="text-sm font-semibold border-b border-base-300 pb-2">Prompt Configuration</h5>
-      <div className="space-y-4 p-2 bg-base-200 rounded-lg border border-base-300">
+      <h5 className="text-sm font-semibold border-b-2 border-stroke pb-2">Prompt Configuration</h5>
+      <div className="space-y-4 p-2 bg-base-200 rounded-lg border-2 border-stroke">
         {/* Toggle: Use Default Prompt */}
         <div className="form-control bg-base-200 rounded flex flex-row items-center justify-between">
           <span data-testid="embed-config-toggle-useDefaultPrompt" className="label-text text-sm ml-1">
@@ -271,7 +271,7 @@ const EmbedPromptBuilder = ({ configuration, onChange, onPromptBlur, onValidate,
                   Using default system prompt. Variables detected below.
                 </p>
                 {/* Prompt preview with highlighted variables */}
-                <div className="text-xs font-mono bg-base-100 border border-base-300 rounded p-2 whitespace-pre-wrap break-words leading-6">
+                <div className="text-xs font-mono bg-base-100 border-2 border-stroke rounded p-2 whitespace-pre-wrap break-words leading-6">
                   {parts.map((part, i) => {
                     const match = part.match(/^\{\{([^}]+)\}\}$/);
                     if (match) {
@@ -345,7 +345,7 @@ const EmbedPromptBuilder = ({ configuration, onChange, onPromptBlur, onValidate,
                 </label>
                 <div className="space-y-2">
                   {promptConfig.embedFields.map((field) => (
-                    <div key={field.name} className="p-3 bg-base-100 rounded border border-base-300 space-y-2">
+                    <div key={field.name} className="p-3 bg-base-100 rounded border-2 border-stroke space-y-2">
                       {/* Row 1: variable name + (Custom) */}
                       <div className="flex items-center gap-2">
                         <code className="text-sm bg-base-200 px-2 py-1 rounded font-mono">{`{{${field.name}}}`}</code>

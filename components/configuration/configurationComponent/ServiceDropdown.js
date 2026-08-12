@@ -238,8 +238,8 @@ const ServiceDropdown = ({
       onChange={handleServiceChange}
       placeholder="Select service"
       size="sm"
-      className={`flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 border-base-200 text-base-content h-8 min-w-[150px] ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-      style={{ backgroundColor: "color-mix(in oklab, var(--color-white) 3%, transparent)" }}
+      className={`flex w-full items-center justify-between gap-2 rounded-[9px] border-2 px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none -[3px] disabled:cursor-not-allowed disabled:opacity-50 border-stroke text-base-content h-8 min-w-[150px] ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      style={{ backgroundColor: "var(--card)" }}
       menuClassName="w-full min-w-[200px]"
       fullWidth={false}
       renderTriggerContent={({ selectedOption }) => {
@@ -247,7 +247,7 @@ const ServiceDropdown = ({
 
         if (!currentValue) {
           return (
-            <span id="service-dropdown-placeholder" className="flex items-center gap-2 text-gray-100/60">
+            <span id="service-dropdown-placeholder" className="flex items-center gap-2 text-soft">
               <span>Select service</span>
             </span>
           );

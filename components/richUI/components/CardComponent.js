@@ -40,8 +40,8 @@ export default function CardComponent({
   const { className: bgCls, style: bgStyle } = resolveBackground(resolvedBg);
 
   const variantPresets = {
-    elevated: { bgCls2: "bg-base-100", shadowCls2: "shadow-lg", borderCls2: "border border-base-200/60" },
-    outlined: { bgCls2: "bg-base-100", shadowCls2: "", borderCls2: "border-2 border-base-300" },
+    elevated: { bgCls2: "bg-base-100", shadowCls2: "shadow-lg", borderCls2: "border-2 border-stroke/60" },
+    outlined: { bgCls2: "bg-base-100", shadowCls2: "", borderCls2: "border-2 border-stroke" },
     flat: { bgCls2: "bg-base-200", shadowCls2: "", borderCls2: "" },
     ghost: { bgCls2: "bg-transparent", shadowCls2: "", borderCls2: "" },
   };
@@ -65,11 +65,7 @@ export default function CardComponent({
 
   return (
     <div
-      className={`
-                overflow-hidden transition-all duration-300
-                ${roundedCls} ${finalBgCls} ${shadowCls} ${borderCls} ${themeCls} ${colorCls}
-                ${className}
-            `}
+      className={` overflow-hidden transition-all duration-300 ${roundedCls} ${finalBgCls} ${shadowCls} ${borderCls} ${themeCls} ${colorCls} ${className} `}
       style={{ ...bgStyle, ...borderStyle, ...colorStyle, ...safeStyle }}
     >
       <div
@@ -86,10 +82,7 @@ export default function CardComponent({
 
       {hasFooter && (
         <div
-          className={`
-                        flex items-center justify-end gap-3 px-5 py-4 border-t 
-                        ${isDark ? "bg-white/5 border-white/10" : "bg-base-200/30 border-base-200"}
-                    `}
+          className={` flex items-center justify-end gap-3 px-5 py-4 border-t-2 ${isDark ? "bg-white/5 border-white/10" : "bg-base-200/30 border-stroke"} `}
         >
           {cancel && (
             <button

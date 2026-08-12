@@ -51,7 +51,7 @@ function IoPanel({ label, value }) {
       data-testid={`io-panel-${panelKey}`}
     >
       <div
-        className="border-b border-base-content/20 bg-base-200/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-base-content/45"
+        className="border-b-2 border-stroke bg-base-200/60 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-base-content/45"
         data-testid={`io-panel-label-${panelKey}`}
       >
         {label}
@@ -81,7 +81,7 @@ function AgentBodyRail({ children, hue, className = "" }) {
 
 function TraceRow({ children, node, textRow = false }) {
   const nodeClasses = textRow
-    ? "absolute z-[1] -left-[27px] top-[15px] h-[9px] w-[9px] rounded-full border-2 border-base-100 bg-base-content/40"
+    ? "absolute z-[1] -left-[27px] top-[15px] h-[9px] w-[9px] rounded-full border-2 border-stroke bg-base-content/40"
     : RAIL_NODE_CLASS;
 
   return (
@@ -99,7 +99,7 @@ function FlatRow({ children, className = "" }) {
 function StepIconBox({ children, className = "" }) {
   return (
     <span
-      className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border border-base-300/60 bg-base-200/80 text-base-content/60 ${className}`}
+      className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border-2 border-stroke/60 bg-base-200/80 text-base-content/60 ${className}`}
     >
       {children}
     </span>
@@ -139,7 +139,7 @@ function AgentAvatar({ name, hue, glyph, large = false }) {
   const initials = agentInitials(name, glyph);
   const theme = hue ? HUE_THEME[hue] : null;
   const size = large ? "h-8 w-8 text-xs rounded-lg" : "h-6 w-6 text-[10px] rounded-md";
-  const colors = theme ? theme.avatar : "border border-base-300/40 bg-base-300/50 text-base-content/70";
+  const colors = theme ? theme.avatar : "border-2 border-stroke/40 bg-base-300/50 text-base-content/70";
 
   return <span className={`grid shrink-0 place-items-center font-bold ${size} ${colors}`}>{initials}</span>;
 }
@@ -251,7 +251,7 @@ function VariableRow({ label, value, isLong, ...props }) {
 
   return (
     <div
-      className="grid grid-cols-[minmax(120px,180px)_1fr] gap-4 border-b border-base-content/15 px-4 py-2.5 text-xs last:border-0"
+      className="grid grid-cols-[minmax(120px,180px)_1fr] gap-4 border-b-2 border-stroke px-4 py-2.5 text-xs last:border-0"
       {...props}
     >
       <span className="font-mono font-medium text-trace-blue break-words">{label}</span>
@@ -453,7 +453,7 @@ function KbChunkCard({ chunk, index }) {
       className={`mx-2 mb-2 overflow-hidden rounded-lg ${TRACE_ROW_BORDER} bg-base-100`}
       data-testid={`kb-chunk-card-${index}`}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-base-content/20 bg-base-200/50 px-3 py-1.5 text-[11px]">
+      <div className="flex items-center justify-between gap-2 border-b-2 border-stroke bg-base-200/50 px-3 py-1.5 text-[11px]">
         <span className="truncate text-base-content/55">{chunk.source || `chunk ${index + 1}`}</span>
         {scorePct != null && (
           <span className="shrink-0 rounded-full bg-trace-blue/10 px-2 py-0.5 font-mono text-[10px] text-trace-blue">
@@ -522,9 +522,7 @@ function MessageBubble({ text, align = "left", expandable = true, isError = fals
   return (
     <div className="relative my-[7px] min-w-0">
       <div
-        className={`px-3 py-2 text-xs leading-snug ${
-          isError ? "border border-error/40 bg-error/10 text-error/90" : "bg-base-200/55 text-base-content/70"
-        } ${isLeft ? "rounded-[4px_12px_12px_12px] text-left" : "rounded-[12px_4px_12px_12px] text-right"}`}
+        className={`px-3 py-2 text-xs leading-snug ${isError ? "border border-error/40 bg-error/10 text-error/90" : "bg-base-200/55 text-base-content/70"} ${isLeft ? "rounded-[4px_12px_12px_12px] text-left" : "rounded-[12px_4px_12px_12px] text-right"}`}
       >
         {isError && (
           <div className="flex items-center gap-1.5 mb-1">
@@ -718,7 +716,7 @@ function RootExecutionShell({ node, agents, userMessage }) {
 
       {/* Expanded Container */}
       {open && (
-        <div className="w-full border border-base-200 dark:border-base-content/20 rounded-xl p-4 bg-base-200/10 shadow-sm space-y-2">
+        <div className="w-full border-2 border-stroke dark:border-stroke rounded-xl p-4 bg-base-200/10 shadow-sm space-y-2">
           <HistoryExecutionSteps node={node} agents={agents} inRail={false} />
         </div>
       )}
@@ -786,7 +784,7 @@ function AgentBlock({ node, agents, root, embedded, depth = 1 }) {
         <AgentAvatar name={a.name} hue={hue} glyph={a.glyph} large={root && !embedded} />
         <span className="truncate text-sm font-semibold text-base-content">{a.name}</span>
         <span
-          className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] uppercase tracking-wider font-semibold ${theme?.roleTag || "border-base-300/40 bg-base-300/30 text-base-content/55"}`}
+          className={`shrink-0 rounded-full border-2 px-2 py-0.5 text-[9px] uppercase tracking-wider font-semibold ${theme?.roleTag || "border-stroke/40 bg-base-300/30 text-base-content/55"}`}
         >
           {a.role}
         </span>
@@ -914,7 +912,7 @@ export default function ExecutionTraceView({
       }}
     >
       <div className="bg-base-100 text-base-content">
-        <div className="flex flex-wrap items-center gap-4 border-b border-base-300 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-4 border-b-2 border-stroke px-4 py-3">
           <div>
             <div className="text-sm font-semibold">Execution Trace</div>
             {meta.started && <div className="mt-0.5 text-xs text-base-content/50">{meta.started}</div>}

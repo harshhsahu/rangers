@@ -246,7 +246,7 @@ function OptimiseBaseModal({
                   {...textareaProps}
                 />
                 {isStreaming && (
-                  <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-base-100 px-2 py-1 rounded-md shadow-sm border border-base-300">
+                  <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-base-100 px-2 py-1 rounded-md shadow-sm border-2 border-stroke">
                     <div className="flex space-x-1">
                       <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce"></div>
                       <div
@@ -267,7 +267,7 @@ function OptimiseBaseModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-base-content/10 pt-3 mt-3 flex justify-end gap-3">
+        <div className="border-t-2 border-stroke pt-3 mt-3 flex justify-end gap-3">
           <button
             id="optimise-close-button"
             data-testid="optimise-close-button"

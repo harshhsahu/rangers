@@ -6,7 +6,7 @@ const ConfigurationSkeleton = () => {
       {/* Main layout */}
       <div className="h-[calc(100vh-3.5rem)] flex">
         {/* Left panel */}
-        <div className="w-[44%] min-w-[420px] border-r border-base-200 p-4 space-y-4">
+        <div className="w-[44%] min-w-[420px] border-r-2 border-stroke p-4 space-y-4">
           {/* Section header */}
           <div className="flex items-center justify-between">
             <div className="h-4 w-40 bg-base-200 rounded animate-pulse" />
@@ -14,7 +14,7 @@ const ConfigurationSkeleton = () => {
           </div>
 
           {/* Prompt area skeleton */}
-          <div className="rounded-xl border border-base-200 bg-base-300 p-4 min-h-[500px]">
+          <div className="rounded-xl border-2 border-stroke bg-base-300 p-4 min-h-[500px]">
             <div className="h-3 w-24 bg-base-200 rounded animate-pulse mb-4" />
             <div className="space-y-3 mb-6">
               <div className="h-3 w-[90%] bg-base-100 rounded animate-pulse" />
@@ -77,7 +77,7 @@ const ConfigurationSkeleton = () => {
           </div>
 
           {/* Big empty canvas skeleton */}
-          <div className="flex-1 rounded-xl border border-base-200 bg-base-300 relative overflow-hidden">
+          <div className="flex-1 rounded-xl border-2 border-stroke bg-base-300 relative overflow-hidden">
             {/* subtle shimmer overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-base-100/40 to-transparent animate-[shimmer_1.6s_infinite] -translate-x-full" />
           </div>

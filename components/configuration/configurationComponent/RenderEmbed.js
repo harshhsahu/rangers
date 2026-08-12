@@ -99,15 +99,7 @@ const RenderEmbed = ({
           data-testid={`render-embed-item-${value?._id}`}
           key={value?._id}
           id={value?._id}
-          className={`group flex items-center border bg-base-100 relative min-h-[44px] w-full ${
-            isToolToggleable ? "cursor-default" : "cursor-pointer"
-          } ${
-            value?.description?.trim() === ""
-              ? "border-red-600"
-              : isWebSearchPreTool
-                ? WEB_SEARCH_WARNING_CLASS
-                : "border-base-200"
-          } transition-colors duration-200`}
+          className={`group flex items-center border-2 bg-base-100 relative min-h-[44px] w-full ${isToolToggleable ? "cursor-default" : "cursor-pointer"} ${value?.description?.trim() === "" ? "border-error" : isWebSearchPreTool ? WEB_SEARCH_WARNING_CLASS : "border-stroke"} transition-colors duration-200`}
         >
           <div
             className="p-2 flex-1 flex items-center"
@@ -138,7 +130,7 @@ const RenderEmbed = ({
                       key={index}
                       src={icon}
                       alt={`${title} icon ${index + 1}`}
-                      className="w-6 h-6 rounded-full border-2 border-base-100 flex-shrink-0 object-contain bg-white p-0.5"
+                      className="w-6 h-6 rounded-full border-2 border-stroke flex-shrink-0 object-contain bg-white p-0.5"
                       style={{ zIndex: 5 - index }}
                       onError={(e) => {
                         e.target.style.display = "none";
@@ -157,7 +149,7 @@ const RenderEmbed = ({
                 <span className="block text-sm font-normal truncate flex-1 min-w-0 text-left">{title}</span>
               )}
               {isToolToggleable && (
-                <span className="badge badge-ghost badge-sm text-[10px] text-base-content/60 border border-base-content/20 ml-2 font-medium shrink-0">
+                <span className="badge badge-ghost badge-sm text-[10px] text-base-content/60 border-2 border-stroke ml-2 font-medium shrink-0">
                   Default Tool
                 </span>
               )}

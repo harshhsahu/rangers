@@ -118,7 +118,7 @@ const IntegrationDetailView = ({ data, onClose }) => {
             {/* Sidebar */}
             <Panel defaultSize={20} minSize={15} maxSize={40}>
               <div className="h-full" data-testid="integration-sidebar">
-                <div className="bg-base-100 pt-6 scroll-hidden border border-base-300 rounded-lg p-2 h-full flex flex-col">
+                <div className="bg-base-100 pt-6 scroll-hidden border-2 border-stroke rounded-lg p-2 h-full flex flex-col">
                   {!isConfigMode && !isTestingMode ? (
                     // Main Navigation Tabs with Back Button
                     <div
@@ -144,12 +144,7 @@ const IntegrationDetailView = ({ data, onClose }) => {
                               key={tab.id}
                               data-testid={`integration-tab-${tab.id}`}
                               onClick={() => handleTabClick(tab.id)}
-                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                            ${
-                              isActive
-                                ? "bg-primary text-primary-content"
-                                : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
-                            }`}
+                              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? "bg-primary text-primary-content" : "text-base-content/70 hover:bg-base-200 hover:text-base-content"}`}
                             >
                               {tab.icon}
                               <span>{tab.label}</span>
@@ -219,9 +214,7 @@ const IntegrationDetailView = ({ data, onClose }) => {
             <Panel minSize={30}>
               <div className="h-full overflow-hidden" data-testid="integration-content-area">
                 <div
-                  className={`h-full border border-base-300 rounded-lg bg-base-100 ${
-                    activeTab === "integration" || activeTab === "analytics" ? "overflow-y-auto" : ""
-                  }`}
+                  className={`h-full border-2 border-stroke rounded-lg bg-base-100 ${activeTab === "integration" || activeTab === "analytics" ? "overflow-y-auto" : ""}`}
                 >
                   {activeTab === "integration" && <IntegrationTab data={data} />}
                   {activeTab === "configuration" && (

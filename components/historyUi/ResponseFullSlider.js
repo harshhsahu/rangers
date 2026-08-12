@@ -35,16 +35,13 @@ export function ResponseFullSlider({ response, onClose }) {
     <aside
       id="response-full-slider"
       data-testid="response-full-slider"
-      className={`sidebar-container fixed flex flex-col top-0 right-0 
-                  w-full md:w-1/2 lg:w-[50vw] min-w-[600px] h-screen 
-                  bg-base-100 transition-all duration-300 z-[999999] border-l border-base-300
-                  ${response ? "translate-x-0" : "translate-x-full"}`}
+      className={`sidebar-container fixed flex flex-col top-0 right-0 w-full md:w-1/2 lg:w-[50vw] min-w-[600px] h-screen bg-base-100 transition-all duration-300 z-[999999] border-l-2 border-stroke ${response ? "translate-x-0" : "translate-x-full"}`}
       aria-label="Response Details Slider"
     >
       {/* Header */}
       <div
         data-testid="response-full-slider-header"
-        className="flex items-center justify-between p-4 border-b border-base-300"
+        className="flex items-center justify-between p-4 border-b-2 border-stroke"
       >
         <button
           data-testid="response-full-slider-back"
@@ -60,7 +57,7 @@ export function ResponseFullSlider({ response, onClose }) {
       </div>
 
       {/* Title */}
-      <div data-testid="response-full-slider-title-section" className="px-6 py-4 border-b border-base-300">
+      <div data-testid="response-full-slider-title-section" className="px-6 py-4 border-b-2 border-stroke">
         <h2 data-testid="response-full-slider-title" className="text-xl font-semibold text-base-content">
           {title}
         </h2>
@@ -85,7 +82,7 @@ export function ResponseFullSlider({ response, onClose }) {
       {/* Footer */}
       <div
         data-testid="response-full-slider-footer"
-        className="flex justify-end p-4 border-t border-base-300 bg-base-200"
+        className="flex justify-end p-4 border-t-2 border-stroke bg-base-200"
       >
         <button
           data-testid="response-full-slider-close"

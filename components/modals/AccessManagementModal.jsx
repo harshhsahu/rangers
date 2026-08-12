@@ -475,7 +475,7 @@ const AccessManagementModal = ({ agent }) => {
             {emailInput.trim() && searchResults.length > 0 && (
               <div
                 id="access-management-search-results"
-                className="mt-3 border border-base-300 rounded-lg bg-base-100 max-h-60 overflow-y-auto"
+                className="mt-3 border-2 border-stroke rounded-lg bg-base-100 max-h-60 overflow-y-auto"
               >
                 <ul className="menu p-0">
                   {searchResults.map((user) => (
@@ -502,7 +502,7 @@ const AccessManagementModal = ({ agent }) => {
 
             {/* Show searching indicator - only when not typing */}
             {isSearching && emailInput.trim() && !isTypingRef.current && (
-              <div className="mt-3 p-3 border border-base-300 rounded-lg bg-base-100">
+              <div className="mt-3 p-3 border-2 border-stroke rounded-lg bg-base-100">
                 <div className="flex items-center justify-center gap-2">
                   <span className="loading loading-spinner loading-xs"></span>
                   <span className="text-sm">Searching for members...</span>
@@ -512,7 +512,7 @@ const AccessManagementModal = ({ agent }) => {
 
             {/* Show no results message with invite button - only when not typing */}
             {!isSearching && emailInput.trim() && searchResults.length === 0 && !isTypingRef.current && (
-              <div id="access-management-no-results" className="mt-3 p-3 border border-base-300 rounded-lg bg-base-100">
+              <div id="access-management-no-results" className="mt-3 p-3 border-2 border-stroke rounded-lg bg-base-100">
                 <div className="text-center">
                   <p className="text-sm">
                     No users found with email: <span className="font-medium">{emailInput}</span>
@@ -533,7 +533,7 @@ const AccessManagementModal = ({ agent }) => {
 
         <div id="access-management-members-section" className="mt-6">
           <h3 className="text-sm font-medium mb-2">Users with Access to this Agent</h3>
-          <div className="border border-base-200 rounded-lg">
+          <div className="border-2 border-stroke rounded-lg">
             <div className="max-h-[50vh] overflow-y-auto">
               {agentMembers.length > 0 ? (
                 <div id="access-management-members-list" className="flex flex-wrap gap-2 p-2">
@@ -541,7 +541,7 @@ const AccessManagementModal = ({ agent }) => {
                     <div
                       id={`access-management-member-${agentMember.id}`}
                       key={agentMember.id}
-                      className="flex items-center gap-2 px-2 py-1 border border-base-200 rounded-full bg-base-100 hover:bg-base-200"
+                      className="flex items-center gap-2 px-2 py-1 border-2 border-stroke rounded-full bg-base-100 hover:bg-base-200"
                     >
                       <UserCircleIcon size={18} className="text-base-content/70" />
                       <div className="flex flex-col">

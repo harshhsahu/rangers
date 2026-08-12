@@ -198,7 +198,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
         <li
           data-testid="knowledgebase-add-new-button"
           id="knowledgebase-add-new-button"
-          className="py-2 border-t border-base-300 w-full sticky bottom-0 bg-base-100"
+          className="py-2 border-t-2 border-stroke w-full sticky bottom-0 bg-base-100"
           onClick={() => {
             if (window.openRag) {
               window.openRag();
@@ -239,7 +239,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
             id={`knowledgebase-card-${item._id}`}
             key={resourceId || index}
             onClick={() => handleViewChunks(item)}
-            className={`group flex items-center border border-base-200 bg-base-100 relative min-h-[44px] w-full ${item?.description?.trim() === "" ? "border-red-600" : ""} transition-colors duration-200 ${isReadOnly ? "cursor-not-allowed opacity-50 pointer-events-none" : "cursor-pointer"}`}
+            className={`group flex items-center gap-2 rounded-[8px] border-2 border-stroke bg-card relative min-h-[44px] w-full px-[9px] py-[5px] ${item?.description?.trim() === "" ? "border-error" : ""} transition-colors duration-200 ${isReadOnly ? "cursor-not-allowed opacity-50 pointer-events-none" : "cursor-pointer"}`}
           >
             <div className="flex items-center gap-2 w-full ml-2">
               {GetFileTypeIcon(item?.url?.includes(".pdf") ? "pdf" : "document", 16, 16)}
@@ -269,7 +269,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
                   e.stopPropagation();
                   handleTestKnowledgebase(item);
                 }}
-                className="btn btn-ghost btn-sm p-1 hover:bg-blue-100 hover:text-primary"
+                className="btn btn-ghost btn-sm p-1 hover:bg-cool hover:text-primary"
                 title="Test Knowledge Base"
               >
                 <FileSearch size={16} />
@@ -281,7 +281,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
                   e.stopPropagation();
                   handleEditKnowledgebase(item);
                 }}
-                className="btn btn-ghost btn-sm p-1 hover:bg-blue-100 hover:text-primary"
+                className="btn btn-ghost btn-sm p-1 hover:bg-cool hover:text-primary"
                 title="Edit"
                 disabled={isReadOnly}
               >
@@ -314,7 +314,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
         <div className="flex items-center gap-2">
           <p className="text-sm whitespace-nowrap">Knowledge Base</p>
           <InfoTooltip tooltipContent="A Knowledge Base stores helpful info like docs and FAQs. Agents use it to give accurate answers without hardcoding, and it's easy to update.">
-            <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+            <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
           </InfoTooltip>
         </div>
       </div>
@@ -335,7 +335,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
       <div className="flex flex-col gap-2 w-full ">
         {!hasKnowledgebases ? (
           <div className="dropdown dropdown-end w-full max-w-md">
-            <div className="border-2 border-base-200 border-dashed p-4 text-center">
+            <div className="rounded-[8px] border-2 border-dashed border-stroke p-4 text-center">
               <p className="text-sm text-base-content/70">No knowledge base found.</p>
               <button
                 data-testid="knowledgebase-add-button"
@@ -355,7 +355,7 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
             {renderKnowledgebase}
             {hasKnowledgebases && (
               <div className="dropdown dropdown-end w-full max-w-md">
-                <div className="border-2 border-base-200 border-dashed text-center">
+                <div className="rounded-[8px] border-2 border-dashed border-stroke text-center">
                   <button
                     data-testid="knowledgebase-add-button"
                     id="knowledgebase-add-button"

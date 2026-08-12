@@ -98,7 +98,7 @@ function OrgSlider() {
           placeholder="Search Org by Name"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="border border-base-300 rounded p-2 w-full"
+          className="border-2 border-stroke rounded p-2 w-full"
         />
         <button
           id="org-slider-create-org-button"
@@ -134,7 +134,7 @@ function OrgSlider() {
         </ul>
       </div>
       <div className="mt-auto w-full">
-        <details className="overflow-hidden rounded border border-base-300 [&_summary::-webkit-details-marker]:hidden">
+        <details className="overflow-hidden rounded border-2 border-stroke [&_summary::-webkit-details-marker]:hidden">
           <summary
             id="org-slider-settings-toggle"
             className="flex cursor-pointer items-center justify-between gap-2 bg-base-100 p-4 text-base-content transition"
@@ -148,8 +148,8 @@ function OrgSlider() {
             </span>
           </summary>
 
-          <div className="border-t border-base-300 bg-base-100">
-            <ul className="menu w-full   text-base-content">
+          <div className="border-t-2 border-stroke bg-base-100">
+            <ul className="menu w-full text-base-content">
               <li>
                 {" "}
                 <a id="org-slider-user-email" className="py-2 px-2 rounded-md">
@@ -161,7 +161,7 @@ function OrgSlider() {
                 {" "}
                 <a
                   id="org-slider-pauth-key-link"
-                  className={`py-2 px-2  ${path[3] === "Pauthkey" ? "active" : ""}  rounded-md`}
+                  className={`py-2 px-2 ${path[3] === "Pauthkey" ? "active" : ""} rounded-md`}
                   onClick={() => {
                     router.push(`/org/${path[2]}/pauthkey`);
                   }}

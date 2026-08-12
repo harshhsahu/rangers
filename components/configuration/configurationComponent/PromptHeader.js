@@ -39,7 +39,7 @@ const PromptHeader = memo(
         <div
           data-testid="prompt-header-helper-open"
           id="prompt-header-helper-open"
-          className={`flex items-center justify-end px-4 py-2.5 border-b border-base-300  ${!isEditor ? "mt-8" : ""}`}
+          className={`flex items-center justify-end px-4 py-2.5 border-b-2 border-stroke ${!isEditor ? "mt-8" : ""}`}
         >
           <div className="flex justify-end gap-2">
             {prompt && showDiffButton && !isEmbedCustomPrompt && (
@@ -99,9 +99,7 @@ const PromptHeader = memo(
             <>
               <span className="text-sm font-semibold text-base-content">System Prompt</span>
               {isPublished && (
-                <span className="badge badge-xs badge-ghost text-base-content/50 border-base-content/20">
-                  Published
-                </span>
+                <span className="badge badge-xs badge-ghost text-base-content/50 border-stroke">Published</span>
               )}
             </>
           )}
@@ -113,9 +111,7 @@ const PromptHeader = memo(
             <button
               type="button"
               data-testid="prompt-header-diff-button"
-              className={`btn btn-xs btn-ghost gap-1 text-base-content/60 hover:text-base-content transition-all duration-200 ${
-                isFocused ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`btn btn-xs btn-ghost gap-1 text-base-content/60 hover:text-base-content transition-all duration-200 ${isFocused ? "opacity-100" : "opacity-0 pointer-events-none"}`}
               onMouseDown={(e) => {
                 e.preventDefault();
                 handleOpenDiff();
@@ -131,9 +127,7 @@ const PromptHeader = memo(
             <button
               type="button"
               data-testid="prompt-header-open-helper-button"
-              className={`btn btn-xs btn-ghost gap-1 text-base-content/60 hover:text-base-content transition-all duration-200 ${
-                isFocused ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
+              className={`btn btn-xs btn-ghost gap-1 text-base-content/60 hover:text-base-content transition-all duration-200 ${isFocused ? "opacity-100" : "opacity-0 pointer-events-none"}`}
               onMouseDown={(e) => {
                 e.preventDefault();
                 onOpenPromptHelper();

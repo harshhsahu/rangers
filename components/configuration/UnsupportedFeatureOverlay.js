@@ -33,7 +33,7 @@ const UnsupportedFeatureOverlay = ({ featureName = "feature" }) => {
       aria-modal="true"
       aria-label={title}
     >
-      <div className="bg-base-200 border border-base-300 rounded-lg p-6 shadow-lg max-w-md w-full text-center">
+      <div className="bg-base-200 border-2 border-stroke rounded-lg p-6 shadow-lg max-w-md w-full text-center">
         <AlertCircle className="w-12 h-12 text-warning mx-auto mb-3" />
         <h3 className="text-lg font-semibold text-base-content mb-2">{title}</h3>
         <p className="text-sm text-base-content/70">{description}</p>

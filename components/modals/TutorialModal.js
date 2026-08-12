@@ -97,19 +97,13 @@ const TutorialModal = () => {
                   id={`tutorial-item-${index}`}
                   data-testid={`tutorial-item-${index}`}
                   key={index}
-                  className={`border rounded-xl transition-all duration-200 transform hover:scale-[1.01] ${
-                    isActive
-                      ? "border-base-300 shadow-lg bg-base-100"
-                      : "border-base-300 hover:border-base-300 hover:shadow-md bg-base-100 hover:bg-base-100"
-                  }`}
+                  className={`border-2 rounded-xl transition-all duration-200 transform hover:scale-[1.01] ${isActive ? "border-stroke shadow-lg bg-base-100" : "border-stroke hover:border-stroke hover:shadow-md bg-base-100 hover:bg-base-100"}`}
                 >
                   <div className="p-4 cursor-pointer">
                     <div className="flex items-center gap-4">
                       {/* Icon */}
                       <div
-                        className={`p-2.5 bg-base-100 rounded-lg border border-base-300 transition-all duration-200 ${
-                          isActive ? "bg-base-300 border-base-200" : "group-hover:bg-base-200"
-                        }`}
+                        className={`p-2.5 bg-base-100 rounded-lg border-2 border-stroke transition-all duration-200 ${isActive ? "bg-base-300 border-stroke" : "group-hover:bg-base-200"}`}
                       >
                         <IconComponent
                           size={20}
@@ -143,9 +137,7 @@ const TutorialModal = () => {
                         <div
                           id={`tutorial-toggle-${index}`}
                           data-testid={`tutorial-toggle-${index}`}
-                          className={`text-slate-400 transition-transform duration-200 cursor-pointer ${
-                            isActive ? "rotate-180" : "hover:translate-x-1"
-                          }`}
+                          className={`text-slate-400 transition-transform duration-200 cursor-pointer ${isActive ? "rotate-180" : "hover:translate-x-1"}`}
                           onClick={() => toggleTutorial(index)}
                         >
                           {isActive ? <ChevronDownIcon size={20} /> : <ChevronRightIcon size={20} />}
@@ -158,7 +150,7 @@ const TutorialModal = () => {
                   {isActive && (
                     <div
                       ref={(el) => setVideoRef(index, el)}
-                      className="border-t border-base-300 bg-base-100 animate-in slide-in-from-top-2 duration-300"
+                      className="border-t-2 border-stroke bg-base-100 animate-in slide-in-from-top-2 duration-300"
                     >
                       <div className="p-6">
                         <TutorialVideo videoUrl={tutorial.videoUrl} title={tutorial.title} />

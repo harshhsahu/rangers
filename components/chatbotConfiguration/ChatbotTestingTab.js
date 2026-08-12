@@ -167,7 +167,7 @@ const ChatbotTestingControlsInner = ({ chatBotId }) => {
       <div className="card bg-base-200" data-testid="chatbot-testing-send-data">
         <div className="card-body p-3">
           <h4 className="card-title text-sm">Send Data</h4>
-          <div data-testid="chatbot-testing-send-data-input" className="border border-base-300 rounded overflow-hidden">
+          <div data-testid="chatbot-testing-send-data-input" className="border-2 border-stroke rounded overflow-hidden">
             <CodeMirror
               value={sendDataJson ?? "{}"}
               height="100px"

@@ -261,7 +261,7 @@ const ModelCustomization = ({ value = {}, onChange, onBlur }) => {
         });
         if (allModels.length === 0) return null;
         return (
-          <div key={service} className="border border-base-300 rounded-lg overflow-hidden">
+          <div key={service} className="border-2 border-stroke rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => toggleService(service)}
@@ -682,7 +682,7 @@ const ConfigurationTab = ({ data, isConfigMode, onUnsavedChanges, onSaveRef }) =
         createPortal(
           <div className="space-y-3">
             {/* Save Button */}
-            <div className="flex sticky top-0 z-20 bg-base-100 items-center justify-between pb-2 border-b border-base-300">
+            <div className="flex sticky top-0 z-20 bg-base-100 items-center justify-between pb-2 border-b-2 border-stroke">
               <span className="text-xs text-base-content/60">
                 {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
               </span>
@@ -743,7 +743,7 @@ const ConfigurationTab = ({ data, isConfigMode, onUnsavedChanges, onSaveRef }) =
                       </div>
                       {/* JSON Schema textarea when showResponseType is toggled off */}
                       {config.key === "showResponseType" && !configuration.showResponseType && (
-                        <div className="p-2 bg-base-200 rounded-lg border border-base-300">
+                        <div className="p-2 bg-base-200 rounded-lg border-2 border-stroke">
                           <label className="text-xs font-medium block mb-2">JSON Schema</label>
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -784,7 +784,7 @@ const ConfigurationTab = ({ data, isConfigMode, onUnsavedChanges, onSaveRef }) =
                           </div>
                           <div
                             data-testid="embed-config-json-schema-codemirror"
-                            className="relative z-0 border border-base-300 rounded-md overflow-hidden"
+                            className="relative z-0 border-2 border-stroke rounded-md overflow-hidden"
                           >
                             <CodeMirror
                               value={(() => {
@@ -921,7 +921,7 @@ const ConfigurationTab = ({ data, isConfigMode, onUnsavedChanges, onSaveRef }) =
                       )}
                       {/* Pre-Tool config inline after showPreTool toggle */}
                       {config.key === "showPreTool" && !configuration.showPreTool && (
-                        <div className="p-2 bg-base-200 rounded-lg border border-base-300">
+                        <div className="p-2 bg-base-200 rounded-lg border-2 border-stroke">
                           <ToolsConfiguration
                             singleToolMode={true}
                             selectedToolId={configuration.pre_tool_id}
@@ -941,7 +941,7 @@ const ConfigurationTab = ({ data, isConfigMode, onUnsavedChanges, onSaveRef }) =
 
                 {/* Show API Keys input when addDefaultApiKeys is enabled in Display Settings */}
                 {sectionName === "Display Settings" && configuration.addDefaultApiKeys && (
-                  <div className="mt-3 p-3 bg-base-200 rounded-lg border border-base-300">
+                  <div className="mt-3 p-3 bg-base-200 rounded-lg border-2 border-stroke">
                     <ApiKeysInput configuration={configuration} onChange={handleConfigChange} orgId={data?.org_id} />
                   </div>
                 )}
@@ -1009,7 +1009,7 @@ const ConfigurationTab = ({ data, isConfigMode, onUnsavedChanges, onSaveRef }) =
             <p className="text-xs text-warning mt-1">⚠️ Post-Tool won't run when streaming is enabled.</p>
 
             {/* Theme Palette Section */}
-            <div className="border-t border-base-300 pt-3 mt-3">
+            <div className="border-t-2 border-stroke pt-3 mt-3">
               <div className="flex items-center justify-between mb-3">
                 <h5 className="text-[10px] font-semibold text-base-content/60 uppercase tracking-wider">
                   Theme Palette

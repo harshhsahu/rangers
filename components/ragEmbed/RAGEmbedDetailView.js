@@ -91,7 +91,7 @@ const RAGEmbedDetailView = ({ data, onClose }) => {
         <div className="flex-1 flex overflow-hidden px-2 mt-2">
           {/* Sidebar */}
           <div className="w-80 flex-shrink-0 h-full mr-3" data-testid="rag-embed-sidebar">
-            <div className="bg-base-100 pt-4 border border-base-300 rounded-lg p-2 h-full flex flex-col overflow-hidden">
+            <div className="bg-base-100 pt-4 border-2 border-stroke rounded-lg p-2 h-full flex flex-col overflow-hidden">
               {!isTestingMode ? (
                 // Main Navigation Tabs with Back Button
                 <div
@@ -117,12 +117,7 @@ const RAGEmbedDetailView = ({ data, onClose }) => {
                           key={tab.id}
                           data-testid={`rag-embed-tab-${tab.id}`}
                           onClick={() => handleTabClick(tab.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                            ${
-                              isActive
-                                ? "bg-base-200 text-base-content"
-                                : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
-                            }`}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? "bg-base-200 text-base-content" : "text-base-content/70 hover:bg-base-200 hover:text-base-content"}`}
                         >
                           {tab.icon}
                           <span>{tab.label}</span>
@@ -163,7 +158,7 @@ const RAGEmbedDetailView = ({ data, onClose }) => {
 
           {/* Content Area */}
           <div className="flex-1 overflow-hidden" data-testid="rag-embed-content-area">
-            <div className="h-full border border-base-300 rounded-lg bg-base-100 overflow-y-auto">
+            <div className="h-full border-2 border-stroke rounded-lg bg-base-100 overflow-y-auto">
               {activeTab === "integration" && <RAGIntegrationTab data={data} />}
               {activeTab === "testing" && <RAGTestingTab data={data} isTestingMode={isTestingMode} />}
             </div>

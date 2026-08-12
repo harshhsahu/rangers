@@ -68,11 +68,11 @@ const TabsLayout = ({ tabs, activeTab, onTabChange, hideTabs = false }) => {
         <div
           data-testid="tabs-layout-nav"
           id="tabs-layout-nav"
-          className="border-b border-base-200 bg-base-100 sticky top-0 z-10 -ml-8 -mx-4"
+          className="border-b-2 border-stroke bg-base-200 sticky top-0 z-10 -ml-8 -mx-4"
         >
           <div
             ref={listRef}
-            className="relative w-full ml-3 items-center flex h-10 bg-transparent gap-1 border-0 px-4 overflow-x-auto scrollbar-hide"
+            className="relative w-full ml-3 items-center flex bg-transparent gap-5 border-0 px-4 overflow-x-auto scrollbar-hide"
             role="tablist"
             aria-orientation="horizontal"
           >
@@ -91,11 +91,9 @@ const TabsLayout = ({ tabs, activeTab, onTabChange, hideTabs = false }) => {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`inline-flex items-center justify-center border-0 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 rounded-lg px-2 py-1 text-xs transition-colors duration-200 flex-shrink-0 min-w-fit ${
-                    isActive ? "text-blue-600 font-medium" : "text-base-content/60 hover:text-base-content"
-                  }`}
+                  className={`inline-flex items-center justify-center border-0 whitespace-nowrap focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 px-[2px] py-3 text-[14px] font-bold transition-colors duration-200 flex-shrink-0 min-w-fit ${isActive ? "text-ink" : "text-soft hover:text-ink"}`}
                 >
-                  {Icon && <Icon size={12} className="w-3 h-3 mr-2" aria-hidden="true" />}
+                  {Icon && <Icon size={14} className="w-3.5 h-3.5 mr-2" aria-hidden="true" />}
                   <span>{tab.label}</span>
                 </button>
               );
@@ -110,9 +108,9 @@ const TabsLayout = ({ tabs, activeTab, onTabChange, hideTabs = false }) => {
                   bottom: 0,
                   left: indicator.left,
                   width: indicator.width,
-                  height: 2,
+                  height: 3,
                   borderRadius: "2px 2px 0 0",
-                  background: "#2563eb",
+                  background: "var(--acc)",
                   transition: "left 0.25s cubic-bezier(0.4,0,0.2,1), width 0.25s cubic-bezier(0.4,0,0.2,1)",
                   pointerEvents: "none",
                 }}

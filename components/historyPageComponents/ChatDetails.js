@@ -24,11 +24,11 @@ const ChatDetails = ({ selectedItem, setIsSliderOpen, isSliderOpen, params }) =>
           <div
             id="chat-details-modal-container"
             data-testid="chat-details-modal"
-            className="relative flex w-[min(640px,92vw)] max-h-[88vh] flex-col overflow-hidden rounded-xl border border-base-content/10 shadow-2xl bg-base-100"
+            className="relative flex w-[min(640px,92vw)] max-h-[88vh] flex-col overflow-hidden rounded-xl border-2 border-stroke shadow-2xl bg-base-100"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-base-content/10 px-5 py-4 bg-base-200">
+            <div className="flex shrink-0 items-center justify-between border-b-2 border-stroke px-5 py-4 bg-base-200">
               <div className="flex items-center gap-2.5">
                 <h3 className="text-base font-semibold text-base-content">Chat Details</h3>
               </div>
@@ -49,7 +49,7 @@ const ChatDetails = ({ selectedItem, setIsSliderOpen, isSliderOpen, params }) =>
               {selectedItem.latency !== undefined && (
                 <div>
                   <div className="text-xs font-semibold text-base-content/70 mb-2 uppercase tracking-wide">Latency</div>
-                  <div className="bg-base-200 p-4 rounded-lg border border-base-content/10 flex items-center justify-between">
+                  <div className="bg-base-200 p-4 rounded-lg border-2 border-stroke flex items-center justify-between">
                     <span className="text-sm font-medium text-base-content">Response Time</span>
                     <span className="text-sm font-semibold text-primary">
                       {(() => {
@@ -70,7 +70,7 @@ const ChatDetails = ({ selectedItem, setIsSliderOpen, isSliderOpen, params }) =>
                 <div className="text-xs font-semibold text-base-content/70 mb-2 uppercase tracking-wide">
                   Optional Details
                 </div>
-                <div className="border border-base-content/10 rounded-lg overflow-hidden bg-base-100 divide-y divide-base-content/10">
+                <div className="border-2 border-stroke rounded-lg overflow-hidden bg-base-100 divide-y divide-base-content/10">
                   {allowedAttributes.optional
                     .sort((a, b) => a[1].localeCompare(b[1]))
                     .map(([key, displayKey]) => {

@@ -347,7 +347,7 @@ const FallbackModel = ({
         <div className="flex items-center gap-1">
           <label className="block text-base-content/70 text-sm font-medium">Fallback Model</label>
           <InfoTooltip tooltipContent="Enable and configure a fallback model and service to retry when the primary fails.">
-            <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+            <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
           </InfoTooltip>
         </div>
         <input
@@ -372,7 +372,7 @@ const FallbackModel = ({
       )}
 
       {isFallbackEnabled && (
-        <div className="w-full p-3 border border-base-200 rounded-lg bg-base-50" ref={dropdownContainerRef}>
+        <div className="w-full p-3 border-2 border-stroke rounded-lg bg-base-50" ref={dropdownContainerRef}>
           <div className="grid grid-cols-2 gap-4">
             {/* Fallback Service */}
             <div className="space-y-2 flex-1">
@@ -387,8 +387,8 @@ const FallbackModel = ({
                   placeholder="Select a Service"
                   size="sm"
                   placement="top"
-                  className="flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 border-base-content/20 text-base-content h-8 min-w-[150px]"
-                  style={{ backgroundColor: "color-mix(in oklab, var(--color-white) 3%, transparent)" }}
+                  className="flex w-full items-center justify-between gap-2 rounded-[9px] border-2 px-3 py-2 text-xs whitespace-nowrap transition-[color,box-shadow] outline-none -[3px] disabled:cursor-not-allowed disabled:opacity-50 border-stroke text-base-content h-8 min-w-[150px]"
+                  style={{ backgroundColor: "var(--card)" }}
                   menuClassName="w-full min-w-[200px] mb-6"
                 />
 
@@ -418,8 +418,8 @@ const FallbackModel = ({
                   placeholder="Select a Model"
                   size="sm"
                   placement="top"
-                  className="flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 border-base-content/20 text-base-content h-8 min-w-[150px]"
-                  style={{ backgroundColor: "color-mix(in oklab, var(--color-white) 3%, transparent)" }}
+                  className="flex w-full items-center justify-between gap-2 rounded-[9px] border-2 px-3 py-2 text-xs whitespace-nowrap transition-[color,box-shadow] outline-none -[3px] disabled:cursor-not-allowed disabled:opacity-50 border-stroke text-base-content h-8 min-w-[150px]"
+                  style={{ backgroundColor: "var(--card)" }}
                   menuClassName="w-[260px] max-h-[340px] min-w-[200px] mb-6"
                   maxLabelLength={30}
                 />
@@ -454,7 +454,7 @@ const FallbackModel = ({
             <div className="flex items-center gap-1">
               <span className="label-text font-medium">Multiple API Keys</span>
               <InfoTooltip tooltipContent="Add API keys for different models/services. This ensures your agent continues working when switching models in runtime or using fallback options.">
-                <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+                <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
               </InfoTooltip>
             </div>
 
@@ -472,7 +472,7 @@ const FallbackModel = ({
 
                 {showApiKeysToggle && (
                   <div
-                    className={`bg-base-100 z-low max-h-80 overflow-y-auto p-2 transition-all ${showApiKeysToggle ? "rounded-x-lg border-base-content/20 border-t-0 rounded-t-none rounded-b-lg duration-300 ease-in-out" : ""}`}
+                    className={`bg-base-100 z-low max-h-80 overflow-y-auto p-2 transition-all ${showApiKeysToggle ? "rounded-x-lg border-stroke border-t-0 rounded-t-none rounded-b-lg duration-300 ease-in-out" : ""}`}
                   >
                     {SERVICES?.filter((service) => service?.value !== bridge?.service).map((service) => (
                       <div key={service?.value} className="p-2 border-b last:border-b-0">
@@ -502,9 +502,7 @@ const FallbackModel = ({
                             </div>
                           ))
                         ) : (
-                          <div className="p-2 text-sm text-gray-500">
-                            No API keys available for {service?.displayName}
-                          </div>
+                          <div className="p-2 text-sm text-soft">No API keys available for {service?.displayName}</div>
                         )}
                       </div>
                     ))}

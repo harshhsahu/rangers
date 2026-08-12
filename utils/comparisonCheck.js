@@ -35,7 +35,7 @@ const ComparisonCheck = ({ oldContent, newContent, isFromPublishModal }) => {
               <div className="label">
                 <span className="label-text font-medium text-red-600">Published Prompt</span>
               </div>
-              <div className="flex-1 border border-base-300 rounded-lg overflow-auto">
+              <div className="flex-1 border-2 border-stroke rounded-lg overflow-auto">
                 <div
                   ref={leftScrollRef}
                   onScroll={() => rightScrollRef.current && syncScroll(leftScrollRef.current, rightScrollRef.current)}
@@ -44,13 +44,7 @@ const ComparisonCheck = ({ oldContent, newContent, isFromPublishModal }) => {
                   {diffData.map((line, index) => (
                     <div
                       key={index}
-                      className={`px-3 py-1 text-sm font-mono leading-relaxed border-b border-base-300/50 ${
-                        line.type === "equal"
-                          ? "bg-base-200 text-base-content"
-                          : line.type === "added"
-                            ? "bg-base-100 opacity-30 text-base-content"
-                            : ""
-                      }`}
+                      className={`px-3 py-1 text-sm font-mono leading-relaxed border-b-2 border-stroke/50 ${line.type === "equal" ? "bg-base-200 text-base-content" : line.type === "added" ? "bg-base-100 opacity-30 text-base-content" : ""}`}
                       style={
                         line.type === "deleted"
                           ? { backgroundColor: "#f8d7da", color: "#721c24" }
@@ -76,7 +70,7 @@ const ComparisonCheck = ({ oldContent, newContent, isFromPublishModal }) => {
               <div className="label">
                 <span className="label-text font-medium text-green-600">Current Prompt</span>
               </div>
-              <div className="flex-1 border border-base-300 rounded-lg overflow-auto">
+              <div className="flex-1 border-2 border-stroke rounded-lg overflow-auto">
                 <div
                   ref={rightScrollRef}
                   onScroll={() => leftScrollRef.current && syncScroll(rightScrollRef.current, leftScrollRef.current)}
@@ -85,13 +79,7 @@ const ComparisonCheck = ({ oldContent, newContent, isFromPublishModal }) => {
                   {diffData.map((line, index) => (
                     <div
                       key={index}
-                      className={`px-3 py-1 text-sm font-mono leading-relaxed border-b border-base-300/50 ${
-                        line.type === "equal"
-                          ? "bg-base-200 text-base-content"
-                          : line.type === "deleted"
-                            ? "bg-base-100 opacity-30 text-base-content"
-                            : ""
-                      }`}
+                      className={`px-3 py-1 text-sm font-mono leading-relaxed border-b-2 border-stroke/50 ${line.type === "equal" ? "bg-base-200 text-base-content" : line.type === "deleted" ? "bg-base-100 opacity-30 text-base-content" : ""}`}
                       style={
                         line.type === "added"
                           ? { backgroundColor: "#d4edda", color: "#155724" }

@@ -54,7 +54,7 @@ const SmartLink = ({ href, children, isEmbedUser }) => {
                 className="relative ml-auto w-full max-w-4xl bg-base-100 shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-base-300 bg-base-200 flex-shrink-0">
+                <div className="flex items-center justify-between p-4 border-b-2 border-stroke bg-base-200 flex-shrink-0">
                   <h3 className="text-lg font-semibold text-base-content truncate flex-1 mr-4">{"Gtwy Blog Page"}</h3>
                   <button
                     data-testid="smart-link-drawer-close-button"

@@ -128,7 +128,7 @@ function FullscreenEditorModal({
                   setLocalValue(val);
                   if (errorMsg) setErrorMsg("");
                 }}
-                className="h-full border border-base-300 rounded overflow-hidden text-sm"
+                className="h-full border-2 border-stroke rounded overflow-hidden text-sm"
               />
             </div>
           ) : (
@@ -147,7 +147,7 @@ function FullscreenEditorModal({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 pt-4 mt-4 border-t border-base-content/10">
+        <div className="flex justify-end gap-2 pt-4 mt-4 border-t-2 border-stroke">
           <button
             data-testid="fullscreen-editor-close-button"
             onClick={handleClose}

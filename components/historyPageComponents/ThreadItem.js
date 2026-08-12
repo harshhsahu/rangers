@@ -309,7 +309,7 @@ const ImageFallback = ({ type = "large", url = "", error = "failed_to_load" }) =
 
   return (
     <div
-      className={`flex items-center justify-center bg-base-200/50 border border-base-300/50 rounded-lg ${containerSize} group hover:bg-base-200/70 transition-colors duration-200`}
+      className={`flex items-center justify-center bg-base-200/50 border-2 border-stroke/50 rounded-lg ${containerSize} group hover:bg-base-200/70 transition-colors duration-200`}
     >
       <div className="text-center p-3">
         <div className="mb-2 flex justify-center">{getIcon()}</div>
@@ -1128,7 +1128,7 @@ const ThreadItem = ({
   const messageTypeDropdown = isDropupOpen ? (
     <div
       ref={dropupRef}
-      className="absolute bg-base-100 border border-base-300 rounded-lg shadow-lg min-w-[130px] p-1"
+      className="absolute bg-base-100 border-2 border-stroke rounded-lg shadow-lg min-w-[130px] p-1"
       style={{ zIndex: 9999, top: "28px", left: "0" }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -1193,7 +1193,7 @@ const ThreadItem = ({
 
     return (
       <ThreadInlinePanel className={panelClassName}>
-        <div className="px-4 py-2 border-b border-base-content/10 bg-base-200/50 flex justify-between items-center select-none">
+        <div className="px-4 py-2 border-b-2 border-stroke bg-base-200/50 flex justify-between items-center select-none">
           <span className="text-xs font-semibold text-base-content/70 uppercase tracking-wide">Variables</span>
           <button
             onClick={handleCopyAllVariables}
@@ -1221,10 +1221,7 @@ const ThreadItem = ({
                 typeof value === "object" && value !== null ? JSON.stringify(value, null, 2) : String(value ?? "");
               const isLong = raw.length > 200;
               return (
-                <div
-                  key={key}
-                  className="flex items-start gap-4 border-b border-base-content/10 px-4 py-2.5 last:border-b-0"
-                >
+                <div key={key} className="flex items-start gap-4 border-b-2 border-stroke px-4 py-2.5 last:border-b-0">
                   <span className="min-w-[120px] shrink-0 text-xs font-normal text-trace-gold">{key}</span>
                   <InlineVarValue raw={raw} isLong={isLong} />
                 </div>
@@ -1241,7 +1238,7 @@ const ThreadItem = ({
     return (
       <ThreadInlinePanel className={panelClassName}>
         <div className="text-left">
-          <div className="px-4 py-2 border-b border-base-content/10 bg-base-200/50">
+          <div className="px-4 py-2 border-b-2 border-stroke bg-base-200/50">
             <span className="text-xs font-semibold text-base-content/70 uppercase tracking-wide">Optional Details</span>
           </div>
           {allowedAttributes.optional
@@ -1256,14 +1253,14 @@ const ThreadItem = ({
                 return Object.entries(value).map(([objKey, objValue]) => (
                   <div
                     key={`${key}-${objKey}`}
-                    className="flex items-start gap-4 border-b border-base-content/10 px-4 py-2.5 last:border-b-0"
+                    className="flex items-start gap-4 border-b-2 border-stroke px-4 py-2.5 last:border-b-0"
                   >
                     <span className="min-w-[120px] shrink-0 text-xs font-normal text-trace-gold font-mono">
                       {objKey.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                     </span>
                     <div className="flex-1 min-w-0 text-xs break-all text-base-content whitespace-pre-wrap font-mono">
                       {typeof objValue === "object" && objValue !== null ? (
-                        <div className="border border-base-content/20 bg-base-200/50 rounded-lg overflow-hidden w-full">
+                        <div className="border-2 border-stroke bg-base-200/50 rounded-lg overflow-hidden w-full">
                           <CodeBlock className="language-json" showCopy={false} plain={true}>
                             {JSON.stringify(objValue, null, 2)}
                           </CodeBlock>
@@ -1278,10 +1275,7 @@ const ThreadItem = ({
 
               // Regular single value display
               return (
-                <div
-                  key={key}
-                  className="flex items-start gap-4 border-b border-base-content/10 px-4 py-2.5 last:border-b-0"
-                >
+                <div key={key} className="flex items-start gap-4 border-b-2 border-stroke px-4 py-2.5 last:border-b-0">
                   <span className="min-w-[120px] shrink-0 text-xs font-normal text-trace-gold">{displayKey}</span>
                   <span className="text-xs break-all text-base-content whitespace-pre-wrap">
                     {key === "createdAt" || key === "created_at" ? new Date(value).toLocaleString() : value?.toString()}
@@ -1305,14 +1299,14 @@ const ThreadItem = ({
               const rows = formatTokensTable(tokensVal);
               if (rows && rows.length > 0) {
                 return (
-                  <div key="tokens" className="flex flex-col gap-2  px-4 py-3">
+                  <div key="tokens" className="flex flex-col gap-2 px-4 py-3">
                     <span className="text-xs font-semibold text-trace-gold uppercase tracking-wide">
                       Token and Cost
                     </span>
-                    <div className="overflow-x-auto w-full border border-base-content/10 bg-base-200/10 rounded-lg shadow-sm">
+                    <div className="overflow-x-auto w-full border-2 border-stroke bg-base-200/10 rounded-lg shadow-sm">
                       <table className="table table-xs w-full border-collapse">
                         <thead>
-                          <tr className="border-b border-base-content/10 bg-base-200/50">
+                          <tr className="border-b-2 border-stroke bg-base-200/50">
                             <th className="text-left py-2 px-3 font-semibold text-base-content/70 text-[10px] uppercase tracking-wider">
                               Type
                             </th>
@@ -1328,11 +1322,7 @@ const ThreadItem = ({
                           {rows.map((row, idx) => (
                             <tr
                               key={idx}
-                              className={`${
-                                row.isTotal
-                                  ? "font-semibold bg-base-200/40 border-t border-base-content/15"
-                                  : "hover:bg-base-200/20"
-                              }`}
+                              className={`${row.isTotal ? "font-semibold bg-base-200/40 border-t-2 border-stroke" : "hover:bg-base-200/20"}`}
                             >
                               <td className="py-2 px-3 text-left text-xs font-medium text-base-content/90">
                                 {row.label}
@@ -1631,11 +1621,7 @@ const ThreadItem = ({
             <div className={`group relative ${hasAgentsOrTools ? "mb-2" : "mb-10"}`}>
               <div className={`flex justify-end gap-3 ${item?.user?.length > 100 ? "items-end" : "items-start"}`}>
                 <div
-                  className={`max-w-[75%] rounded-2xl rounded-br-none px-4 py-3 text-sm leading-relaxed break-words border ${
-                    isDark
-                      ? "bg-[#27272a] text-zinc-100 border-[#3f3f46]"
-                      : "bg-[#f4f4f5] text-zinc-900 border-[#e4e4e7]"
-                  }`}
+                  className={`max-w-[75%] rounded-2xl rounded-br-none px-4 py-3 text-sm leading-relaxed break-words border ${isDark ? "bg-[#27272a] text-zinc-100 border-[#3f3f46]" : "bg-[#f4f4f5] text-zinc-900 border-[#e4e4e7]"}`}
                   style={{
                     wordBreak: "break-word",
                     overflowWrap: "break-word",
@@ -1714,13 +1700,7 @@ const ThreadItem = ({
                       data-testid={`thread-item-tool-${toolKey || chipIndex}`}
                       id={`thread-item-tool-${toolKey || chipIndex}`}
                       onClick={(event) => !isRAGTool && handleToolPrimaryClick(event, tool)}
-                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 transition-colors text-sm ${
-                        isRAGTool
-                          ? "bg-info/10 border-info/30 hover:bg-info/20 cursor-default"
-                          : isPreTool
-                            ? "bg-warning/10 border-warning/30 hover:bg-warning/20 cursor-pointer"
-                            : "bg-base-100 border-base-300 hover:bg-base-300 cursor-pointer"
-                      }`}
+                      className={`flex items-center gap-1.5 border-2 rounded-lg px-3 py-1.5 transition-colors text-sm ${isRAGTool ? "bg-info/10 border-info/30 hover:bg-info/20 cursor-default" : isPreTool ? "bg-warning/10 border-warning/30 hover:bg-warning/20 cursor-pointer" : "bg-base-100 border-stroke hover:bg-base-300 cursor-pointer"}`}
                     >
                       {isRAGTool && <BookOpen size={14} className="text-info mr-1" title="Knowledge Base" />}
                       <span
@@ -1802,9 +1782,7 @@ const ThreadItem = ({
                           }
                         : null
                     }
-                    className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center border border-base-content/20 bottom-[26px] relative ${
-                      hasMultipleMessageTypes ? "cursor-pointer select-none" : ""
-                    }`}
+                    className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center border-2 border-stroke bottom-[26px] relative ${hasMultipleMessageTypes ? "cursor-pointer select-none" : ""}`}
                   >
                     <BotIcon size={16} />
                     {messageTypeDropdown}
@@ -1820,7 +1798,7 @@ const ThreadItem = ({
                       id="thread-item-pre-function-logs-button"
                       data-testid="thread-item-pre-function-logs-button"
                       onClick={handlePreFunctionClick}
-                      className="absolute -top-3 left-3 z-20 inline-flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-full border border-base-content/30 ring-1 ring-base-content/10 bg-base-100 px-3 py-1 text-xs font-medium shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-base-content/50 hover:ring-base-content/20 hover:bg-base-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-base-content/35"
+                      className="absolute -top-3 left-3 z-20 inline-flex max-w-[calc(100%-1.5rem)] items-center gap-2 rounded-full border-2 border-stroke -content/10 bg-base-100 px-3 py-1 text-xs font-medium shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-stroke -content/20 hover:bg-base-200 focus-visible:outline-none -content/35"
                       title="Open pre-function logs"
                       aria-label="Open pre-function logs"
                     >

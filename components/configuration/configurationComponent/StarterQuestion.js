@@ -76,7 +76,7 @@ const StarterQuestionToggle = ({ params, searchParams, isPublished, isEditor = t
         <div className="flex items-center gap-1">
           <label className="label font-medium whitespace-nowrap">Starter Questions</label>
           <InfoTooltip tooltipContent={"Predefined questions shown to users to help them start a conversation"}>
-            <CircleQuestionMark size={14} className="text-gray-500 hover:text-gray-700 cursor-help" />
+            <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
           </InfoTooltip>
         </div>
         <input
@@ -129,7 +129,7 @@ const StarterQuestionToggle = ({ params, searchParams, isPublished, isEditor = t
             <button
               type="button"
               onClick={handleAddQuestion}
-              className="flex items-center justify-center gap-1.5 text-xs text-base-content/60 hover:border-primary border border-dashed border-base-content/30 bg-base-50 rounded-md py-2.5 px-3 transition-colors w-full"
+              className="flex items-center justify-center gap-1.5 text-xs text-base-content/60 hover:border-primary border-2 border-dashed border-stroke bg-base-50 rounded-md py-2.5 px-3 transition-colors w-full"
             >
               <Plus size={14} /> Add a new starter question
             </button>
