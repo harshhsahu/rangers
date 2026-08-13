@@ -187,7 +187,7 @@ const AgentSetupGuide = ({
       id="agent-setup-guide-container"
       className={`w-full h-full z-very-low bg-base-300 overflow-hidden relative transition-all duration-300 ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}
     >
-      <div className="card w-full h-full">
+      <div className="card w-full h-full border-0 rounded-none">
         <div className="card-body p-6 h-full flex flex-col">
           <div className="text-center mb-4 flex-shrink-0">
             <div className="mb-3 flex justify-center">

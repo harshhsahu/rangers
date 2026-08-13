@@ -529,7 +529,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
           <div
             className={`flex-1 ${path.length > 4 ? "ml-0 md:ml-12 lg:ml-12" : ""} flex flex-col overflow-hidden z-medium`}
           >
-            <div className={`sticky top-0 z-medium bg-base-200 border-b-2 border-ink ${hasFolders ? "ml-0" : "ml-2"}`}>
+            <div className={`sticky top-0 z-medium bg-base-200 ${hasFolders ? "ml-0" : "ml-2"}`}>
               <Navbar params={resolvedParams} searchParams={resolvedSearchParams} />
             </div>
 

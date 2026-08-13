@@ -429,7 +429,7 @@ const InputConfigComponent = memo(
               />
             </>
           ) : isEmbedCustomPrompt ? (
-            <div className="flex flex-col gap-3 pb-2">
+            <div className="flex flex-col gap-3">
               {isOldEmbedFormat && !isPublished && isEditor && (
                 <div className="alert alert-warning py-2 text-xs flex items-center justify-between gap-2">
                   <span>This prompt uses an older format. Save to migrate to the new format.</span>
@@ -590,61 +590,67 @@ const InputConfigComponent = memo(
               ))}
             </div>
           ) : isStructuredPrompt ? (
-            <div className="flex flex-col gap-3 pb-2">
-              {Object.entries(PROMPT_SECTION_CONFIG).map(([key, fieldConfig]) => (
-                <div key={key} className="form-control">
-                  <label className="label py-0">
-                    <span className="label-text text-xs font-medium capitalize text-base-content/70 mb-1">
-                      {fieldConfig.label || key}
-                    </span>
-                  </label>
-                  <div className="relative">
-                    {fieldConfig.type === "textarea" ? (
-                      <textarea
-                        className="textarea textarea-bordered w-full text-sm leading-relaxed resize-y min-h-72 pr-8"
-                        value={(structuredFields || {})[key] || ""}
-                        onChange={(e) => handleFieldChange(key, e.target.value)}
-                        onFocus={handleTextareaFocus}
-                        onBlur={(e) => {
-                          handleTextareaBlur(e);
-                        }}
-                        disabled={isPublished || !isEditor}
-                        placeholder={fieldConfig.placeholder || `Enter ${key}...`}
-                      />
-                    ) : (
-                      <input
-                        autoComplete="off"
-                        type="text"
-                        className="input input-bordered w-full text-sm input-sm pr-8"
-                        value={(structuredFields || {})[key] || ""}
-                        onChange={(e) => handleFieldChange(key, e.target.value)}
-                        onFocus={handleTextareaFocus}
-                        onBlur={(e) => {
-                          handleTextareaBlur(e);
-                        }}
-                        disabled={isPublished || !isEditor}
-                        placeholder={fieldConfig.placeholder || `Enter ${key}...`}
-                      />
-                    )}
-                    {!uiState.isPromptHelperOpen && (
-                      <FullscreenEditorButton
-                        data-testid={`prompt-fullscreen-button-structured-${key}`}
-                        tooltip={`Open ${fieldConfig.label || key} in fullscreen`}
-                        className="absolute top-1 right-1 opacity-50 hover:opacity-100"
-                        onClick={() => {
-                          setFullscreenEditor({
-                            isOpen: true,
-                            title: `Prompt — ${fieldConfig.label || key}`,
-                            value: (structuredFields || {})[key] || "",
-                            fieldKey: key,
-                            fieldType: "structured",
-                          });
-                        }}
-                      />
-                    )}
+            <div className="flex flex-col gap-3">
+              {Object.entries(PROMPT_SECTION_CONFIG).map(([key, fieldConfig], index, entries) => {
+                // The Instructions bar sits flush under the last field, so that field keeps its
+                // bottom border as the shared divider but must not round its bottom corners.
+                const isLastField = index === entries.length - 1;
+
+                return (
+                  <div key={key} className="form-control">
+                    <label className="label py-0">
+                      <span className="label-text text-xs font-medium capitalize text-base-content/70 mb-1">
+                        {fieldConfig.label || key}
+                      </span>
+                    </label>
+                    <div className="relative">
+                      {fieldConfig.type === "textarea" ? (
+                        <textarea
+                          className={`textarea textarea-bordered block w-full text-sm leading-relaxed resize-y min-h-72 pr-8 ${isLastField ? "rounded-b-none" : ""}`}
+                          value={(structuredFields || {})[key] || ""}
+                          onChange={(e) => handleFieldChange(key, e.target.value)}
+                          onFocus={handleTextareaFocus}
+                          onBlur={(e) => {
+                            handleTextareaBlur(e);
+                          }}
+                          disabled={isPublished || !isEditor}
+                          placeholder={fieldConfig.placeholder || `Enter ${key}...`}
+                        />
+                      ) : (
+                        <input
+                          autoComplete="off"
+                          type="text"
+                          className={`input input-bordered w-full text-sm input-sm pr-8 ${isLastField ? "rounded-b-none" : ""}`}
+                          value={(structuredFields || {})[key] || ""}
+                          onChange={(e) => handleFieldChange(key, e.target.value)}
+                          onFocus={handleTextareaFocus}
+                          onBlur={(e) => {
+                            handleTextareaBlur(e);
+                          }}
+                          disabled={isPublished || !isEditor}
+                          placeholder={fieldConfig.placeholder || `Enter ${key}...`}
+                        />
+                      )}
+                      {!uiState.isPromptHelperOpen && (
+                        <FullscreenEditorButton
+                          data-testid={`prompt-fullscreen-button-structured-${key}`}
+                          tooltip={`Open ${fieldConfig.label || key} in fullscreen`}
+                          className="absolute top-1 right-1 opacity-50 hover:opacity-100"
+                          onClick={() => {
+                            setFullscreenEditor({
+                              isOpen: true,
+                              title: `Prompt — ${fieldConfig.label || key}`,
+                              value: (structuredFields || {})[key] || "",
+                              fieldKey: key,
+                              fieldType: "structured",
+                            });
+                          }}
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             /* PLAIN STRING or ADVANCED VIEW: single textarea */
