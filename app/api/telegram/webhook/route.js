@@ -731,9 +731,15 @@ export async function POST(request) {
       }
     }
 
-    // Caption for media, else text. Audio with no caption needs a prompt for GTWY.
+    // Caption for media, else text. Audio-only asks for a direct answer in one GTWY call.
+    const hasAudio =
+      media?.type === "voice" || media?.type === "audio" || extraFields?.user_urls?.some?.((u) => u?.type === "audio");
     const userMessage = media
-      ? media.caption || userText || (media.type === "voice" || media.type === "audio" ? "Transcribe this" : "")
+      ? media.caption ||
+        userText ||
+        (hasAudio
+          ? "The attached audio IS the user's message to you. Treat whatever is spoken as if the user typed it directly, and respond to it exactly as you would to a normal text message. Do NOT describe, summarize, transcribe, or mention the audio, and do NOT say what the speaker is asking — just reply directly with the answer itself."
+          : "")
       : userText;
 
     const threadId = resolveStoredThreadId(channel, chatId);
