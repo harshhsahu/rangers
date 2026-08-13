@@ -96,7 +96,8 @@ function Page() {
           model: formState.selectedModel,
           name: resolvedBridgeName,
           slugName: resolvedSlugName,
-          bridgeType,
+          // Backend only accepts api | chatbot — "trigger" is a UI-only default.
+          bridgeType: bridgeType === "chatbot" ? "chatbot" : "api",
           type: formState.selectedModelType,
           orgid: selectedOrg.id,
           ...(formState.template_Id && { templateId: formState.template_Id }),

@@ -235,7 +235,8 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "trigger", al
       globalError: "",
     });
 
-    const resolvedBridgeType = bridgeTypeForContext;
+    // Backend only accepts api | chatbot — "trigger" is a UI-only default.
+    const resolvedBridgeType = bridgeTypeForContext === "chatbot" ? "chatbot" : "api";
 
     if (purpose) {
       updateState({ isAiLoading: true });

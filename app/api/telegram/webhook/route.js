@@ -357,6 +357,14 @@ function buildGtwyMediaFields(media, mediaUrl) {
   return {};
 }
 
+function getProcessingStatus(media, mediaFields) {
+  const mediaType = mediaFields?.user_urls?.[0]?.type;
+  if (mediaType === "audio") return "Listening to your audio…";
+  if (mediaType === "image") return "Looking at your image…";
+  if (mediaType === "pdf" || media?.type === "document") return "Reading your document…";
+  return "Thinking…";
+}
+
 function defaultThreadId(chatId) {
   return `tg_${chatId}`;
 }
@@ -744,6 +752,7 @@ export async function POST(request) {
 
     const threadId = resolveStoredThreadId(channel, chatId);
     const draftId = Math.abs(Number(update?.update_id) || Date.now()) % 2147483646 || 1;
+    const processingStatus = getProcessingStatus(media, extraFields);
 
     console.log("[tg] HIT", {
       chatId,
@@ -754,11 +763,11 @@ export async function POST(request) {
       attachmentKind: media?.type || null,
     });
 
-    const probe = await sendDraft(botToken, chatId, draftId, "");
+    const probe = await sendDraft(botToken, chatId, draftId, processingStatus);
     if (!probe?.ok) {
       console.warn("[tg] sendMessageDraft unavailable:", probe?.description);
     } else {
-      console.log("[tg] Thinking… draft ON (kept until first answer text)");
+      console.log("[tg] processing draft ON", { processingStatus });
     }
 
     const streamer = new TelegramStreamUpdater({
@@ -776,10 +785,10 @@ export async function POST(request) {
         threadId,
         extraFields,
         botToken,
-        // Refresh Thinking… on start — do not clear the loader
+        // Refresh the type-aware status on start; the first answer replaces it.
         onStart: () => {
           if (probe?.ok) {
-            sendDraft(botToken, chatId, draftId, "").catch(() => {});
+            sendDraft(botToken, chatId, draftId, processingStatus).catch(() => {});
           }
         },
         onDelta: (cleanText) => {
