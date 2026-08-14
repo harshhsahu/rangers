@@ -71,7 +71,6 @@ export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
     const proxyAuthToken = body?.proxy_auth_token || body?.proxyAuthToken;
-    const overrideOrgId = body?.userOrgId || body?.orgId || null;
 
     if (!proxyAuthToken) {
       return NextResponse.json({ success: false, error: "proxy_auth_token is required" }, { status: 400 });
@@ -85,7 +84,7 @@ export async function POST(request) {
     }
 
     const { user, orgId: detailsOrgId } = await resolveProxyAuthToken(proxyAuthToken);
-    const userOrgId = overrideOrgId || detailsOrgId;
+    const userOrgId = detailsOrgId;
 
     if (!userOrgId) {
       return NextResponse.json(
