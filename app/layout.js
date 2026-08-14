@@ -32,11 +32,16 @@ export const metadata = {
 
 export const runtime = "edge";
 
+// Applies a saved theme before first paint, so a dark preference does not flash
+// light on load. The server renders the light theme, which is the default.
+const THEME_INIT = `(function(){try{var t=localStorage.getItem("theme")||sessionStorage.getItem("theme")||"light";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;e.setAttribute("data-theme",r);e.classList.remove("light","dark");e.classList.add(r);}catch(_){}})();`;
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light" className={`${bricolage.variable} ${jetbrainsMono.variable}`}>
       <GoogleTagManager gtmId="GTM-PXRN8T45" />
       <script src={`https://main.d2f49esifpcbwh.amplifyapp.com/tracker.js`} async />
+      <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       <body suppressHydrationWarning className="font-sans">
         <PaletteFocusGuard />
         <Wrapper>{children}</Wrapper>

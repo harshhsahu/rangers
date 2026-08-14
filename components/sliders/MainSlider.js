@@ -25,6 +25,7 @@ import {
 import { logoutUser } from "../../config/authApi";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import ConfirmationModal from "@/components/UI/ConfirmationModal";
+import ThemeToggle from "@/components/UI/ThemeUi";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Component                                 */
@@ -732,6 +733,11 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     )}
                   </div>
                 )}
+
+                {/* Theme switcher — full dropdown when expanded, cycling icon when collapsed */}
+                <div className="px-0.5">
+                  <ThemeToggle compact={!showSidebarContent} />
+                </div>
 
                 {/* Secondary footer actions */}
                 {showSidebarContent ? (

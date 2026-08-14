@@ -1,105 +1,68 @@
-import { MoonIcon, SunIcon, MonitorIcon, ChevronDownIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { MoonIcon, SunIcon, MonitorIcon } from "lucide-react";
 import { useThemeManager } from "@/customHooks/useThemeManager";
 
-export default function ThemeToggle() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+const MODES = [
+  { id: "light", label: "Light", Icon: SunIcon },
+  { id: "dark", label: "Dark", Icon: MoonIcon },
+  { id: "system", label: "System", Icon: MonitorIcon },
+];
+
+/**
+ * Segmented theme switcher — one click per mode, no dropdown.
+ * `compact` renders a single cycling icon for the collapsed sidebar rail.
+ */
+export default function ThemeToggle({ compact = false }) {
   const { theme, changeTheme, getThemeLabel } = useThemeManager();
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const dropdownElement = event.target.closest('[data-dropdown="theme-toggle"]');
-      if (!dropdownElement && isDropdownOpen) {
-        setIsDropdownOpen(false);
-      }
-    };
+  const activeIndex = Math.max(
+    0,
+    MODES.findIndex((m) => m.id === theme)
+  );
+  const ActiveIcon = MODES[activeIndex].Icon;
 
-    document.addEventListener("click", handleClickOutside);
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [isDropdownOpen]);
-
-  const handleThemeChange = (newTheme) => {
-    setIsDropdownOpen(false);
-    changeTheme(newTheme);
-  };
-
-  const getThemeIcon = () => {
-    if (theme === "system") {
-      return <MonitorIcon size={16} />;
-    }
-    return theme === "light" ? <SunIcon size={16} /> : <MoonIcon size={16} />;
-  };
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  if (compact) {
+    return (
+      <button
+        data-testid="theme-toggle-button"
+        id="theme-toggle-button"
+        title={getThemeLabel()}
+        aria-label={getThemeLabel()}
+        onClick={() => changeTheme(MODES[(activeIndex + 1) % MODES.length].id)}
+        className="w-full flex items-center justify-center rounded-[9px] border-2 border-stroke bg-card p-[7px] text-ink transition-colors hover:bg-paper"
+      >
+        <ActiveIcon size={15} />
+      </button>
+    );
+  }
 
   return (
-    <>
-      <div className="w-full" data-dropdown="theme-toggle">
-        <button
-          data-testid="theme-toggle-button"
-          id="theme-toggle-button"
-          onClick={toggleDropdown}
-          className="btn btn-ghost btn-sm w-full justify-between normal-case font-normal text-xs h-8"
-        >
-          <div className="flex items-center gap-2">
-            {getThemeIcon()}
-            {theme === "system" && <div className="badge badge-xs badge-primary opacity-70">Auto</div>}
-            <span className="hidden sm:block">{getThemeLabel()}</span>
-          </div>
-          <ChevronDownIcon className={`w-3 h-3 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
-        </button>
-
-        {isDropdownOpen && (
-          <div className="menu bg-base-200 w-full rounded-lg mt-1 p-1 shadow border-2 border-stroke">
-            <li>
-              <button
-                data-testid="theme-light-button"
-                id="theme-light-button"
-                className={`flex items-center gap-2 p-2 rounded text-xs hover:bg-base-300 transition-colors ${theme === "light" ? "bg-base-300" : ""}`}
-                onClick={() => handleThemeChange("light")}
-                disabled={theme === "light"}
-              >
-                <SunIcon size={14} />
-                <span className="flex-1 text-left">Light</span>
-                {theme === "light" && <div className="badge badge-xs badge-success">✓</div>}
-              </button>
-            </li>
-
-            <li>
-              <button
-                data-testid="theme-dark-button"
-                id="theme-dark-button"
-                className={`flex items-center gap-2 p-2 rounded text-xs hover:bg-base-300 transition-colors ${theme === "dark" ? "bg-base-300" : ""}`}
-                onClick={() => handleThemeChange("dark")}
-                disabled={theme === "dark"}
-              >
-                <MoonIcon size={14} />
-                <span className="flex-1 text-left">Dark</span>
-                {theme === "dark" && <div className="badge badge-xs badge-success">✓</div>}
-              </button>
-            </li>
-
-            <li>
-              <button
-                data-testid="theme-system-button"
-                id="theme-system-button"
-                className={`flex items-center gap-2 p-2 rounded text-xs hover:bg-base-300 transition-colors ${theme === "system" ? "bg-base-300" : ""}`}
-                onClick={() => handleThemeChange("system")}
-                disabled={theme === "system"}
-              >
-                <MonitorIcon size={14} />
-                <span className="flex-1 text-left">System</span>
-                {theme === "system" && <div className="badge badge-xs badge-success">✓</div>}
-              </button>
-            </li>
-          </div>
-        )}
-      </div>
-    </>
+    <div
+      data-testid="theme-toggle"
+      id="theme-toggle"
+      role="radiogroup"
+      aria-label="Colour theme"
+      className="flex w-full items-center gap-1 rounded-full border-2 border-stroke bg-card p-[3px]"
+    >
+      {MODES.map(({ id, label, Icon }) => {
+        const isActive = id === theme;
+        return (
+          <button
+            key={id}
+            data-testid={`theme-${id}-button`}
+            id={`theme-${id}-button`}
+            role="radio"
+            aria-checked={isActive}
+            title={label}
+            onClick={() => changeTheme(id)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-[5px] font-mono text-[10px] uppercase tracking-[.08em] transition-colors ${
+              isActive ? "bg-acc text-acc-ink font-bold" : "text-soft hover:text-ink"
+            }`}
+          >
+            <Icon size={13} />
+            <span>{label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }

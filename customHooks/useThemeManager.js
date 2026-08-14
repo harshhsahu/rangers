@@ -18,12 +18,35 @@ const useThemeVariables = (userType = "default", customThemePath = null, customT
   }, [userType, customThemePath, customTheme]);
 };
 
+/** Light unless the user explicitly chooses otherwise. */
+export const DEFAULT_THEME = "light";
+
+/** Read the saved preference. Stored durably so a choice survives new tabs, and
+ *  the older per-session value is still honoured as a fallback. */
+export const getStoredTheme = () => {
+  if (typeof window === "undefined") return DEFAULT_THEME;
+  try {
+    return localStorage.getItem("theme") || sessionStorage.getItem("theme") || DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
+};
+
+const storeTheme = (value) => {
+  try {
+    localStorage.setItem("theme", value);
+    sessionStorage.setItem("theme", value);
+  } catch (error) {
+    console.warn("[ThemeManager] Could not persist theme preference", error);
+  }
+};
+
 /**
  * Unified Theme Management System
  * Simplified to avoid infinite loops
  */
 export const useThemeManager = () => {
-  const [theme, setTheme] = useState("system");
+  const [theme, setTheme] = useState(DEFAULT_THEME);
   const [actualTheme, setActualTheme] = useState("light");
   const [loading, setLoading] = useState(false);
 
@@ -45,15 +68,11 @@ export const useThemeManager = () => {
     }
   };
 
-  useEffect(() => {
-    applyTheme(getSystemTheme());
-  }, []);
-
   // Change theme (manual selection)
   const changeTheme = useCallback((newTheme) => {
     setLoading(true);
     setTheme(newTheme);
-    sessionStorage.setItem("theme", newTheme);
+    storeTheme(newTheme);
 
     let themeToApply;
     if (newTheme === "system") {
@@ -70,7 +89,7 @@ export const useThemeManager = () => {
 
   // Initialize theme on mount
   useEffect(() => {
-    const savedTheme = sessionStorage.getItem("theme") || "system";
+    const savedTheme = getStoredTheme();
     const systemTheme = getSystemTheme();
 
     setTheme(savedTheme);
@@ -94,7 +113,7 @@ export const useThemeManager = () => {
 
     const handleSystemThemeChange = (e) => {
       const newSystemTheme = e.matches ? "dark" : "light";
-      const currentSavedTheme = sessionStorage.getItem("theme") || "system";
+      const currentSavedTheme = getStoredTheme();
 
       if (currentSavedTheme === "system") {
         setActualTheme(newSystemTheme);
