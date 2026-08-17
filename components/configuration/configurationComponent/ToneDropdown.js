@@ -7,29 +7,7 @@ import CustomPromptModal from "./CustomPromptModal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal, closeModal } from "@/utils/utility";
 import { CircleQuestionMark, Pencil } from "lucide-react";
-
-const TONES = [
-  { value: "authoritative", prompt: "Generate a strong, commanding response with authoritative guidance." },
-  { value: "casual", prompt: "Generate a response in a relaxed, easygoing, and informal tone." },
-  { value: "confident", prompt: "Generate a direct and assertive response with a confident tone." },
-  { value: "concise", prompt: "Generate a brief, straight-to-the-point response." },
-  { value: "curious", prompt: "Generate an inquisitive response showing curiosity." },
-  { value: "empathetic", prompt: "Generate a response showing understanding, concern, and support." },
-  { value: "friendly", prompt: "Generate a warm and welcoming response with a friendly tone." },
-  {
-    value: "formal",
-    prompt: "Generate a response in a professional, respectful, and clear tone suitable for official communication.",
-  },
-  { value: "humorous", prompt: "Generate a playful and light-hearted response with humor." },
-  {
-    value: "inspiring",
-    prompt: "Generate a response that uplifts and inspires the reader toward a higher purpose or goal.",
-  },
-  { value: "motivational", prompt: "Generate an encouraging and uplifting response." },
-  { value: "neutral", prompt: "Generate an objective and balanced response without emotional engagement." },
-  { value: "polite", prompt: "Generate a respectful and courteous response." },
-  { value: "sarcastic", prompt: "Generate a witty and ironic response with a touch of sarcasm." },
-];
+import { TONES } from "@/components/rangers/rangerConstants";
 
 const ToneDropdown = ({ params, searchParams, isPublished, isEditor = true }) => {
   const isReadOnly = isPublished || !isEditor;
