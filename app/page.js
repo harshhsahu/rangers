@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { getIconOfService } from "@/utils/utility";
+import { RANGER_CHANNELS } from "@/components/rangers/rangerConstants";
 
 const CODE_SAMPLE = `curl $GTWY/api/v2/model/chat/completion \\
   -H "pauthkey: $GTWY_KEY" \\
@@ -12,20 +13,7 @@ const CODE_SAMPLE = `curl $GTWY/api/v2/model/chat/completion \\
     "variables": { "region": "eu-west-1" }
   }'`;
 
-const MARQUEE = [
-  ["openai", "OpenAI"],
-  ["anthropic", "Anthropic"],
-  ["gemini", "Gemini"],
-  ["groq", "Groq"],
-  ["mistral", "Mistral"],
-  ["grok", "Grok"],
-  ["moonshot", "Moonshot"],
-  ["deepseek", "DeepSeek"],
-  ["deepgram", "Deepgram"],
-  ["open_router", "Open Router"],
-  ["ai_ml", "AI/ML"],
-  ["minimax", "MiniMax"],
-];
+const MARQUEE = RANGER_CHANNELS.map(({ key, label, icon, brand }) => ({ key, label, Icon: icon, brand }));
 
 const SERVICES = [
   ["openai", "Openai", "openai", "cool"],
@@ -166,14 +154,16 @@ const Page = () => {
       {/* ------------------------------ Marquee ------------------------------ */}
       <div className="overflow-hidden border-y-2 border-stroke bg-ink py-4 text-paper">
         <div className="flex w-max" style={{ animation: "rgMarquee 34s linear infinite" }}>
-          {[0, 1].map((dup) => (
+          {[0, 1, 2, 3].map((dup) => (
             <div
               key={dup}
               className="flex items-center gap-10 whitespace-nowrap pr-10 font-mono text-[14px] uppercase tracking-[.06em]"
             >
-              {MARQUEE.map(([slug, label]) => (
-                <span key={`${dup}-${slug}`} className="flex items-center gap-2.5">
-                  <span className="grid h-[17px] w-[17px] place-items-center">{getIconOfService(slug, 17, 17)}</span>
+              {MARQUEE.map(({ key, label, Icon, brand }) => (
+                <span key={`${dup}-${key}`} className="flex items-center gap-2.5">
+                  <span className="grid h-[17px] w-[17px] place-items-center" style={{ color: brand }}>
+                    <Icon height={17} width={17} />
+                  </span>
                   {label}
                 </span>
               ))}
