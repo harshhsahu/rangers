@@ -8,6 +8,14 @@ import { MODAL_TYPE } from "@/utils/enums";
 import { openModal, closeModal } from "@/utils/utility";
 import { CircleQuestionMark, Pencil } from "lucide-react";
 import { TONES } from "@/components/rangers/rangerConstants";
+import ThemedSelect from "@/components/UI/ThemedSelect";
+
+/** "{}" is the stored shape for "no tone"; "custom" opens the free-text modal. */
+const TONE_OPTIONS = [
+  { value: "{}", label: "None" },
+  ...TONES.map((tone) => ({ value: tone.value, label: tone.value })),
+  { value: "custom", label: "Custom" },
+];
 
 const ToneDropdown = ({ params, searchParams, isPublished, isEditor = true }) => {
   const isReadOnly = isPublished || !isEditor;
@@ -41,8 +49,7 @@ const ToneDropdown = ({ params, searchParams, isPublished, isEditor = true }) =>
     );
   };
 
-  const handleToneChange = (e) => {
-    const toneValue = e.target.value;
+  const handleToneChange = (toneValue) => {
     if (toneValue === "custom") {
       openCustomModal();
       return;
@@ -68,28 +75,20 @@ const ToneDropdown = ({ params, searchParams, isPublished, isEditor = true }) =>
       </div>
 
       <div className="relative">
-        <select
-          data-testid="tone-select"
+        <ThemedSelect
           id="tone-select"
-          disabled={isReadOnly}
+          testId="tone-select"
           value={selectedTone}
           onChange={handleToneChange}
-          className={`select select-sm select-bordered capitalize w-full ${selectedTone === "custom" && !isReadOnly ? "pr-8" : ""}`}
-        >
-          <option value="" disabled>
-            Select a tone
-          </option>
-          <option value="{}">None</option>
-          {TONES.map((tone) => (
-            <option key={tone.value} value={tone.value}>
-              {tone.value}
-            </option>
-          ))}
-          <option value="custom">Custom</option>
-        </select>
+          options={TONE_OPTIONS}
+          placeholder="Select a tone"
+          disabled={isReadOnly}
+          className={selectedTone === "custom" && !isReadOnly ? "[&>button]:pr-9" : ""}
+        />
         {selectedTone === "custom" && !isReadOnly && (
           <button
-            className="absolute right-10 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-primary transition-colors pointer-events-auto"
+            type="button"
+            className="absolute right-9 top-[13px] text-base-content/40 hover:text-primary transition-colors"
             title="Edit custom tone"
             onClick={openCustomModal}
           >

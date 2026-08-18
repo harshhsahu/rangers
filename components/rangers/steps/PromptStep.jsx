@@ -2,6 +2,10 @@
 
 import React from "react";
 import { PROMPT_TEMPLATES, TONES } from "../rangerConstants";
+import ThemedSelect from "@/components/UI/ThemedSelect";
+
+/** "None" first, then every tone — the wizard has no custom-tone option. */
+const TONE_OPTIONS = [{ value: "", label: "None" }, ...TONES.map((tone) => ({ value: tone.value, label: tone.value }))];
 
 const PromptStep = ({ form, update }) => {
   const applyTemplate = (key) => {
@@ -46,20 +50,14 @@ const PromptStep = ({ form, update }) => {
         <label className="label" htmlFor="ranger-tone">
           <span className="label-text">Tone</span>
         </label>
-        <select
+        <ThemedSelect
           id="ranger-tone"
-          data-testid="ranger-tone-select"
-          className="select select-sm select-bordered w-full capitalize"
+          testId="ranger-tone"
           value={form.tone}
-          onChange={(event) => update({ tone: event.target.value })}
-        >
-          <option value="">None</option>
-          {TONES.map((tone) => (
-            <option key={tone.value} value={tone.value}>
-              {tone.value}
-            </option>
-          ))}
-        </select>
+          onChange={(tone) => update({ tone })}
+          options={TONE_OPTIONS}
+          placeholder="Select a tone"
+        />
         <p className="mt-1 text-[11px] leading-relaxed text-soft">
           Layers a tone instruction on top of the prompt. Change it any time from the ranger&apos;s settings.
         </p>
