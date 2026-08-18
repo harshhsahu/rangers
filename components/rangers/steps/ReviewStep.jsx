@@ -73,14 +73,18 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, isAiM
         <Row label="Channels">
           {enabledChannels.length ? (
             <div className="flex flex-wrap gap-1.5">
-              {enabledChannels.map((channel) => (
-                <span
-                  key={channel.key}
-                  className="rounded-[5px] border-[1.5px] border-line px-1.5 py-[2px] font-mono text-[9.5px] text-soft"
-                >
-                  {channel.label}
-                </span>
-              ))}
+              {enabledChannels.map((channel) => {
+                const Icon = channel.icon;
+                return (
+                  <span
+                    key={channel.key}
+                    className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-line py-[3px] pl-[3px] pr-2.5 font-mono text-[10px] text-ink"
+                  >
+                    <Icon size={16} />
+                    {channel.label}
+                  </span>
+                );
+              })}
             </div>
           ) : (
             <em className="text-soft">None — it will run without a channel until you add one.</em>

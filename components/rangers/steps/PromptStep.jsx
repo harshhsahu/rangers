@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { PROMPT_TEMPLATES, TONES } from "../rangerConstants";
+import { PROMPT_TEMPLATES, getPromptTemplate, TONES } from "../rangerConstants";
 import ThemedSelect from "@/components/UI/ThemedSelect";
 
 /** "None" first, then every tone — the wizard has no custom-tone option. */
@@ -9,7 +9,9 @@ const TONE_OPTIONS = [{ value: "", label: "None" }, ...TONES.map((tone) => ({ va
 
 const PromptStep = ({ form, update }) => {
   const applyTemplate = (key) => {
-    const text = PROMPT_TEMPLATES[key].replace(/\{\{name\}\}/g, form.name?.trim() || "this agent");
+    const template = getPromptTemplate(key);
+    if (!template) return;
+    const text = template.prompt.replace(/\{\{name\}\}/g, form.name?.trim() || "this agent");
     update({ prompt: text });
   };
 
@@ -17,19 +19,20 @@ const PromptStep = ({ form, update }) => {
     <div data-testid="ranger-step-prompt-pane">
       <h3 className="text-[15px] font-bold tracking-[-0.2px] text-base-content">System Prompt</h3>
       <p className="mb-3 mt-1 text-[12.5px] text-soft">
-        The standing instructions. Start from a template or write your own.
+        The standing instructions. Start from a posting template or write your own.
       </p>
 
       <div className="mb-2 flex flex-wrap gap-1.5">
-        {Object.keys(PROMPT_TEMPLATES).map((key) => (
+        {PROMPT_TEMPLATES.map((template) => (
           <button
-            key={key}
+            key={template.key}
             type="button"
-            data-testid={`ranger-template-${key.replace(/\s+/g, "-").toLowerCase()}`}
-            onClick={() => applyTemplate(key)}
+            title={template.blurb}
+            data-testid={`ranger-template-${template.key.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`}
+            onClick={() => applyTemplate(template.key)}
             className="rounded-full border-2 border-stroke px-3 py-[4px] text-[11px] font-semibold text-soft transition-colors hover:border-acc hover:text-acc"
           >
-            {key}
+            {template.key}
           </button>
         ))}
       </div>

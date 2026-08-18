@@ -1,48 +1,94 @@
 import React from "react";
 
 /**
- * Brand marks for the channel list.
+ * Channel brand marks.
  *
- * The repo ships no channel logos (icons/ only covers model providers), and the
- * generic lucide speech bubbles previously used here were indistinguishable
- * from each other at 16px. These are single-colour glyphs that take their fill
- * from `currentColor`, so each channel can be tinted with its brand colour.
+ * These are the authentic logos rather than single-colour outline glyphs: the
+ * repo ships no channel artwork (icons/ only covers model providers), and the
+ * traced one-colour versions previously used here read as sketches at small
+ * sizes. Colours are baked into the paths so the marks stay correct on any
+ * background and need no wrapper chip.
+ *
+ * No gradients or <defs> — repeated ids across several instances on one page
+ * are invalid and resolve unpredictably.
  */
 
-const base = { viewBox: "0 0 24 24", fill: "currentColor", "aria-hidden": true };
+const svgProps = (size) => ({
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  xmlns: "http://www.w3.org/2000/svg",
+  "aria-hidden": true,
+  focusable: false,
+});
 
-export const TelegramIcon = (props) => (
-  <svg {...base} {...props}>
-    <path d="M21.94 4.3 18.66 19.9c-.24 1.09-.89 1.36-1.8.85l-4.98-3.67-2.4 2.31c-.27.27-.5.5-1.01.5l.36-5.07 9.24-8.35c.4-.36-.09-.56-.62-.2L6.03 13.09 1.1 11.55c-1.07-.34-1.09-1.07.22-1.58l19.28-7.43c.89-.32 1.67.21 1.34 1.76Z" />
+export const TelegramIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#229ED9" />
+    <path
+      fill="#fff"
+      d="M5.44 11.86c3.53-1.54 5.88-2.55 7.06-3.04 3.36-1.4 4.06-1.64 4.51-1.65.1 0 .32.02.47.14.12.1.15.24.17.34.02.1.04.32.02.5-.19 1.99-1.01 6.8-1.43 9.03-.18.94-.53 1.26-.86 1.29-.73.07-1.29-.48-1.99-.94-1.1-.72-1.72-1.17-2.79-1.87-1.23-.81-.43-1.26.27-1.99.18-.19 3.35-3.07 3.41-3.33.01-.03.01-.15-.06-.21-.07-.06-.17-.04-.25-.02-.11.02-1.85 1.18-5.24 3.46-.5.34-.94.51-1.35.5-.44-.01-1.3-.25-1.93-.46-.78-.25-1.39-.39-1.34-.82.03-.23.34-.46.93-.7Z"
+    />
   </svg>
 );
 
-export const DiscordIcon = (props) => (
-  <svg {...base} {...props}>
-    <path d="M19.3 5.34A16.7 16.7 0 0 0 15.1 4l-.2.4a15.4 15.4 0 0 1 3.7 1.2 12.3 12.3 0 0 0-9.2 0A15.4 15.4 0 0 1 13.1 4.4L12.9 4a16.7 16.7 0 0 0-4.2 1.34C6.1 9.14 5.4 12.84 5.8 16.44a17 17 0 0 0 5.1 2.6l1-1.7a10.8 10.8 0 0 1-1.8-.9l.4-.3a12.1 12.1 0 0 0 10.4 0l.4.3a10.8 10.8 0 0 1-1.8.9l1 1.7a17 17 0 0 0 5.1-2.6c.5-4.2-.7-7.8-2.9-11.1ZM9.9 14.24c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.9.9 1.8 2c0 1.1-.8 2-1.8 2Zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2c0 1.1-.8 2-1.8 2Z" />
+export const DiscordIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#5865F2" />
+    <path
+      fill="#fff"
+      d="M16.44 7.65a10.4 10.4 0 0 0-2.6-.8.04.04 0 0 0-.04.02c-.11.2-.24.46-.33.66a9.65 9.65 0 0 0-2.9 0 6.7 6.7 0 0 0-.34-.66.04.04 0 0 0-.04-.02c-.9.15-1.77.43-2.6.8a.04.04 0 0 0-.02.01c-1.66 2.48-2.11 4.9-1.89 7.29 0 .01 0 .02.02.03a10.5 10.5 0 0 0 3.16 1.6.04.04 0 0 0 .04-.02c.24-.33.46-.69.65-1.06a.04.04 0 0 0-.02-.06 6.9 6.9 0 0 1-.99-.47.04.04 0 0 1 0-.07l.2-.15a.04.04 0 0 1 .04 0 7.5 7.5 0 0 0 6.36 0 .04.04 0 0 1 .04 0l.2.15a.04.04 0 0 1 0 .07c-.32.19-.65.34-.99.47a.04.04 0 0 0-.02.06c.19.37.41.73.65 1.06a.04.04 0 0 0 .04.02 10.46 10.46 0 0 0 3.17-1.6.04.04 0 0 0 .01-.03c.27-2.76-.44-5.16-1.88-7.29a.03.03 0 0 0-.02-.01ZM9.68 13.5c-.63 0-1.15-.57-1.15-1.28 0-.7.51-1.28 1.15-1.28.64 0 1.16.58 1.15 1.28 0 .71-.51 1.28-1.15 1.28Zm4.25 0c-.63 0-1.15-.57-1.15-1.28 0-.7.51-1.28 1.15-1.28.64 0 1.16.58 1.15 1.28 0 .71-.51 1.28-1.15 1.28Z"
+    />
   </svg>
 );
 
-export const WhatsappIcon = (props) => (
-  <svg {...base} {...props}>
-    <path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm5.5 14.1c-.2.7-1.3 1.3-1.9 1.4-.5.1-1.1.1-1.8-.1-.4-.1-.9-.3-1.6-.6-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 .9-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5s.8 2 .9 2.1c.1.1.1.3 0 .5s-.1.3-.3.5l-.4.4c-.1.1-.3.3-.1.6s.6 1.1 1.4 1.8c1 .9 1.8 1.1 2.1 1.3.3.1.4.1.6-.1s.7-.8.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.6.3.9.4 1 .6.1.2.1.8-.1 1.4Z" />
+export const WhatsappIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#25D366" />
+    <path
+      fill="#fff"
+      d="M16.6 7.42A6.43 6.43 0 0 0 6.48 15.2l-.9 3.32 3.4-.89a6.42 6.42 0 0 0 3.07.78h.01a6.43 6.43 0 0 0 4.55-10.98Zm-4.54 9.89a5.34 5.34 0 0 1-2.72-.75l-.2-.11-2.02.53.54-1.97-.13-.2a5.34 5.34 0 1 1 9.9-2.83 5.35 5.35 0 0 1-5.37 5.33Zm2.93-3.99c-.16-.08-.95-.47-1.1-.52-.14-.05-.25-.08-.35.08-.11.16-.4.52-.5.63-.09.11-.18.12-.34.04a4.38 4.38 0 0 1-2.19-1.91c-.17-.28.16-.26.47-.88.05-.11.03-.2-.01-.28-.04-.08-.35-.86-.49-1.17-.13-.3-.26-.26-.35-.27h-.3a.58.58 0 0 0-.42.2c-.14.15-.55.53-.55 1.3 0 .77.56 1.51.64 1.62.08.1 1.1 1.68 2.68 2.36.99.43 1.38.46 1.88.39.3-.05.95-.39 1.08-.76.13-.38.13-.7.1-.77-.05-.07-.15-.11-.31-.19Z"
+    />
   </svg>
 );
 
-export const SlackIcon = (props) => (
-  <svg {...base} {...props}>
-    <path d="M6 15.1a2 2 0 1 1-2-2h2v2Zm1 0a2 2 0 0 1 4 0v5a2 2 0 0 1-4 0v-5ZM9 6.05a2 2 0 1 1 2-2v2H9Zm0 1a2 2 0 0 1 0 4H4a2 2 0 0 1 0-4h5Zm9 2.05a2 2 0 1 1 2 2h-2v-2Zm-1 0a2 2 0 0 1-4 0v-5a2 2 0 0 1 4 0v5Zm-2 9a2 2 0 1 1-2 2v-2h2Zm0-1a2 2 0 0 1 0-4h5a2 2 0 0 1 0 4h-5Z" />
+export const SlackIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <path
+      fill="#E01E5A"
+      d="M6.2 14.6a1.6 1.6 0 1 1-1.6-1.6h1.6v1.6Zm.8 0a1.6 1.6 0 0 1 3.2 0v4a1.6 1.6 0 0 1-3.2 0v-4Z"
+    />
+    <path
+      fill="#36C5F0"
+      d="M8.6 6.2a1.6 1.6 0 1 1 1.6-1.6v1.6H8.6Zm0 .8a1.6 1.6 0 0 1 0 3.2h-4a1.6 1.6 0 0 1 0-3.2h4Z"
+    />
+    <path
+      fill="#2EB67D"
+      d="M17 8.6a1.6 1.6 0 1 1 1.6 1.6H17V8.6Zm-.8 0a1.6 1.6 0 0 1-3.2 0v-4a1.6 1.6 0 1 1 3.2 0v4Z"
+    />
+    <path
+      fill="#ECB22E"
+      d="M14.6 17a1.6 1.6 0 1 1-1.6 1.6V17h1.6Zm0-.8a1.6 1.6 0 0 1 0-3.2h4a1.6 1.6 0 0 1 0 3.2h-4Z"
+    />
   </svg>
 );
 
-export const SmsIcon = (props) => (
-  <svg {...base} {...props}>
-    <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2ZM7 11H5V9h2v2Zm5 0h-2V9h2v2Zm5 0h-2V9h2v2Z" />
+export const SmsIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#7C3AED" />
+    <path
+      fill="#fff"
+      d="M17 6.5H7A1.5 1.5 0 0 0 5.5 8v9.9l2.6-2.4H17A1.5 1.5 0 0 0 18.5 14V8A1.5 1.5 0 0 0 17 6.5ZM9.2 12a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm2.8 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm2.8 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z"
+    />
   </svg>
 );
 
-export const VoiceIcon = (props) => (
-  <svg {...base} {...props}>
-    <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .7-.2 1l-2.3 2.2Z" />
+export const VoiceIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#F2540B" />
+    <path
+      fill="#fff"
+      d="M9.1 11.4a9.7 9.7 0 0 0 4.2 4.2l1.4-1.4c.2-.2.5-.26.75-.14.8.26 1.65.4 2.5.4.4 0 .7.3.7.7v2.24c0 .4-.3.7-.7.7A11.9 11.9 0 0 1 6 6.2c0-.4.3-.7.7-.7h2.25c.4 0 .7.3.7.7 0 .87.14 1.7.4 2.5.08.25.02.53-.15.74L9.1 11.4Z"
+    />
   </svg>
 );
