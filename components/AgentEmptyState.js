@@ -2,12 +2,24 @@ import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import { MessageCircleMoreIcon } from "./Icons";
 import PageHeader from "./Pageheader";
-import CreateNewBridge from "./CreateNewBridge";
 import Protected from "./Protected";
 import useTutorialVideos from "@/hooks/useTutorialVideos";
 import { useCustomSelector } from "@/customHooks/customSelector";
 
-const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "trigger", title, description, docLink }) => {
+/**
+ * `hideHeader` is set when the host page already renders the page header (the
+ * Rangers page does, above its tab strip), so it isn't printed twice.
+ * The create modal itself is mounted by the host page, not here.
+ */
+const AgentEmptyState = ({
+  orgid,
+  isEmbedUser,
+  defaultBridgeType = "trigger",
+  title,
+  description,
+  docLink,
+  hideHeader = false,
+}) => {
   const { getApiAgentCreationVideo, getChatbotAgentCreationVideo } = useTutorialVideos();
   const { tutorialData } = useCustomSelector((state) => ({
     tutorialData: state.flowDataReducer?.flowData?.tutorialData || [],
@@ -22,7 +34,7 @@ const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "trigger", ti
         {/* Header Section with Overlapping Layout */}
         <div className="relative w-full">
           {/* Full Width - Heading and Description */}
-          {!isEmbedUser ? (
+          {hideHeader ? null : !isEmbedUser ? (
             <PageHeader
               title={title || "Welcome To GTWY AI"}
               description={
@@ -51,10 +63,10 @@ const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "trigger", ti
                 id="agent-empty-create-agent-button"
                 className="btn btn-primary btn-sm"
                 onClick={() => {
-                  openModal(MODAL_TYPE.CREATE_BRIDGE_MODAL);
+                  openModal(MODAL_TYPE.CREATE_RANGER_MODAL);
                 }}
               >
-                + Create New Agent
+                + Create Ranger
               </button>
 
               {!isEmbedUser ? (
@@ -101,10 +113,6 @@ const AgentEmptyState = ({ orgid, isEmbedUser, defaultBridgeType = "trigger", ti
             </div>
           </div>
         </div>
-
-        {/* Features Section */}
-
-        <CreateNewBridge orgid={orgid} isEmbedUser={isEmbedUser} defaultBridgeType={defaultBridgeType} />
       </div>
     </div>
   );

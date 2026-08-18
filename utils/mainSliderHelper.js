@@ -64,7 +64,7 @@ export const DISPLAY_NAMES = (key) => {
     case "chatbot":
       return "Chatbot";
     case "agents":
-      return "Agents";
+      return "Rangers";
     case "knowledge_base":
       return "Knowledge base";
     case "chatbotConfig":

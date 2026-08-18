@@ -304,13 +304,13 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   );
 
   // Get settings menu items for sidebar
-  /** Create-agent action. The CreateNewBridge modal is only mounted on the
+  /** Create-ranger action. The Create Ranger modal is only mounted on the
    *  agents page, so open it directly when we are already there and otherwise
    *  navigate with ?create=1 for that page to pick up. */
   const handleCreateAgent = useCallback(() => {
     if (isMobile) setIsMobileVisible(false);
     if (pathname.endsWith("/agents")) {
-      openModal(MODAL_TYPE.CREATE_BRIDGE_MODAL);
+      openModal(MODAL_TYPE.CREATE_RANGER_MODAL);
       return;
     }
     if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/agents?create=1`);

@@ -7,6 +7,12 @@ export default function Error({ error, reset }) {
   const router = useRouter();
   const isProd = process.env.NEXT_PUBLIC_ENV === "PROD";
 
+  // The boundary previously swallowed the error entirely, which made runtime
+  // failures impossible to diagnose. Log it always; show it outside prod.
+  React.useEffect(() => {
+    console.error("[app/error.js] caught:", error);
+  }, [error]);
+
   const handleLogout = () => {
     const isEmbedContext =
       window.location.pathname.includes("/embed") ||
@@ -54,6 +60,12 @@ export default function Error({ error, reset }) {
 
         <div className="mt-16 pt-8 border-t-2 border-stroke">
           <p className="font-mono text-xs text-base-content/40 tracking-wider">ERROR_CODE: UNEXPECTED_ERROR</p>
+          {!isProd && (error?.message || error?.digest) && (
+            <pre className="mt-4 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-base-200 p-3 text-left font-mono text-[11px] leading-relaxed text-error">
+              {error?.message || `digest: ${error.digest}`}
+              {error?.stack ? `\n\n${error.stack.split("\n").slice(0, 6).join("\n")}` : ""}
+            </pre>
+          )}
         </div>
       </div>
 

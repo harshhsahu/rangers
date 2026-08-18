@@ -1,6 +1,9 @@
 /* eslint-disable no-commented-code/no-commented-code, unused-imports/no-unused-imports, unused-imports/no-unused-vars */
 "use client";
-import CreateNewBridge from "@/components/CreateNewBridge";
+import CreateRangerModal from "@/components/rangers/CreateRangerModal";
+import RangerTabs, { RANGER_TAB_KEYS } from "@/components/rangers/RangerTabs";
+import CommandCenterTab from "@/components/rangers/CommandCenterTab";
+import RangerGrid from "@/components/rangers/RangerGrid";
 import CustomTable from "@/components/customTable/CustomTable";
 import MainLayout from "@/components/layoutComponents/MainLayout";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -24,7 +27,7 @@ import FolderTabs from "@/components/folders/FolderTabs";
 import MoveToFolderMenu from "@/components/folders/MoveToFolderMenu";
 import useFolders from "@/hooks/useFolders";
 import { useFolderContext } from "@/components/folders/FolderContext";
-import { Folder, Funnel, Undo2, Infinity, Trash2 } from "lucide-react";
+import { Folder, Funnel, Undo2, Infinity, Trash2, LayoutGrid, Rows3 } from "lucide-react";
 
 import { ClockIcon, EllipsisIcon } from "@/components/Icons";
 import { useRouter } from "next/navigation";
@@ -360,12 +363,34 @@ function Home({ params, searchParams, isEmbedUser }) {
   });
   const pageHeaderContent = useMemo(() => {
     return {
-      title: "Agents",
+      title: "Rangers",
       description:
         descriptions?.Agents || "Build and manage AI agents for workflows, automations, chatbots, and integrations.",
     };
   }, [descriptions]);
   const deletedSectionTitle = "Deleted Agents";
+
+  // Command Center vs Ranger Squad, mirrored into ?tab= so the view is linkable.
+  const [activeTab, setActiveTab] = useState(
+    resolvedSearchParams?.tab === RANGER_TAB_KEYS.COMMAND ? RANGER_TAB_KEYS.COMMAND : RANGER_TAB_KEYS.SQUAD
+  );
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setParam("tab", tab === RANGER_TAB_KEYS.SQUAD ? null : tab, { replace: true });
+  };
+
+  // Cards are the default face of the squad; the table stays available because
+  // it is the only place cost/token/limit columns can be sorted.
+  const [viewMode, setViewMode] = useState("grid");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = sessionStorage.getItem("rangerViewMode");
+    if (saved === "grid" || saved === "list") setViewMode(saved);
+  }, []);
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") sessionStorage.setItem("rangerViewMode", mode);
+  };
 
   useEffect(() => {
     if (resolvedSearchParams?.folder === "trash") {
@@ -375,10 +400,11 @@ function Home({ params, searchParams, isEmbedUser }) {
   }, [resolvedSearchParams?.folder, setActiveFolderId, setParam]);
 
   // The sidebar's "+ Create new agent" routes here with ?create=1 because the
-  // CreateNewBridge modal is only mounted on this page.
+  // Create Ranger modal is only mounted on this page.
   useEffect(() => {
     if (resolvedSearchParams?.create) {
-      openModal(MODAL_TYPE?.CREATE_BRIDGE_MODAL);
+      setActiveTab(RANGER_TAB_KEYS.SQUAD);
+      openModal(MODAL_TYPE?.CREATE_RANGER_MODAL);
       setParam("create", null, { replace: true });
     }
   }, [resolvedSearchParams?.create, setParam]);
@@ -901,6 +927,16 @@ function Home({ params, searchParams, isEmbedUser }) {
     return [];
   }, [DeletedBridges, activeFolderId]);
 
+  // Raw bridge (with merged metrics) by id — the card view needs `meta.ranger`
+  // and `service`, neither of which survive into the table row shape.
+  const rawBridgeById = useMemo(() => {
+    const map = new Map();
+    (processedBridges || []).forEach((bridge) => {
+      if (bridge?._id) map.set(String(bridge._id), bridge);
+    });
+    return map;
+  }, [processedBridges]);
+
   const prefetchedRoutes = useRef(new Set());
   const handleRowHover = (row) => {
     if (!row?._id || !row?.versionId) {
@@ -1083,69 +1119,73 @@ function Home({ params, searchParams, isEmbedUser }) {
     // Uses the same portal hook as the ellipsis EndComponent
     handlePortalOpen(e.currentTarget, dropdownContent);
   };
-  const EndComponent = ({ row }) => {
-    const handleDropdownClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+  /**
+   * Row action menu. Shared by the table's ellipsis button and the card grid's
+   * kebab so both surfaces offer identical actions.
+   */
+  const openRowMenu = (e, row) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      const rect = e.currentTarget.getBoundingClientRect();
-      const isNearBottom = rect.bottom + 550 > window.innerHeight;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const isNearBottom = rect.bottom + 550 > window.innerHeight;
 
-      const dropdownContent = (
-        <div className="bg-base-100 rounded-box w-52 shadow-2xl p-1 border-2 border-stroke">
-          <AgentMenuItems
-            bridge={row}
-            bridgeData={row}
-            bridgeStatus={allBridges.find((bridge) => bridge._id === row._id)?.bridge_status}
-            isArchived={row?.status === 0}
-            isUpdatingBridge={false}
-            isEmbedUser={isEmbedUser}
-            orgId={resolvedParams.org_id}
-            onClose={handlePortalCloseImmediate}
-            onSetSelectedAgent={(agent) => {
-              setSelectedAgentForAccess(agent);
-            }}
-            handlePortalOpen={handlePortalOpen}
-            handlePortalCloseImmediate={handlePortalCloseImmediate}
-            showDeleteAgentOption={showDeleteAgentOption}
-            onDelete={() => {
-              handlePortalCloseImmediate();
-              setItemToDelete(row);
-              setTimeout(() => openModal(MODAL_TYPE.DELETE_MODAL), 10);
-            }}
-          />
-          <div className="divider my-1"></div>
-          <div className={`dropdown dropdown-hover dropdown-left ${isNearBottom ? "dropdown-top" : ""} w-full`}>
-            <label
-              tabIndex={0}
-              data-testid="agent-move-to-folder-dropdown"
-              className="w-full px-4 py-2 text-left text-sm hover:bg-base-200 flex items-center justify-between cursor-pointer"
-            >
-              <div className="flex items-center gap-2 text-base-content">
-                <Folder size={14} className="text-base-content/70" />
-                <span>Move to Folder</span>
-              </div>
-            </label>
-            <div
-              tabIndex={0}
-              className={`dropdown-content z-[100] ${isNearBottom ? "bottom-0 top-auto pb-2" : "top-0 bottom-auto pt-2"} right-full pr-2`}
-            >
-              <MoveToFolderMenu
-                folders={folders}
-                currentFolderId={row.folder_id}
-                onMove={(folderId) => {
-                  moveResource(row._id, folderId);
-                  handlePortalCloseImmediate();
-                }}
-              />
+    const dropdownContent = (
+      <div className="bg-base-100 rounded-box w-52 shadow-2xl p-1 border-2 border-stroke">
+        <AgentMenuItems
+          bridge={row}
+          bridgeData={row}
+          bridgeStatus={allBridges.find((bridge) => bridge._id === row._id)?.bridge_status}
+          isArchived={row?.status === 0}
+          isUpdatingBridge={false}
+          isEmbedUser={isEmbedUser}
+          orgId={resolvedParams.org_id}
+          onClose={handlePortalCloseImmediate}
+          onSetSelectedAgent={(agent) => {
+            setSelectedAgentForAccess(agent);
+          }}
+          handlePortalOpen={handlePortalOpen}
+          handlePortalCloseImmediate={handlePortalCloseImmediate}
+          showDeleteAgentOption={showDeleteAgentOption}
+          onDelete={() => {
+            handlePortalCloseImmediate();
+            setItemToDelete(row);
+            setTimeout(() => openModal(MODAL_TYPE.DELETE_MODAL), 10);
+          }}
+        />
+        <div className="divider my-1"></div>
+        <div className={`dropdown dropdown-hover dropdown-left ${isNearBottom ? "dropdown-top" : ""} w-full`}>
+          <label
+            tabIndex={0}
+            data-testid="agent-move-to-folder-dropdown"
+            className="w-full px-4 py-2 text-left text-sm hover:bg-base-200 flex items-center justify-between cursor-pointer"
+          >
+            <div className="flex items-center gap-2 text-base-content">
+              <Folder size={14} className="text-base-content/70" />
+              <span>Move to Folder</span>
             </div>
+          </label>
+          <div
+            tabIndex={0}
+            className={`dropdown-content z-[100] ${isNearBottom ? "bottom-0 top-auto pb-2" : "top-0 bottom-auto pt-2"} right-full pr-2`}
+          >
+            <MoveToFolderMenu
+              folders={folders}
+              currentFolderId={row.folder_id}
+              onMove={(folderId) => {
+                moveResource(row._id, folderId);
+                handlePortalCloseImmediate();
+              }}
+            />
           </div>
         </div>
-      );
+      </div>
+    );
 
-      handlePortalOpen(e.currentTarget, dropdownContent);
-    };
+    handlePortalOpen(e.currentTarget, dropdownContent);
+  };
 
+  const EndComponent = ({ row }) => {
     return (
       <div className="flex items-center gap-2">
         <div className="flex items-center mr-4 text-sm">
@@ -1172,7 +1212,7 @@ function Home({ params, searchParams, isEmbedUser }) {
               role="button"
               data-testid={`agent-action-dropdown-btn-${row._id}`}
               className="hover:bg-base-200 rounded-lg p-3 cursor-pointer"
-              onClick={handleDropdownClick}
+              onClick={(e) => openRowMenu(e, row)}
             >
               <EllipsisIcon className="rotate-90" size={16} />
             </div>
@@ -1244,155 +1284,205 @@ function Home({ params, searchParams, isEmbedUser }) {
               flagKey={"bridgeCreation"}
             />
           )}
-          <CreateNewBridge orgid={resolvedParams.org_id} defaultBridgeType="trigger" />
+          <CreateRangerModal orgId={resolvedParams.org_id} />
           {!typeFilteredBridges.length && isLoading && <LoadingSpinner />}
           <input autoComplete="off" id="my-drawer-2" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content flex flex-col items-start justify-start">
             <div className="flex w-full justify-start gap-4 lg:gap-16 items-start">
               <div className="w-full">
-                {typeFilteredBridges.length === 0 ? (
-                  <AgentEmptyState
-                    orgid={resolvedParams.org_id}
-                    isEmbedUser={isEmbedUser}
-                    defaultBridgeType="trigger"
-                    title={pageHeaderContent.title}
-                    description={pageHeaderContent.description}
-                    docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
-                  />
-                ) : (
-                  <div className="flex flex-col lg:mx-0">
-                    <div className="px-2 pt-4">
-                      <MainLayout>
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between w-full ">
-                          <PageHeader
-                            title={pageHeaderContent.title}
-                            description={pageHeaderContent.description}
-                            docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
-                            isEmbedUser={isEmbedUser}
-                          />
-                        </div>
-                      </MainLayout>
-
-                      <div className="flex flex-row flex-wrap gap-4 pb-3 items-center">
-                        {allBridges.length > 5 && (
-                          <SearchItems data={allBridges} setFilterItems={setFilterBridges} item="Agents" />
-                        )}
-                        <div className="flex items-center gap-2 ml-2">
-                          <button
-                            type="button"
-                            data-testid="agents-usage-filter-button"
-                            className="cursor-pointer rounded-full border-2 border-stroke bg-card px-[14px] py-[7px] font-mono text-[11.5px] text-ink flex items-center gap-1.5"
-                            onClick={handleUsageFilterDropdownClick}
-                          >
-                            <Funnel size={13} />
-                            <span>Usage filter ·</span>
-                            <span>{isUsageFilterActive ? usageFilterLabel || "last 24h" : "last 24h"}</span>
-                          </button>
-
-                          <button
-                            data-testid="create-new-agent-button"
-                            className="cursor-pointer rounded-full border-2 border-stroke bg-acc px-4 py-2 text-[13.5px] font-bold text-acc-ink"
-                            onClick={() => openModal(MODAL_TYPE?.CREATE_BRIDGE_MODAL)}
-                          >
-                            + Create new agent
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    {!isEmbedUser && (
-                      <FolderTabs
-                        folders={folders}
-                        resourceType="agent"
-                        onCreateFolder={createFolder}
-                        onRenameFolder={renameFolder}
-                        onDeleteFolder={deleteFolder}
-                        onMoveResource={moveResource}
-                        showTrashTab={true}
-                        deletedCount={DeletedBridges?.length || 0}
-                        folderCounts={folderCounts}
-                      />
-                    )}
-
-                    {activeFolderId !== "trash" && (
-                      <div className="w-full overflow-visible">
-                        <CustomTable
-                          data={displayedUnArchivedBridges}
-                          // draggableRows={true}
-                          // onDragStart={(row) => setDraggedResourceId(row._id)}
-                          onDragEnd={() => setDraggedResourceId(null)}
-                          columnsToShow={[
-                            "name",
-                            "promptDetails",
-                            "cost",
-                            "totalTokens",
-                            "agent_limit",
-                            "last_used",
-                            "created_by",
-                            "updated_by",
-                          ]}
-                          sorting
-                          sortingColumns={[
-                            "name",
-                            "cost",
-                            "totalTokens",
-                            "agent_limit",
-                            "last_used",
-                            "created_by",
-                            "updated_by",
-                          ]}
-                          handleRowClick={(props) => onClickConfigure(props?._id, props?.versionId, props?.bridgeType)}
-                          handleRowHover={handleRowHover}
-                          keysToExtractOnRowClick={["_id", "versionId"]}
-                          keysToWrap={["name", "model"]}
-                          endComponent={EndComponent}
-                          onUsageFilterClick={handleUsageFilterIconClick}
-                          isUsageFilterActive={isUsageFilterActive}
-                          usageFilterLabel={usageFilterLabel}
-                          usageFilterIsLoading={isUsageFilterSubmitting}
-                          customGetColumnLabel={getColumnLabel}
-                          customCellRenderers={customCellRenderers}
+                <div className="flex flex-col lg:mx-0">
+                  <div className="px-2 pt-4">
+                    <MainLayout>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between w-full ">
+                        <PageHeader
+                          title={pageHeaderContent.title}
+                          description={pageHeaderContent.description}
+                          docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
+                          isEmbedUser={isEmbedUser}
                         />
                       </div>
-                    )}
+                    </MainLayout>
 
-                    {displayedDeletedBridges?.length > 0 && (
-                      <div className="">
-                        <div className="opacity-60 overflow-visible">
-                          <CustomTable
-                            data={displayedDeletedBridges}
-                            columnsToShow={[
-                              "name",
-                              "promptDetails",
-                              "cost",
-                              "totalTokens",
-                              "agent_limit",
-                              "last_used",
-                              "created_by",
-                              "updated_by",
-                            ]}
-                            sorting
-                            sortingColumns={[
-                              "name",
-                              "cost",
-                              "totalTokens",
-                              "agent_limit",
-                              "last_used",
-                              "created_by",
-                              "updated_by",
-                              "created_at",
-                              "updated_at",
-                            ]}
-                            keysToWrap={["name", "model"]}
-                            endComponent={DeletedEndComponent}
-                            isUsageFilterActive={isUsageFilterActive}
-                            customGetColumnLabel={getColumnLabel}
-                            customCellRenderers={customCellRenderers}
-                          />
+                    <div className="pb-3">
+                      <RangerTabs activeTab={activeTab} onChange={handleTabChange} />
+                    </div>
+                  </div>
+
+                  {activeTab === RANGER_TAB_KEYS.COMMAND ? (
+                    <div className="px-2">
+                      <CommandCenterTab orgId={resolvedParams.org_id} agents={allBridges} />
+                    </div>
+                  ) : typeFilteredBridges.length === 0 ? (
+                    <AgentEmptyState
+                      orgid={resolvedParams.org_id}
+                      isEmbedUser={isEmbedUser}
+                      defaultBridgeType="trigger"
+                      title={pageHeaderContent.title}
+                      description={pageHeaderContent.description}
+                      docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
+                      hideHeader
+                    />
+                  ) : (
+                    <>
+                      <div className="px-2">
+                        <div className="flex flex-row flex-wrap gap-4 pb-3 items-center">
+                          {allBridges.length > 5 && (
+                            <SearchItems data={allBridges} setFilterItems={setFilterBridges} item="Agents" />
+                          )}
+                          <div className="flex items-center gap-2 ml-2">
+                            <div className="flex items-center rounded-full border-2 border-stroke bg-card p-[3px]">
+                              <button
+                                type="button"
+                                aria-label="Card view"
+                                aria-pressed={viewMode === "grid"}
+                                data-testid="ranger-view-grid"
+                                onClick={() => handleViewModeChange("grid")}
+                                className={`rounded-full p-[5px] ${viewMode === "grid" ? "bg-acc text-acc-ink" : "text-soft"}`}
+                              >
+                                <LayoutGrid size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Table view"
+                                aria-pressed={viewMode === "list"}
+                                data-testid="ranger-view-list"
+                                onClick={() => handleViewModeChange("list")}
+                                className={`rounded-full p-[5px] ${viewMode === "list" ? "bg-acc text-acc-ink" : "text-soft"}`}
+                              >
+                                <Rows3 size={13} />
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              data-testid="agents-usage-filter-button"
+                              className="cursor-pointer rounded-full border-2 border-stroke bg-card px-[14px] py-[7px] font-mono text-[11.5px] text-ink flex items-center gap-1.5"
+                              onClick={handleUsageFilterDropdownClick}
+                            >
+                              <Funnel size={13} />
+                              <span>Usage filter ·</span>
+                              <span>{isUsageFilterActive ? usageFilterLabel || "last 24h" : "last 24h"}</span>
+                            </button>
+
+                            <button
+                              data-testid="create-new-agent-button"
+                              className="cursor-pointer rounded-full border-2 border-stroke bg-acc px-4 py-2 text-[13.5px] font-bold text-acc-ink"
+                              onClick={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
+                            >
+                              + Create Ranger
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
-                )}
+                      {!isEmbedUser && (
+                        <FolderTabs
+                          folders={folders}
+                          resourceType="agent"
+                          onCreateFolder={createFolder}
+                          onRenameFolder={renameFolder}
+                          onDeleteFolder={deleteFolder}
+                          onMoveResource={moveResource}
+                          showTrashTab={true}
+                          deletedCount={DeletedBridges?.length || 0}
+                          folderCounts={folderCounts}
+                        />
+                      )}
+
+                      {activeFolderId !== "trash" &&
+                        (viewMode === "grid" ? (
+                          <RangerGrid
+                            rows={displayedUnArchivedBridges}
+                            rawById={rawBridgeById}
+                            loadingAgentId={loadingAgentId}
+                            isReadOnly={isEmbedUser}
+                            onOpen={(row) => onClickConfigure(row?._id, row?.versionId, row?.bridgeType)}
+                            onHover={handleRowHover}
+                            onMenuClick={openRowMenu}
+                            onCreate={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
+                          />
+                        ) : (
+                          <div className="w-full overflow-visible">
+                            <CustomTable
+                              data={displayedUnArchivedBridges}
+                              // draggableRows={true}
+                              // onDragStart={(row) => setDraggedResourceId(row._id)}
+                              onDragEnd={() => setDraggedResourceId(null)}
+                              columnsToShow={[
+                                "name",
+                                "promptDetails",
+                                "cost",
+                                "totalTokens",
+                                "agent_limit",
+                                "last_used",
+                                "created_by",
+                                "updated_by",
+                              ]}
+                              sorting
+                              sortingColumns={[
+                                "name",
+                                "cost",
+                                "totalTokens",
+                                "agent_limit",
+                                "last_used",
+                                "created_by",
+                                "updated_by",
+                              ]}
+                              handleRowClick={(props) =>
+                                onClickConfigure(props?._id, props?.versionId, props?.bridgeType)
+                              }
+                              handleRowHover={handleRowHover}
+                              keysToExtractOnRowClick={["_id", "versionId"]}
+                              keysToWrap={["name", "model"]}
+                              endComponent={EndComponent}
+                              onUsageFilterClick={handleUsageFilterIconClick}
+                              isUsageFilterActive={isUsageFilterActive}
+                              usageFilterLabel={usageFilterLabel}
+                              usageFilterIsLoading={isUsageFilterSubmitting}
+                              customGetColumnLabel={getColumnLabel}
+                              customCellRenderers={customCellRenderers}
+                            />
+                          </div>
+                        ))}
+
+                      {displayedDeletedBridges?.length > 0 && (
+                        <div className="">
+                          <div className="opacity-60 overflow-visible">
+                            <CustomTable
+                              data={displayedDeletedBridges}
+                              columnsToShow={[
+                                "name",
+                                "promptDetails",
+                                "cost",
+                                "totalTokens",
+                                "agent_limit",
+                                "last_used",
+                                "created_by",
+                                "updated_by",
+                              ]}
+                              sorting
+                              sortingColumns={[
+                                "name",
+                                "cost",
+                                "totalTokens",
+                                "agent_limit",
+                                "last_used",
+                                "created_by",
+                                "updated_by",
+                                "created_at",
+                                "updated_at",
+                              ]}
+                              keysToWrap={["name", "model"]}
+                              endComponent={DeletedEndComponent}
+                              isUsageFilterActive={isUsageFilterActive}
+                              customGetColumnLabel={getColumnLabel}
+                              customCellRenderers={customCellRenderers}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
