@@ -33,12 +33,7 @@ const ChannelsStep = ({ form, setChannel, revealed, toggleReveal, errors }) => (
             }`}
           >
             <div className="flex items-center gap-3 px-3 py-2.5">
-              <div
-                className="grid h-8 w-8 flex-none place-items-center rounded-[9px] border-2 border-stroke"
-                style={{ background: `${channel.brand}1F`, color: channel.brand }}
-              >
-                <Icon width={15} height={15} />
-              </div>
+              <Icon size={30} className="flex-none" />
               <div className="min-w-0 flex-1">
                 <div className="text-[13.5px] font-bold text-ink">{channel.label}</div>
                 <div className="text-[11px] text-soft">{channel.blurb}</div>
