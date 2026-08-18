@@ -22,12 +22,7 @@ const ChannelCard = ({ channel, connectedCount = 0, agentNames = [], isLoading =
       }`}
     >
       <div className="flex items-start gap-3">
-        <div
-          className="grid h-9 w-9 flex-none place-items-center rounded-[10px] border-2 border-stroke"
-          style={{ background: `${channel.brand}1F`, color: channel.brand }}
-        >
-          <Icon width={17} height={17} />
-        </div>
+        <Icon size={32} className="flex-none" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[14px] font-bold text-ink">{channel.label}</div>
           <div className="mt-[2px] text-[11.5px] leading-snug text-soft">{channel.blurb}</div>
