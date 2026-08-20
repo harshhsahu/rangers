@@ -139,7 +139,7 @@ const ThemedSelect = ({
         }`}
       >
         <span className={`min-w-0 flex-1 truncate ${selected ? "capitalize text-base-content" : "text-soft"}`}>
-          {selected ? selected.label ?? selected.value : placeholder}
+          {selected ? (selected.label ?? selected.value) : placeholder}
         </span>
         <ChevronDown size={15} className={`flex-none text-soft transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>

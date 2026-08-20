@@ -10,7 +10,7 @@ import { CircleQuestionMark, Pencil } from "lucide-react";
 import { TONES } from "@/components/rangers/rangerConstants";
 import ThemedSelect from "@/components/UI/ThemedSelect";
 
-/** "{}" is the stored shape for "no tone"; "custom" opens the free-text modal. */
+/** An empty object is the stored shape for "no tone"; "custom" opens the free-text modal. */
 const TONE_OPTIONS = [
   { value: "{}", label: "None" },
   ...TONES.map((tone) => ({ value: tone.value, label: tone.value })),
