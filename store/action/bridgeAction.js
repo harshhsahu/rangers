@@ -89,8 +89,24 @@ function waitForAgentCreateRtResult() {
   });
 }
 
-async function finishCreateBridgeWithAi(dispatch, orgId, agent) {
-  const data = { data: { success: true, agent }, status: 200, statusText: "OK" };
+/** Pull agent + prompt from the create-agent HTTP body (flag:true sync path). */
+function extractAgentAndPromptFromHttpBody(body) {
+  if (!body || typeof body !== "object") return { agent: null, prompt: null };
+
+  const nested = body.data && typeof body.data === "object" ? body.data : null;
+  const agent = body.agent || nested?.agent || (body._id ? body : null) || (nested?._id ? nested : null) || null;
+
+  // flag:true returns the generated prompt as an object on the agent's
+  // configuration; the other spots are older/RT-style shapes.
+  const prompt = agent?.configuration?.prompt ?? body.prompt ?? nested?.prompt ?? agent?.prompt ?? null;
+  return { agent, prompt };
+}
+
+async function finishCreateBridgeWithAi(dispatch, orgId, payload) {
+  // HTTP flag:true and RT detail both normalize to { agent, prompt }.
+  const agent = payload?.agent || payload;
+  const prompt = payload?.prompt;
+  const data = { data: { success: true, agent, prompt }, status: 200, statusText: "OK" };
   dispatch(createBridgeReducer({ data, orgId }));
   await dispatch(getAllFunctions());
   return data;
@@ -172,9 +188,10 @@ export const createBridgeAction = (dataToSend, onSuccess) => async (dispatch, ge
 
     // Check if backend returned 202 (RT layer response)
     if (response?.status === 202 || response?.data?.accepted) {
-      const agent = await rtPromise;
+      const rtResult = await rtPromise;
+      const agent = rtResult?.agent || rtResult;
       const serializableData = {
-        data: { success: true, agent },
+        data: { success: true, agent, prompt: rtResult?.prompt },
         status: 200,
         statusText: "OK",
       };
@@ -221,20 +238,28 @@ export const createBridgeWithAiAction =
     try {
       dispatch(clearPreviousBridgeDataReducer());
 
-      // Always expect RT layer response now (backend always returns 202)
-      const rtPromise = waitForAgentCreateRtResult();
       const response = await createBridge(dataToSend);
+      const body = response?.data;
 
-      if (response?.status === 202 || response?.data?.accepted) {
-        const agent = await rtPromise;
-        return finishCreateBridgeWithAi(dispatch, orgId, agent);
+      // flag:true → synchronous HTTP response that includes the generated prompt.
+      // Do not wait on the RT layer for this path.
+      if (dataToSend?.flag) {
+        const { agent, prompt } = extractAgentAndPromptFromHttpBody(body);
+        if (!agent?._id) {
+          throw new Error("Agent creation did not return an agent in the HTTP response.");
+        }
+        return finishCreateBridgeWithAi(dispatch, orgId, { agent, prompt });
       }
 
-      // Fallback for direct response (backward compatibility)
-      const data = response;
-      dispatch(createBridgeReducer({ data, orgId: orgId }));
-      await dispatch(getAllFunctions());
-      return data;
+      // Legacy async path (202 + RT)
+      const rtPromise = waitForAgentCreateRtResult();
+      if (response?.status === 202 || body?.accepted) {
+        const rtResult = await rtPromise;
+        return finishCreateBridgeWithAi(dispatch, orgId, rtResult);
+      }
+
+      const { agent, prompt } = extractAgentAndPromptFromHttpBody(body);
+      return finishCreateBridgeWithAi(dispatch, orgId, { agent, prompt });
     } catch (error) {
       if (error?.response?.data?.message?.includes("duplicate key")) {
         console.error("Agent Name can't be duplicate fallBack to manual bridge creation");

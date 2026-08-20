@@ -7,11 +7,12 @@ import PromptTab from "./sections/PromptTab";
 import ModelTab from "./sections/ModelTab";
 import ConnectorsTab from "./sections/ConnectorsTab";
 import MemoryTab from "./sections/MemoryTab";
+import RangerSetupSections from "./sections/RangerSetupSections";
 import { SparklesIcon, BotIcon, LinkIcon, BrainIcon } from "@/components/Icons";
 import { useConfigurationContext } from "./ConfigurationContext";
 
 const NonImageModelConfig = memo(() => {
-  const { isPublished, uiState, currentView, isEmbedUser, modelType } = useConfigurationContext();
+  const { isPublished, uiState, currentView, isEmbedUser, isRanger, modelType } = useConfigurationContext();
   const searchParams = useSearchParams();
 
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || (modelType === "image" ? "model" : "prompt"));
@@ -58,6 +59,19 @@ const NonImageModelConfig = memo(() => {
 
   // Hide tabs when prompt helper is open
   const shouldHideTabs = uiState?.isPromptHelperOpen;
+
+  if (isRanger) {
+    return (
+      <div data-testid="ranger-single-page-config" className="space-y-4 pb-8">
+        <div className="sticky top-0 z-10 -mx-4 border-b-2 border-stroke bg-base-200/95 px-4 py-3 backdrop-blur">
+          <h2 className="text-base font-semibold text-base-content">Agent setup</h2>
+          <p className="mt-0.5 text-xs text-soft">Open a section to edit its options.</p>
+        </div>
+
+        <RangerSetupSections />
+      </div>
+    );
+  }
 
   return <TabsLayout tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} hideTabs={shouldHideTabs} />;
 });

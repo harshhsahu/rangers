@@ -20,10 +20,12 @@ const InputSection = memo(() => {
     isPublished,
     isEditor,
     promptResetKey,
+    isRanger,
   } = useConfigurationContext();
   return (
     <>
-      {!uiState?.isPromptHelperOpen && ((showPreTool && isEmbedUser) || !isEmbedUser) && (
+      {/* Rangers keep the prompt to the prompt — no pre functions. */}
+      {!isRanger && !uiState?.isPromptHelperOpen && ((showPreTool && isEmbedUser) || !isEmbedUser) && (
         <div
           data-testid="input-section-pre-embed-wrapper"
           id="input-section-pre-embed-wrapper"

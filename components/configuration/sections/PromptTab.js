@@ -11,7 +11,7 @@ import Protected from "@/components/Protected";
 import UnsupportedFeatureOverlay from "../UnsupportedFeatureOverlay";
 
 const PromptTab = ({ isPublished, isEmbedUser }) => {
-  const { params, searchParams, isEditor, validationConfig, bridgeType, modelType, showConfigType } =
+  const { params, searchParams, isEditor, validationConfig, bridgeType, modelType, showConfigType, isRanger } =
     useConfigurationContext();
   const { showAdvancedParameters } = useCustomSelector((state) => ({
     showAdvancedParameters: state.appInfoReducer.embedUserDetails.showAdvancedParameters,
@@ -19,13 +19,19 @@ const PromptTab = ({ isPublished, isEmbedUser }) => {
 
   // Check if system_prompt is supported by the current model
   const isPromptSupported = validationConfig?.system_prompt !== false;
-  const shouldShowTriggers = useMemo(() => bridgeType === "trigger" && !isEmbedUser, [bridgeType, isEmbedUser]);
+  // Rangers manage triggers from their own Channels section, so the prompt omits them.
+  const shouldShowTriggers = useMemo(
+    () => bridgeType === "trigger" && !isEmbedUser && !isRanger,
+    [bridgeType, isEmbedUser, isRanger]
+  );
+  // Rangers pick their type during creation, so the single-page setup view omits it.
   const shouldShowAgentType = useMemo(
     () =>
+      !isRanger &&
       ((isEmbedUser && showConfigType) || !isEmbedUser) &&
       bridgeType?.toString()?.toLowerCase() !== "chatbot" &&
       modelType !== "image",
-    [isEmbedUser, showConfigType, bridgeType, modelType]
+    [isRanger, isEmbedUser, showConfigType, bridgeType, modelType]
   );
   const isReadOnly = isPublished || !isEditor;
 

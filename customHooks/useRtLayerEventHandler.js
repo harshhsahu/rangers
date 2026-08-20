@@ -52,7 +52,13 @@ function handleOrgRtChannelMessage(parsedData, dispatch, orgId) {
 
 function handleAgentCreateRtMessage(parsedData) {
   if (parsedData?.type === "agent_created" && parsedData.agent) {
-    window.dispatchEvent(new CustomEvent("gtwy:agent-created", { detail: parsedData.agent }));
+    // Keep the sibling `prompt` object — AI create returns it alongside the agent
+    // and the ranger wizard uses it to autofill the Prompt step.
+    window.dispatchEvent(
+      new CustomEvent("gtwy:agent-created", {
+        detail: { agent: parsedData.agent, prompt: parsedData.prompt },
+      })
+    );
     return;
   }
   if (parsedData?.type === "agent_create_failed") {

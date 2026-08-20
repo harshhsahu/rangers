@@ -1,7 +1,7 @@
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
 import { MODAL_TYPE, AUTO_MODEL_TRADEOFF_OPTIONS } from "@/utils/enums";
-import { openModal, closeModal } from "@/utils/utility";
+import { closeModal, getIconOfService, openModal } from "@/utils/utility";
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { createPortal } from "react-dom";
@@ -262,15 +262,17 @@ const ModelDropdown = ({
 
         const displayName = modelConfig?.value || modelName;
 
-        const displayLabel =
-          modelName === "gpt-5-nano" && bridgeType === "chatbot" ? (
-            <div className="flex items-center gap-2">
-              <span>{displayName}</span>
+        const displayLabel = (
+          <div className="flex items-center gap-2">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+              {getIconOfService(service, 16, 16)}
+            </span>
+            <span>{displayName}</span>
+            {modelName === "gpt-5-nano" && bridgeType === "chatbot" && (
               <span className="badge badge-success badge-sm text-xs">FREE</span>
-            </div>
-          ) : (
-            displayName
-          );
+            )}
+          </div>
+        );
 
         opts.push({
           value: modelName,

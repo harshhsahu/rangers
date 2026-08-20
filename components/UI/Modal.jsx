@@ -9,6 +9,7 @@ const Modal = ({
   description,
   icon,
   widthClass = "w-[min(720px,92vw)]",
+  bodyClassName = "",
   footer,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -80,6 +81,7 @@ const Modal = ({
         >
           <div
             id={`${MODAL_ID}-container`}
+            data-modal-container
             className={`relative flex ${widthClass} max-h-[88vh] flex-col overflow-hidden rounded-xl border-2 border-stroke shadow-2xl animate-scaleIn`}
             style={{ background: "var(--ai-config-container-bg)" }}
             onClick={(e) => e.stopPropagation()}
@@ -108,7 +110,7 @@ const Modal = ({
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-5">{children}</div>
+            <div className={`flex-1 overflow-y-auto p-5 ${bodyClassName}`}>{children}</div>
 
             {/* Static Footer */}
             {footer && (

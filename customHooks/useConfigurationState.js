@@ -19,6 +19,7 @@ export const useConfigurationState = (params, searchParams) => {
 
     return {
       bridgeType: state?.bridgeReducer?.allBridgesMap?.[params?.id]?.bridgeType?.trim()?.toLowerCase() || "api",
+      isRanger: Boolean(bridgeDataFromState?.meta?.ranger),
       modelType: isPublished
         ? bridgeDataFromState?.configuration?.type?.toLowerCase()
         : versionData?.configuration?.type?.toLowerCase(),

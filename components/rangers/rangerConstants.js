@@ -278,18 +278,60 @@ Rules:
 /** Chip key -> template, for applying a template by key. */
 export const getPromptTemplate = (key) => PROMPT_TEMPLATES.find((template) => template.key === key);
 
+/**
+ * The create-agent response returns `configuration.prompt` as a structured
+ * object rather than a string. Keys mirror the backend exactly — `instruction`
+ * is singular there even though it reads as "Instructions" in the UI.
+ */
+export const PROMPT_PART_FIELDS = [
+  { key: "role", label: "Role" },
+  { key: "goal", label: "Goal" },
+  { key: "instruction", label: "Instructions" },
+];
+
+/** Structured prompt object -> {role, goal, instruction}, or null when it isn't one. */
+export const parsePromptParts = (prompt) => {
+  if (!prompt || typeof prompt !== "object" || Array.isArray(prompt)) return null;
+  const hasAnyPart = PROMPT_PART_FIELDS.some(({ key }) => typeof prompt[key] === "string" && prompt[key].trim());
+  if (!hasAnyPart) return null;
+
+  return PROMPT_PART_FIELDS.reduce((acc, { key }) => {
+    acc[key] = typeof prompt[key] === "string" ? prompt[key] : "";
+    return acc;
+  }, {});
+};
+
+/** Flattens the parts into the single string used for validation and preview. */
+export const combinePromptParts = (parts) => {
+  if (!parts) return "";
+  return PROMPT_PART_FIELDS.map(({ key, label }) => {
+    const value = (parts[key] || "").trim();
+    return value ? `${label}:\n${value}` : "";
+  })
+    .filter(Boolean)
+    .join("\n\n");
+};
+
 export const GUIDED_STEPS = [
   { key: "identity", label: "Identity" },
   { key: "channels", label: "Channels" },
   { key: "model", label: "Model" },
   { key: "prompt", label: "Prompt" },
+  { key: "connectors", label: "Connectors" },
   { key: "review", label: "Review" },
 ];
 
-/** AI mode skips Model and Prompt — the AI writes both. */
+/**
+ * AI mode walks the same steps as guided setup. The agent is created when
+ * Identity is submitted, so Model and Prompt open pre-filled with what the AI
+ * wrote and stay editable before publishing.
+ */
 export const AI_STEPS = [
   { key: "identity", label: "Identity" },
   { key: "channels", label: "Channels" },
+  { key: "model", label: "Model" },
+  { key: "prompt", label: "Prompt" },
+  { key: "connectors", label: "Connectors" },
   { key: "review", label: "Review" },
 ];
 
