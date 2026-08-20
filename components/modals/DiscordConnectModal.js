@@ -152,10 +152,10 @@ const DiscordConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDe
               <span className="text-sm font-medium">Connection</span>
               <span
                 className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  channel?.discord?.gatewayConnected ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100"
+                  isConnected ? "text-green-700 bg-green-100" : "text-yellow-700 bg-yellow-100"
                 }`}
               >
-                {channel?.discord?.gatewayConnected ? "Gateway active" : "Saved"}
+                {isConnected ? "Active" : "Saved"}
               </span>
             </div>
             <p className="text-xs text-base-content/60">

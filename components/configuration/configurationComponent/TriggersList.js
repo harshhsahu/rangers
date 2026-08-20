@@ -241,10 +241,10 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
                   </div>
                   <span
                     className={`ml-auto shrink-0 inline-block rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${
-                      channelDoc.discord.gatewayConnected ? "bg-acc text-acc-ink" : "bg-cool text-ink"
+                      hasDiscord ? "bg-acc text-acc-ink" : "bg-cool text-ink"
                     }`}
                   >
-                    {channelDoc.discord.gatewayConnected ? "Active" : "Saved"}
+                    {hasDiscord ? "Active" : "Saved"}
                   </span>
                 </div>
               )}

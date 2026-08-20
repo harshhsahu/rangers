@@ -51,7 +51,6 @@ export async function POST(request) {
 
     const discord = {
       botToken: encryptedToken,
-      gatewayConnected: false,
       ...(existing?.discord?.chatThreads ? { chatThreads: existing.discord.chatThreads } : {}),
     };
 
@@ -79,17 +78,9 @@ export async function POST(request) {
         tag: started?.tag || null,
         message: started?.ok ? "Discord Gateway connected" : "Failed to connect Gateway",
       };
-      await collection.updateOne(
-        { version_id },
-        { $set: { "discord.gatewayConnected": gateway.connected, updated_at: new Date() } }
-      );
     } catch (err) {
       gateway = { connected: false, message: err?.message || String(err) };
       console.error("[discord] setup start failed", gateway.message);
-      await collection.updateOne(
-        { version_id },
-        { $set: { "discord.gatewayConnected": false, updated_at: new Date() } }
-      );
     }
 
     // Best-effort slash-command registration (do not fail setup)
