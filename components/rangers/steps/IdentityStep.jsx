@@ -79,39 +79,35 @@ const IdentityStep = ({ form, update, nameError, isAiMode }) => (
       <label className="label" htmlFor="ranger-desc">
         <span className="label-text">Short Description</span>
       </label>
-      <input
-        autoComplete="off"
-        id="ranger-desc"
-        data-testid="ranger-description-input"
-        type="text"
-        placeholder="What this ranger is responsible for"
-        className="input input-bordered input-sm w-full"
-        value={form.description}
-        onChange={(event) => update({ description: event.target.value })}
-      />
-    </div>
-
-    {isAiMode && (
-      <div className="form-control mt-3">
-        <label className="label" htmlFor="ranger-purpose">
-          <span className="label-text">What should it do?</span>
-        </label>
-        <textarea
-          id="ranger-purpose"
-          data-testid="ranger-purpose-input"
-          placeholder="e.g. Handle customer support for our billing and account questions, and hand off to a human when unsure."
-          className="textarea textarea-bordered min-h-[110px] w-full text-[13px]"
-          maxLength={300}
-          value={form.purpose}
-          onChange={(event) => update({ purpose: event.target.value })}
+      {isAiMode ? (
+        <>
+          <textarea
+            id="ranger-desc"
+            data-testid="ranger-description-input"
+            placeholder="What this ranger is responsible for"
+            className="textarea textarea-bordered min-h-[110px] w-full text-[13px]"
+            maxLength={300}
+            value={form.description}
+            onChange={(event) => update({ description: event.target.value })}
+          />
+          <span className="mt-1 text-right font-mono text-[10.5px] text-soft">{form.description.length}/300</span>
+          <p className="text-[11px] leading-relaxed text-soft">
+            Sent as the agent purpose. The returned prompt autofills the Prompt step so you can edit before publishing.
+          </p>
+        </>
+      ) : (
+        <input
+          autoComplete="off"
+          id="ranger-desc"
+          data-testid="ranger-description-input"
+          type="text"
+          placeholder="What this ranger is responsible for"
+          className="input input-bordered input-sm w-full"
+          value={form.description}
+          onChange={(event) => update({ description: event.target.value })}
         />
-        <span className="mt-1 text-right font-mono text-[10.5px] text-soft">{form.purpose.length}/300</span>
-        <p className="text-[11px] leading-relaxed text-soft">
-          The AI drafts the system prompt, model and settings from this description. You can fine-tune everything
-          afterwards from the ranger&apos;s configure page.
-        </p>
-      </div>
-    )}
+      )}
+    </div>
   </div>
 );
 

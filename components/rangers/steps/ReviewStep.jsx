@@ -30,8 +30,17 @@ const Row = ({ label, children }) => (
   </div>
 );
 
-const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, isAiMode }) => {
+const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, connectedTools = {}, isAiMode }) => {
   const apikeys = useCustomSelector((state) => state?.apiKeysReducer?.apikeys?.[orgId] || []);
+  const functionData = useCustomSelector((state) => state?.bridgeReducer?.org?.[orgId]?.functionData || {});
+
+  const connectorNames = useMemo(
+    () =>
+      Object.keys(connectedTools).map(
+        (id) => functionData?.[id]?.title || functionData?.[id]?.script_id || "Connector"
+      ),
+    [connectedTools, functionData]
+  );
 
   const hasApiKeyForService = useMemo(
     () => apikeys.some((apiKey) => apiKey?.service === form.service),
@@ -88,6 +97,23 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, isAiM
             </div>
           ) : (
             <em className="text-soft">None — it will run without a channel until you add one.</em>
+          )}
+        </Row>
+
+        <Row label="Connectors">
+          {connectorNames.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              {connectorNames.map((name) => (
+                <span
+                  key={name}
+                  className="inline-flex items-center rounded-full border-[1.5px] border-line px-2.5 py-[3px] font-mono text-[10px] text-ink"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <em className="text-soft">None</em>
           )}
         </Row>
 

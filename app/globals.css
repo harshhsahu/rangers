@@ -656,6 +656,36 @@ body {
   /* Firefox */
 }
 
+/* Opt back in to a visible scrollbar — :root hides them everywhere by default,
+   which leaves scrollable panels looking like they end where they are cut off. */
+.scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: var(--stroke) transparent;
+  -ms-overflow-style: auto;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  display: block;
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: var(--stroke);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: var(--soft);
+  background-clip: content-box;
+}
+
 html {
   scroll-behavior: smooth;
 }

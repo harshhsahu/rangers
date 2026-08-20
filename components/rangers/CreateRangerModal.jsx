@@ -12,6 +12,7 @@ import IdentityStep from "./steps/IdentityStep";
 import ChannelsStep from "./steps/ChannelsStep";
 import ModelStep from "./steps/ModelStep";
 import PromptStep from "./steps/PromptStep";
+import ConnectorsStep from "./steps/ConnectorsStep";
 import ReviewStep from "./steps/ReviewStep";
 import useCreateRanger from "./useCreateRanger";
 import {
@@ -31,7 +32,6 @@ const buildInitialForm = () => ({
   name: "",
   role: "",
   description: "",
-  purpose: "",
   color: DEFAULT_RANGER_COLOR,
   channels: RANGER_CHANNELS.reduce((acc, channel) => {
     acc[channel.key] = { enabled: false, credentials: {} };
@@ -43,6 +43,8 @@ const buildInitialForm = () => ({
   temperatureParam: null,
   creativity: DEFAULT_CREATIVITY,
   prompt: "",
+  // Set once the create response returns a structured {role, goal, instruction} prompt.
+  promptParts: null,
   tone: "",
 });
 
@@ -88,7 +90,20 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     (state?.bridgeReducer?.org?.[orgId]?.orgs || []).map((bridge) => (bridge?.name || "").trim().toLowerCase())
   );
 
-  const { deploy, reset, phase, error, channelWarnings, created } = useCreateRanger({
+  const {
+    createFromIdentity,
+    connectChannel,
+    connectTool,
+    connectedTools,
+    saveTone,
+    deploy,
+    reset,
+    phase,
+    error,
+    channelWarnings,
+    created,
+    connectedChannels,
+  } = useCreateRanger({
     orgId,
     folderId,
     onDeployed,
@@ -171,13 +186,15 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   const canContinue = useMemo(() => {
     switch (currentStep?.key) {
       case "identity":
-        return form.name.trim().length > 1 && !nameError && (!isAiMode || form.purpose.trim().length > 5);
+        return form.name.trim().length > 1 && !nameError && (!isAiMode || form.description.trim().length > 5);
       case "channels":
         return true;
       case "model":
         return Boolean(form.service && form.model);
       case "prompt":
         return form.prompt.trim().length > 10;
+      case "connectors":
+        return true;
       case "review":
         return true;
       default:
@@ -188,7 +205,9 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   const hint = useMemo(() => {
     switch (currentStep?.key) {
       case "identity":
-        return canContinue ? "" : isAiMode ? "Name and a short description are required." : "Give the ranger a name.";
+        if (error) return error;
+        if (phase === DEPLOY_PHASES.CREATING) return "Creating the ranger...";
+        return canContinue ? "" : isAiMode ? "Name and a description are required." : "Give the ranger a name.";
       case "channels": {
         const count = CONNECTABLE_CHANNELS.filter((channel) => form.channels?.[channel.key]?.enabled).length;
         return count ? `${count} channel${count > 1 ? "s" : ""} selected.` : "No channels. You can add them later.";
@@ -197,20 +216,51 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
         return "You can change the model later without redeploying.";
       case "prompt":
         return canContinue ? `${form.prompt.trim().split(/\s+/).length} words` : "Write a system prompt to continue.";
+      case "connectors": {
+        const count = Object.keys(connectedTools).length;
+        return count ? `${count} connector${count > 1 ? "s" : ""} attached.` : "No connectors. That is fine.";
+      }
       case "review":
         return isDeploying ? "Deploying — don't close this window." : "Publishing adds this ranger to the roster.";
       default:
         return "";
     }
-  }, [canContinue, currentStep?.key, form.channels, form.prompt, isAiMode, isDeploying]);
+  }, [canContinue, connectedTools, currentStep?.key, error, form.channels, form.prompt, isAiMode, isDeploying, phase]);
 
   const goNext = async () => {
+    if (currentStep?.key === "identity") {
+      const result = await createFromIdentity(form);
+      if (!result?.success) return;
+      // Autofill Prompt from the create response's prompt object when present.
+      if (result.promptParts) update({ prompt: result.prompt, promptParts: result.promptParts });
+      else if (result.prompt) update({ prompt: result.prompt });
+    }
     if (currentStep?.key === "channels" && !validateChannels()) return;
     if (currentStep?.key === "review") {
       await deploy(form);
       return;
     }
     setStepIndex((prev) => Math.min(steps.length - 1, prev + 1));
+  };
+
+  // Tone is saved as soon as it is picked, not held back until publish.
+  const handleToneChange = async (tone) => {
+    update({ tone });
+    await saveTone(tone);
+  };
+
+  const handleConnectChannel = async (channelKey, credentials) => {
+    const result = await connectChannel(channelKey, credentials);
+    if (!result?.success) {
+      setChannelErrors((prev) => ({
+        ...prev,
+        [channelKey]: result?.message || "Failed to connect.",
+      }));
+    } else {
+      setChannelErrors((prev) => ({ ...prev, [channelKey]: "" }));
+      setChannel(channelKey, { enabled: true, credentials });
+    }
+    return result;
   };
 
   const goBack = () => {
@@ -252,7 +302,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
             {isDeploying ? (
               <>
                 <span className="loading loading-spinner loading-xs" />
-                Deploying...
+                {phase === DEPLOY_PHASES.CREATING ? "Creating..." : "Deploying..."}
               </>
             ) : currentStep?.key === "review" ? (
               <>
@@ -277,7 +327,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
         form.mode
           ? isAiMode
             ? "Describe it and the AI assembles the rest"
-            : "Five steps to a live ranger"
+            : "Six steps to a live ranger"
           : "Pick how you want to build it"
       }
       icon={<Sparkles size={16} className="text-trace-gold" />}
@@ -306,7 +356,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
             testId="ranger-mode-ai"
             icon={<Sparkles size={19} />}
             title="Build with AI"
-            badge="Fastest"
+            badge="Beta"
             blurb="Describe what you need and the AI drafts the prompt, model and settings."
             bullets={[
               "One short description in plain language",
@@ -336,10 +386,22 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               revealed={revealed}
               toggleReveal={toggleReveal}
               errors={channelErrors}
+              connectedChannels={connectedChannels}
+              onConnectChannel={handleConnectChannel}
             />
           )}
           {currentStep?.key === "model" && <ModelStep form={form} update={update} orgId={orgId} />}
-          {currentStep?.key === "prompt" && <PromptStep form={form} update={update} />}
+          {currentStep?.key === "prompt" && (
+            <PromptStep form={form} update={update} isAiMode={isAiMode} onToneChange={handleToneChange} />
+          )}
+          {currentStep?.key === "connectors" && (
+            <ConnectorsStep
+              orgId={orgId}
+              connectedTools={connectedTools}
+              onConnectTool={connectTool}
+              canConnect={Boolean(created?.agentId)}
+            />
+          )}
           {currentStep?.key === "review" && (
             <ReviewStep
               form={form}
@@ -348,6 +410,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               error={error}
               channelWarnings={channelWarnings}
               created={created}
+              connectedTools={connectedTools}
               isAiMode={isAiMode}
             />
           )}

@@ -1,25 +1,33 @@
 "use client";
 
 import React from "react";
-import { PROMPT_TEMPLATES, getPromptTemplate, TONES } from "../rangerConstants";
+import { PROMPT_TEMPLATES, TONES, getPromptTemplate } from "../rangerConstants";
 import ThemedSelect from "@/components/UI/ThemedSelect";
 
 /** "None" first, then every tone — the wizard has no custom-tone option. */
 const TONE_OPTIONS = [{ value: "", label: "None" }, ...TONES.map((tone) => ({ value: tone.value, label: tone.value }))];
 
-const PromptStep = ({ form, update }) => {
+const PromptStep = ({ form, update, isAiMode, onToneChange }) => {
   const applyTemplate = (key) => {
     const template = getPromptTemplate(key);
     if (!template) return;
     const text = template.prompt.replace(/\{\{name\}\}/g, form.name?.trim() || "this agent");
-    update({ prompt: text });
+    // A template replaces the generated prompt, so it is no longer structured.
+    update({ prompt: text, promptParts: null });
   };
+
+  // Editing by hand breaks the role/goal/instruction split, so save a plain string.
+  const editPrompt = (value) => update({ prompt: value, promptParts: null });
 
   return (
     <div data-testid="ranger-step-prompt-pane">
       <h3 className="text-[15px] font-bold tracking-[-0.2px] text-base-content">System Prompt</h3>
       <p className="mb-3 mt-1 text-[12.5px] text-soft">
-        The standing instructions. Start from a posting template or write your own.
+        {form.promptParts
+          ? "Autofilled from the created agent — role, goal and instructions. Edit it or start from a template."
+          : isAiMode
+            ? "Autofilled from the create response prompt. Edit it or start from a template."
+            : "The standing instructions. Start from a posting template or write your own."}
       </p>
 
       <div className="mb-2 flex flex-wrap gap-1.5">
@@ -42,9 +50,9 @@ const PromptStep = ({ form, update }) => {
           id="ranger-prompt"
           data-testid="ranger-prompt-input"
           placeholder="You are ..."
-          className="textarea textarea-bordered min-h-[190px] w-full font-mono text-[12.5px] leading-relaxed"
+          className="textarea textarea-bordered min-h-[260px] w-full font-mono text-[12.5px] leading-relaxed"
           value={form.prompt}
-          onChange={(event) => update({ prompt: event.target.value })}
+          onChange={(event) => editPrompt(event.target.value)}
         />
         <span className="mt-1 text-right font-mono text-[10.5px] text-soft">{form.prompt.length} characters</span>
       </div>
@@ -57,12 +65,13 @@ const PromptStep = ({ form, update }) => {
           id="ranger-tone"
           testId="ranger-tone"
           value={form.tone}
-          onChange={(tone) => update({ tone })}
+          onChange={(tone) => (onToneChange ? onToneChange(tone) : update({ tone }))}
           options={TONE_OPTIONS}
           placeholder="Select a tone"
         />
         <p className="mt-1 text-[11px] leading-relaxed text-soft">
-          Layers a tone instruction on top of the prompt. Change it any time from the ranger&apos;s settings.
+          Layers a tone instruction on top of the prompt and saves right away. Change it any time from the ranger&apos;s
+          settings.
         </p>
       </div>
     </div>

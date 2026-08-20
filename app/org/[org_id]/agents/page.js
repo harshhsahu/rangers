@@ -1284,7 +1284,12 @@ function Home({ params, searchParams, isEmbedUser }) {
               flagKey={"bridgeCreation"}
             />
           )}
-          <CreateRangerModal orgId={resolvedParams.org_id} />
+          <CreateRangerModal
+            orgId={resolvedParams.org_id}
+            onDeployed={({ agentId, versionId }) => {
+              router.push(`/org/${resolvedParams.org_id}/agents/configure/${agentId}?version=${versionId}&type=api`);
+            }}
+          />
           {!typeFilteredBridges.length && isLoading && <LoadingSpinner />}
           <input autoComplete="off" id="my-drawer-2" type="checkbox" className="drawer-toggle" />
           <div className="drawer-content flex flex-col items-start justify-start">
