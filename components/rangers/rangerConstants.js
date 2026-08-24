@@ -321,13 +321,7 @@ export const GUIDED_STEPS = [
   { key: "review", label: "Review" },
 ];
 
-/**
- * AI mode skips the guided steps entirely: a chat with the GTWY builder
- * agent (see AiBuildChatPanel) collects name/purpose/channels/tone/model/
- * connectors/prompt in conversation, "Morph & Deploy" maps that into the
- * same form shape the guided wizard produces, and Review/publish is reused
- * unchanged from there.
- */
+/** AI mode is just a chat (AiBuildChatPanel) that maps into the same form Review/Publish uses. */
 export const AI_STEPS = [
   { key: "chat", label: "Chat" },
   { key: "review", label: "Review" },

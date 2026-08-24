@@ -53,7 +53,7 @@ const buildInitialForm = () => ({
   // Set once the create response returns a structured {role, goal, instruction} prompt.
   promptParts: null,
   tone: "",
-  // Free-text connector ask collected by the "Build with AI" chat — display-only, see aiChatConstants.mapDraftConfigToForm.
+  // Free-text ask from chat — display-only, see aiChatConstants.js.
   connectorNotes: "",
 });
 
@@ -267,8 +267,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
       else if (result.prompt) update({ prompt: result.prompt });
     }
     if (currentStep?.key === "chat") {
-      // "Morph & Deploy" — hand the chat's collected fields to the same
-      // form the guided wizard produces; Review/Publish is reused as-is.
+      // Morph & Deploy: hand chat's fields to the same form Guided Setup uses.
       update(mapDraftConfigToForm(aiDraftConfig, form));
     }
     if (currentStep?.key === "channels" && !validateChannels()) return;
@@ -423,7 +422,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
             </div>
           )}
 
-          {/* Kept mounted (just hidden) while on Review, so going Back preserves the conversation and thread_id. */}
+          {/* Hidden, not unmounted, so Back preserves the chat history. */}
           {isAiMode && (
             <div className={currentStep?.key === "chat" ? "" : "hidden"}>
               <AiBuildChatPanel

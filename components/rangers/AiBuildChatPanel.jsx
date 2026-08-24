@@ -15,15 +15,7 @@ const nextMessageId = () => {
   return `msg-${messageSeq}`;
 };
 
-/**
- * Chat surface for the "Build with AI" ranger wizard. Talks to a thin
- * server-side proxy in front of the GTWY chat completion API, so the real
- * pauthkey never reaches the browser.
- *
- * draftConfig is lifted to the parent (CreateRangerModal) because the
- * "Morph & Deploy" gate and the eventual form mapping both live there;
- * messages, input and the suggestion chips all stay local to this panel.
- */
+/** Chat UI for "Build with AI". draftConfig is lifted to the parent (gates Morph & Deploy); messages/input stay local. */
 const AiBuildChatPanel = ({ threadId, draftConfig, onDraftConfigChange }) => {
   const [messages, setMessages] = useState(() => [{ id: nextMessageId(), role: "agent", text: AI_CHAT_GREETING }]);
   const [input, setInput] = useState("");

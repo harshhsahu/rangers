@@ -3,17 +3,9 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 /**
- * Server-side proxy for the "Build with AI" ranger wizard chat.
- *
- * The GTWY agent behind this feature (GTWY_RANGER_BUILDER_AGENT_ID) is
- * configured on the platform with a strict json_schema response format —
- * {response, draft_config} — so the request itself carries no schema, only
- * the running thread_id and the user's latest message. `response_type` is
- * deliberately omitted: per the chat/completion API, the response is JSON by
- * default, which is what lets the agent's own schema drive the shape below.
- *
- * Kept server-side because the pauthkey is a real secret — unlike the
- * NEXT_PUBLIC_* host vars, it must never reach the browser bundle.
+ * Server-side proxy for the "Build with AI" chat — keeps pauthkey off the
+ * client. response_type is omitted on purpose: the completion API returns
+ * JSON by default, letting the agent's own json_schema drive the shape.
  */
 export async function POST(request) {
   try {
@@ -81,13 +73,7 @@ export async function POST(request) {
   }
 }
 
-/**
- * The completion envelope varies by deployment (seen here as
- * `response.data.content`, `data.content` or a bare `content`/`response`
- * string) — mirrors lib/gtwyChannelHelpers.js's extractAssistantText. The
- * payload inside is the agent's structured `{response, draft_config}` object,
- * either already parsed or JSON-encoded as text.
- */
+/** Mirrors gtwyChannelHelpers.extractAssistantText — the envelope shape varies by deployment. */
 function extractStructuredReply(gtwyResponse) {
   const content =
     gtwyResponse?.response?.data?.content ??

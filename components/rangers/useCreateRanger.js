@@ -408,10 +408,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       let agentId = createdRef.current?.agentId;
       let versionId = createdRef.current?.versionId;
       let createdService = createdRef.current?.service;
-      // When the form reaches here with no prompt (the AI chat lets a person
-      // skip it), the create call below asks the backend to write one from
-      // `purpose` — captured here so configure publishes that prompt instead
-      // of overwriting it with the empty string still sitting in `form`.
+      // Captures a backend-generated prompt when form.prompt is empty (chat lets it be skipped).
       let effectiveForm = form;
 
       try {
@@ -457,9 +454,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         hydratedVersionRef.current = versionId;
 
         // ---- configure ----
-        // Runs for AI mode too: the Prompt step is seeded with the AI draft but
-        // stays editable, so the form — not the create response — is final,
-        // except for the backend-generated fallback captured above.
+        // Runs for AI mode too: the form (or the fallback above) is final, not the create response.
         safeSet(setPhase, DEPLOY_PHASES.CONFIGURING);
         await runConfigure(effectiveForm, { agentId, versionId, createdService });
 

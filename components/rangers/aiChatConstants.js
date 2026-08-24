@@ -1,10 +1,6 @@
 import { CONNECTABLE_CHANNELS, TONES } from "./rangerConstants";
 
-/**
- * Shape returned by the "Build with AI" chat agent on every turn (see
- * app/api/ranger-ai/chat/route.js) — each field carries its own fill status
- * so the sidebar and the "ready to deploy" gate don't have to guess.
- */
+/** Shape the chat agent returns every turn — each field tracks its own fill status. */
 const emptyField = () => ({ status: "pending", value: "" });
 
 export const buildInitialDraftConfig = () => ({
@@ -50,12 +46,7 @@ export const draftFieldDisplay = (draftConfig, key) => {
   return isFilled(field) ? field.value.trim() : null;
 };
 
-/**
- * Name and purpose are the only hard requirements. A skipped prompt is not a
- * blocker — deploy() (useCreateRanger.js) asks the create-agent API to write
- * one from `purpose` when the form still has none, the same generation the
- * old one-shot "Build with AI" flow relied on.
- */
+/** Only name + purpose are required — a skipped prompt is auto-generated at deploy (useCreateRanger.js). */
 export const isDraftReadyToDeploy = (draftConfig) =>
   Boolean(draftConfig) && isFilled(draftConfig.name) && isFilled(draftConfig.purpose);
 
@@ -75,14 +66,7 @@ const matchTone = (value) => {
   return TONES.find((tone) => tone.value === normalized)?.value || "";
 };
 
-/**
- * Maps the chat agent's draft_config onto the wizard's form shape so
- * "Morph & Deploy" can hand off into the same Review/Publish flow the guided
- * setup uses (useCreateRanger.deploy). Only fields we can map with
- * confidence are carried over — an unrecognised channel or tone is left
- * blank rather than guessed, since a wrong guess (e.g. an invalid model id)
- * can fail the provider call downstream.
- */
+/** Maps draft_config onto the wizard's form. Unrecognised values are left blank, never guessed. */
 export const mapDraftConfigToForm = (draftConfig, baseForm) => {
   const patch = {
     name: draftConfig?.name?.value?.trim() || baseForm.name,
@@ -103,8 +87,7 @@ export const mapDraftConfigToForm = (draftConfig, baseForm) => {
     };
   }
 
-  // Free-text connector ask from the chat — not a real function_id, so Review
-  // surfaces it as a note rather than wiring it into connectedTools.
+  // Free-text ask, not a real function_id — shown as a note, not wired up.
   const connectorNote = draftFieldDisplay(draftConfig, "connectors");
   if (connectorNote) patch.connectorNotes = connectorNote;
 
