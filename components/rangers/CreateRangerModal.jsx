@@ -14,6 +14,7 @@ import ModelStep from "./steps/ModelStep";
 import PromptStep from "./steps/PromptStep";
 import ConnectorsStep from "./steps/ConnectorsStep";
 import ReviewStep from "./steps/ReviewStep";
+import AiBuildChatPanel from "./AiBuildChatPanel";
 import useCreateRanger from "./useCreateRanger";
 import {
   AI_STEPS,
@@ -24,6 +25,12 @@ import {
   GUIDED_STEPS,
   RANGER_CHANNELS,
 } from "./rangerConstants";
+import {
+  buildInitialDraftConfig,
+  draftFieldDisplay,
+  isDraftReadyToDeploy,
+  mapDraftConfigToForm,
+} from "./aiChatConstants";
 
 const INVALID_FOLDER_IDS = new Set(["uncategorized", "trash", "null"]);
 
@@ -46,6 +53,8 @@ const buildInitialForm = () => ({
   // Set once the create response returns a structured {role, goal, instruction} prompt.
   promptParts: null,
   tone: "",
+  // Free-text connector ask collected by the "Build with AI" chat — display-only, see aiChatConstants.mapDraftConfigToForm.
+  connectorNotes: "",
 });
 
 const ModeCard = ({ icon, title, blurb, bullets, badge, onClick, testId }) => (
@@ -81,6 +90,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   const [stepIndex, setStepIndex] = useState(0);
   const [revealed, setRevealed] = useState({});
   const [channelErrors, setChannelErrors] = useState({});
+  const [aiThreadId, setAiThreadId] = useState(null);
+  const [aiDraftConfig, setAiDraftConfig] = useState(buildInitialDraftConfig);
 
   const folderContext = useContext(FolderContext);
   const activeFolderId = folderContext?.activeFolderId;
@@ -137,6 +148,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     setStepIndex(0);
     setRevealed({});
     setChannelErrors({});
+    setAiThreadId(null);
+    setAiDraftConfig(buildInitialDraftConfig());
     reset();
   }, [reset]);
 
@@ -187,6 +200,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     switch (currentStep?.key) {
       case "identity":
         return form.name.trim().length > 1 && !nameError && (!isAiMode || form.description.trim().length > 5);
+      case "chat":
+        return isDraftReadyToDeploy(aiDraftConfig);
       case "channels":
         return true;
       case "model":
@@ -200,7 +215,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
       default:
         return false;
     }
-  }, [currentStep?.key, form, isAiMode, nameError]);
+  }, [aiDraftConfig, currentStep?.key, form, isAiMode, nameError]);
 
   const hint = useMemo(() => {
     switch (currentStep?.key) {
@@ -208,6 +223,11 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
         if (error) return error;
         if (phase === DEPLOY_PHASES.CREATING) return "Creating the ranger...";
         return canContinue ? "" : isAiMode ? "Name and a description are required." : "Give the ranger a name.";
+      case "chat":
+        if (!canContinue) return "Name and purpose are required before you can deploy.";
+        return draftFieldDisplay(aiDraftConfig, "prompt")
+          ? "I will draft the model and config from your answers."
+          : "No prompt yet — one will be generated automatically from the purpose when you deploy.";
       case "channels": {
         const count = CONNECTABLE_CHANNELS.filter((channel) => form.channels?.[channel.key]?.enabled).length;
         return count ? `${count} channel${count > 1 ? "s" : ""} selected.` : "No channels. You can add them later.";
@@ -225,7 +245,18 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
       default:
         return "";
     }
-  }, [canContinue, connectedTools, currentStep?.key, error, form.channels, form.prompt, isAiMode, isDeploying, phase]);
+  }, [
+    aiDraftConfig,
+    canContinue,
+    connectedTools,
+    currentStep?.key,
+    error,
+    form.channels,
+    form.prompt,
+    isAiMode,
+    isDeploying,
+    phase,
+  ]);
 
   const goNext = async () => {
     if (currentStep?.key === "identity") {
@@ -234,6 +265,11 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
       // Autofill Prompt from the create response's prompt object when present.
       if (result.promptParts) update({ prompt: result.prompt, promptParts: result.promptParts });
       else if (result.prompt) update({ prompt: result.prompt });
+    }
+    if (currentStep?.key === "chat") {
+      // "Morph & Deploy" — hand the chat's collected fields to the same
+      // form the guided wizard produces; Review/Publish is reused as-is.
+      update(mapDraftConfigToForm(aiDraftConfig, form));
     }
     if (currentStep?.key === "channels" && !validateChannels()) return;
     if (currentStep?.key === "review") {
@@ -309,6 +345,11 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
                 <Zap size={14} />
                 {hasFailed ? "Retry" : "Publish Ranger"}
               </>
+            ) : currentStep?.key === "chat" ? (
+              <>
+                <Sparkles size={14} />
+                Morph &amp; Deploy
+              </>
             ) : (
               "Continue"
             )}
@@ -326,12 +367,14 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
       description={
         form.mode
           ? isAiMode
-            ? "Describe it and the AI assembles the rest"
+            ? currentStep?.key === "chat"
+              ? "Answer a few questions and I will assemble the ranger"
+              : "Review what the chat assembled, then publish"
             : "Six steps to a live ranger"
           : "Pick how you want to build it"
       }
       icon={<Sparkles size={16} className="text-trace-gold" />}
-      widthClass="w-[min(860px,94vw)]"
+      widthClass={isAiMode && currentStep?.key === "chat" ? "w-[min(960px,94vw)]" : "w-[min(860px,94vw)]"}
       footer={footer}
     >
       {!form.mode ? (
@@ -367,14 +410,29 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
             onClick={() => {
               update({ mode: "ai" });
               setStepIndex(0);
+              setAiThreadId(crypto.randomUUID());
+              setAiDraftConfig(buildInitialDraftConfig());
             }}
           />
         </div>
       ) : (
         <>
-          <div className="mb-4 border-b-2 border-stroke pb-3">
-            <RangerStepper steps={steps} activeIndex={stepIndex} onStepClick={setStepIndex} />
-          </div>
+          {!isAiMode && (
+            <div className="mb-4 border-b-2 border-stroke pb-3">
+              <RangerStepper steps={steps} activeIndex={stepIndex} onStepClick={setStepIndex} />
+            </div>
+          )}
+
+          {/* Kept mounted (just hidden) while on Review, so going Back preserves the conversation and thread_id. */}
+          {isAiMode && (
+            <div className={currentStep?.key === "chat" ? "" : "hidden"}>
+              <AiBuildChatPanel
+                threadId={aiThreadId}
+                draftConfig={aiDraftConfig}
+                onDraftConfigChange={setAiDraftConfig}
+              />
+            </div>
+          )}
 
           {currentStep?.key === "identity" && (
             <IdentityStep form={form} update={update} nameError={nameError} isAiMode={isAiMode} />

@@ -322,16 +322,14 @@ export const GUIDED_STEPS = [
 ];
 
 /**
- * AI mode walks the same steps as guided setup. The agent is created when
- * Identity is submitted, so Model and Prompt open pre-filled with what the AI
- * wrote and stay editable before publishing.
+ * AI mode skips the guided steps entirely: a chat with the GTWY builder
+ * agent (see AiBuildChatPanel) collects name/purpose/channels/tone/model/
+ * connectors/prompt in conversation, "Morph & Deploy" maps that into the
+ * same form shape the guided wizard produces, and Review/publish is reused
+ * unchanged from there.
  */
 export const AI_STEPS = [
-  { key: "identity", label: "Identity" },
-  { key: "channels", label: "Channels" },
-  { key: "model", label: "Model" },
-  { key: "prompt", label: "Prompt" },
-  { key: "connectors", label: "Connectors" },
+  { key: "chat", label: "Chat" },
   { key: "review", label: "Review" },
 ];
 

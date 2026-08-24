@@ -408,12 +408,17 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       let agentId = createdRef.current?.agentId;
       let versionId = createdRef.current?.versionId;
       let createdService = createdRef.current?.service;
+      // When the form reaches here with no prompt (the AI chat lets a person
+      // skip it), the create call below asks the backend to write one from
+      // `purpose` — captured here so configure publishes that prompt instead
+      // of overwriting it with the empty string still sitting in `form`.
+      let effectiveForm = form;
 
       try {
         // ---- create (skipped on retry) ----
         if (!agentId) {
           safeSet(setPhase, DEPLOY_PHASES.CREATING);
-          const { agent } = await runCreate(form);
+          const { agent, prompt, promptParts } = await runCreate(form);
           if (!agent?._id) throw new Error("Agent creation did not return an agent.");
           agentId = agent._id;
           versionId = agent.versions?.[0];
@@ -421,6 +426,10 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           if (!versionId) throw new Error("Agent was created without a version.");
           createdRef.current = { agentId, versionId, service: createdService };
           safeSet(setCreated, { agentId, versionId, name: form.name.trim() });
+
+          if (!form.prompt?.trim() && (prompt || promptParts)) {
+            effectiveForm = { ...form, prompt: prompt || "", promptParts: promptParts || null };
+          }
 
           // Backend may drop `meta` on create; make sure the ranger data lands.
           if (!agent?.meta?.ranger) {
@@ -449,13 +458,14 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
         // ---- configure ----
         // Runs for AI mode too: the Prompt step is seeded with the AI draft but
-        // stays editable, so the form — not the create response — is final.
+        // stays editable, so the form — not the create response — is final,
+        // except for the backend-generated fallback captured above.
         safeSet(setPhase, DEPLOY_PHASES.CONFIGURING);
-        await runConfigure(form, { agentId, versionId, createdService });
+        await runConfigure(effectiveForm, { agentId, versionId, createdService });
 
         // ---- channels (non-fatal) ----
         safeSet(setPhase, DEPLOY_PHASES.CHANNELS);
-        const warnings = await runChannels(form, { agentId, versionId });
+        const warnings = await runChannels(effectiveForm, { agentId, versionId });
         safeSet(setChannelWarnings, warnings);
         warnings.forEach((warning) => toast.warning(`${warning.channel}: ${warning.message}`));
 
