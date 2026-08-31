@@ -8,6 +8,7 @@ const Modal = ({
   title,
   description,
   icon,
+  headerRight,
   widthClass = "w-[min(720px,92vw)]",
   bodyClassName = "",
   footer,
@@ -98,15 +99,18 @@ const Modal = ({
                   {description && <p className="text-xs text-base-content/70 mt-0.5">{description}</p>}
                 </div>
               </div>
-              <button
-                type="button"
-                data-testid={MODAL_ID ? `${MODAL_ID}-close-button` : "modal-close-button"}
-                data-test-id={MODAL_ID ? `${MODAL_ID}-close-button` : "modal-close-button"}
-                className="rounded-md p-1.5 text-base-content/60 transition-colors hover:bg-base-content/10 hover:text-base-content"
-                onClick={handleClose}
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                {headerRight}
+                <button
+                  type="button"
+                  data-testid={MODAL_ID ? `${MODAL_ID}-close-button` : "modal-close-button"}
+                  data-test-id={MODAL_ID ? `${MODAL_ID}-close-button` : "modal-close-button"}
+                  className="rounded-md p-1.5 text-base-content/60 transition-colors hover:bg-base-content/10 hover:text-base-content"
+                  onClick={handleClose}
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Content */}
