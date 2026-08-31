@@ -321,17 +321,9 @@ export const GUIDED_STEPS = [
   { key: "review", label: "Review" },
 ];
 
-/**
- * AI mode walks the same steps as guided setup. The agent is created when
- * Identity is submitted, so Model and Prompt open pre-filled with what the AI
- * wrote and stay editable before publishing.
- */
+/** AI mode is just a chat (AiBuildChatPanel) that maps into the same form Review/Publish uses. */
 export const AI_STEPS = [
-  { key: "identity", label: "Identity" },
-  { key: "channels", label: "Channels" },
-  { key: "model", label: "Model" },
-  { key: "prompt", label: "Prompt" },
-  { key: "connectors", label: "Connectors" },
+  { key: "chat", label: "Chat" },
   { key: "review", label: "Review" },
 ];
 

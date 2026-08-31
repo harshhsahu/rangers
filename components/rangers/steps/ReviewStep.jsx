@@ -112,40 +112,39 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
                 </span>
               ))}
             </div>
+          ) : form.connectorNotes ? (
+            <span className="text-soft">
+              {form.connectorNotes}{" "}
+              <span className="italic">— from chat, not yet connected. Attach it from the Configure page.</span>
+            </span>
           ) : (
             <em className="text-soft">None</em>
           )}
         </Row>
 
-        {isAiMode ? (
-          <Row label="Model &amp; Prompt">
-            <span className="text-soft">Drafted by AI from your description.</span>
-          </Row>
-        ) : (
-          <>
-            <Row label="Model">
-              <span className="font-mono text-[12px]">{form.model || "—"}</span>
-              {creativity && (
-                <span className="text-soft">
-                  {" · "}
-                  {creativity.label}
-                  {temperature !== null ? ` (temp ${temperature})` : ""}
-                </span>
-              )}
-            </Row>
-            <Row label="Tone">
-              {form.tone ? <span className="capitalize">{form.tone}</span> : <em className="text-soft">None</em>}
-            </Row>
-            <Row label="System Prompt">
-              <pre className="max-h-[130px] overflow-auto whitespace-pre-wrap rounded-[9px] bg-base-200 p-2.5 font-mono text-[11.5px] leading-relaxed text-soft">
-                {form.prompt?.trim() || "(empty)"}
-              </pre>
-            </Row>
-          </>
-        )}
+        <Row label="Model">
+          <span className="font-mono text-[12px]">{form.model || "—"}</span>
+          {!isAiMode && creativity && (
+            <span className="text-soft">
+              {" · "}
+              {creativity.label}
+              {temperature !== null ? ` (temp ${temperature})` : ""}
+            </span>
+          )}
+          {isAiMode && <span className="text-soft"> · chosen by AI, editable after publish</span>}
+        </Row>
+        <Row label="Tone">
+          {form.tone ? <span className="capitalize">{form.tone}</span> : <em className="text-soft">None</em>}
+        </Row>
+        <Row label={isAiMode ? "Prompt" : "System Prompt"}>
+          <pre className="max-h-[130px] overflow-auto whitespace-pre-wrap rounded-[9px] bg-base-200 p-2.5 font-mono text-[11.5px] leading-relaxed text-soft">
+            {form.prompt?.trim() ||
+              (isAiMode ? "Not written yet — generated automatically when you publish." : "(empty)")}
+          </pre>
+        </Row>
       </div>
 
-      {!isAiMode && form.service && !hasApiKeyForService && (
+      {form.service && !hasApiKeyForService && (
         <div className="mt-3 flex items-start gap-2 rounded-[12px] border-2 border-warning/40 bg-warning/10 p-3">
           <AlertTriangle size={15} className="mt-[2px] shrink-0 text-warning" />
           <div className="text-[11.5px] leading-relaxed text-base-content">
