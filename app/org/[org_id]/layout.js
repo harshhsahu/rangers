@@ -198,12 +198,12 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
     updateUserMeta();
   }, []);
 
+  // The tool builder (window.openViasocket) is reachable from anywhere in the
+  // org — agents, tools, and the Ranger modal — so the script loads on every
+  // org route rather than an allow-list of paths. /alerts is the one page that
+  // swaps in the alerting token instead.
   useEmbedScriptLoader(
-    pathName.includes("agents") || pathName.includes("integration") || pathName.includes("tools")
-      ? embedToken
-      : pathName.includes("alerts") && !isEmbedUser
-        ? alertingEmbedToken
-        : "",
+    pathName.includes("alerts") && !isEmbedUser ? alertingEmbedToken : embedToken,
     isEmbedUser,
     false
   );

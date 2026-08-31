@@ -1,5 +1,6 @@
 import axios from "axios";
 import { clearCookie, getFromCookies, setInCookies } from "./utility";
+import { isCurrentRoutePublic } from "./publicRoutes";
 export const rawAxios = axios.create();
 
 /**
@@ -48,6 +49,11 @@ axios.interceptors.response.use(
   async function (error) {
     if (error?.response?.status === 401) {
       clearCookie();
+      // On public pages (landing, login) a 401 just means "not signed in".
+      // Leave the visitor where they are; they choose when to go to /login.
+      if (isCurrentRoutePublic()) {
+        return Promise.reject(error);
+      }
       const isEmbedContext =
         window.location.pathname.includes("/embed") ||
         sessionStorage.getItem("embedUser") === "true" ||

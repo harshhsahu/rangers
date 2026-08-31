@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+/** The published "Build with AI" ranger-builder agent. */
+const RANGER_BUILDER_AGENT_ID = "6a881574306498162b09a296";
+
 /**
  * Server-side proxy for the "Build with AI" chat — keeps pauthkey off the
  * client. response_type is omitted on purpose: the completion API returns
@@ -21,19 +24,17 @@ export async function POST(request) {
     }
 
     const pythonUrl = (process.env.NEXT_PUBLIC_PYTHON_SERVER_URL || "").replace(/\/$/, "");
-    const pauthkey = process.env.GTWY_RANGER_BUILDER_PAUTHKEY;
-    const agentId = process.env.GTWY_RANGER_BUILDER_AGENT_ID;
+    const pauthkey = process.env.GTWY_PAUTH_KEY;
 
     if (!pythonUrl) throw new Error("NEXT_PUBLIC_PYTHON_SERVER_URL is not set");
-    if (!pauthkey) throw new Error("GTWY_RANGER_BUILDER_PAUTHKEY is not set");
-    if (!agentId) throw new Error("GTWY_RANGER_BUILDER_AGENT_ID is not set");
+    if (!pauthkey) throw new Error("GTWY_PAUTH_KEY is not set");
 
     const upstream = await fetch(`${pythonUrl}/api/v2/model/chat/completion`, {
       method: "POST",
       headers: { "Content-Type": "application/json", pauthkey },
       body: JSON.stringify({
         user: message,
-        agent_id: agentId,
+        agent_id: RANGER_BUILDER_AGENT_ID,
         thread_id: threadId,
         variables: {},
       }),

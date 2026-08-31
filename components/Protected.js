@@ -3,6 +3,7 @@
 
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getFromCookies } from "@/utils/utility";
+import { isCurrentRoutePublic } from "@/utils/publicRoutes";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 const Protected = (WrappedComponent) => {
@@ -15,6 +16,8 @@ const Protected = (WrappedComponent) => {
     }));
     useEffect(() => {
       const timer = setTimeout(() => {
+        // Public pages stay put for logged-out visitors.
+        if (isCurrentRoutePublic()) return;
         if (
           typeof window !== "undefined" &&
           !getFromCookies("proxy_token") &&

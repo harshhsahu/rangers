@@ -65,6 +65,10 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
   // Bumping this tears the builder down and opens a fresh one in the box.
   const [reloadKey, setReloadKey] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [embedError, setEmbedError] = useState(null);
+  // Set by the ref callback below, so the open effect runs only once the target
+  // box is actually in the DOM (it is rendered conditionally).
+  const [embedHost, setEmbedHost] = useState(null);
 
   const { embedToken, functionData, integrationData } = useCustomSelector((state) => {
     const orgData = state?.bridgeReducer?.org?.[orgId] || {};
@@ -79,39 +83,69 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
     if (Object.keys(functionData).length === 0) dispatch(getAllFunctions());
   }, [dispatch, functionData]);
 
-  // The builder opens with the step — no button.
+  // The builder opens with the step — no button. Both the embed token and the
+  // script-provided window.openViasocket arrive asynchronously and in no fixed
+  // order, so poll for readiness instead of guessing with a fixed delay.
   useEffect(() => {
     if (!embedToken) return undefined;
 
-    const target = document.getElementById(EMBED_PARENT_ID);
+    const target = embedHost;
     if (!target) return undefined;
 
     const pageContainer = ensurePageContainer();
-    // The org layout already appends this script on /agents.
+    // The org layout appends this on every org route; this covers the case
+    // where the modal is opened before that has finished.
     if (!document.getElementById(EMBED_SCRIPT_ID)) appendEmbedScript(embedToken);
     // The builder renders into its home first, so it cannot stay hidden.
     pageContainer.style.display = "block";
 
+    let cancelled = false;
+    let readyTimer;
     let dockTimer;
-    const openTimer = window.setTimeout(() => {
+
+    // ~15s at 100ms. Generous: the script is fetched over the network and the
+    // user may be on a slow connection.
+    let attemptsLeft = 150;
+
+    const openWhenReady = () => {
+      if (cancelled) return;
+
       if (typeof window.openViasocket !== "function") {
-        console.error("[ConnectorsStep] window.openViasocket is not available");
+        if (attemptsLeft-- <= 0) {
+          setEmbedError("The connector builder could not be loaded. Check your connection and try again.");
+          return;
+        }
+        readyTimer = window.setTimeout(openWhenReady, 100);
         return;
       }
 
+      setEmbedError(null);
       window.openViasocket(undefined, {
         embedToken,
         meta: { type: "tool", createFrom: "Ranger Connectors" },
       });
 
-      dockTimer = window.setTimeout(() => {
+      // The embed injects its wrapper a tick after opening; poll for that too
+      // rather than assuming it lands within a fixed delay.
+      let dockAttempts = 50;
+      const dockWhenPresent = () => {
+        if (cancelled) return;
         const wrapper = document.getElementById(EMBED_WRAPPER_ID);
-        if (wrapper) dockWrapper(wrapper, target);
-      }, 500);
-    }, 100);
+        if (wrapper) {
+          dockWrapper(wrapper, target);
+          return;
+        }
+        if (dockAttempts-- <= 0) return;
+        dockTimer = window.setTimeout(dockWhenPresent, 100);
+      };
+      dockWhenPresent();
+    };
+
+    openWhenReady();
 
     return () => {
-      window.clearTimeout(openTimer);
+      cancelled = true;
+      window.clearTimeout(readyTimer);
       window.clearTimeout(dockTimer);
       try {
         if (typeof window.handleclose === "function") window.handleclose();
@@ -123,10 +157,11 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
       if (wrapper) pageContainer.appendChild(wrapper);
       pageContainer.style.display = "none";
     };
-  }, [embedToken, reloadKey]);
+  }, [embedToken, reloadKey, embedHost]);
 
   // A connector built in the embed only shows up in the list after a refetch.
   const reloadBuilder = () => {
+    setEmbedError(null);
     dispatch(getAllFunctions());
     setReloadKey((key) => key + 1);
   };
@@ -203,9 +238,19 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
         {embedToken ? (
           <div
             id={EMBED_PARENT_ID}
+            ref={setEmbedHost}
             data-testid="ranger-connector-embed-parent"
             className={`relative w-full overflow-hidden bg-base-100 ${isExpanded ? "min-h-0 flex-1" : "h-[26rem]"}`}
-          />
+          >
+            {embedError ? (
+              <div className="absolute inset-0 grid place-items-center gap-2 px-4 text-center">
+                <p className="text-[12px] text-error">{embedError}</p>
+                <button type="button" className="btn btn-xs" onClick={reloadBuilder}>
+                  Retry
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : (
           <div
             className={`grid place-items-center px-4 text-center text-[12px] text-soft ${
