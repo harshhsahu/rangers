@@ -6,6 +6,7 @@ import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
 import { toast } from "react-toastify";
+import { authHeaders } from "@/utils/internalAuth";
 
 /**
  * Connect / manage Telegram bot for an agent version.
@@ -45,7 +46,7 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
     try {
       const res = await fetch("/api/telegram/setup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           botToken: token,
           version_id: versionId,
@@ -82,9 +83,13 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
 
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/telegram/setup?version_id=${encodeURIComponent(versionId)}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/telegram/setup?version_id=${encodeURIComponent(versionId)}${agentId ? `&agent_id=${encodeURIComponent(agentId)}` : ""}`,
+        {
+          method: "DELETE",
+          headers: authHeaders(),
+        }
+      );
       const data = await res.json();
       if (!res.ok || !data?.success) {
         throw new Error(data?.error || "Failed to disconnect Telegram");
@@ -99,7 +104,7 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
     } finally {
       setIsDeleting(false);
     }
-  }, [versionId, onDeleted]);
+  }, [versionId, agentId, onDeleted]);
 
   return (
     <Modal

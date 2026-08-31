@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getChannelDetailsCollection } from "@/lib/mongo";
 import { encryptSecret, maskSecret, decryptSecret } from "@/lib/crypto";
+import { requireAgentAccess, errorResponse } from "@/lib/apiAuth";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,9 @@ function sanitizeChannel(doc) {
 
 /**
  * POST /api/telegram/setup
- * Body: { botToken, version_id, agent_id?, org_id?, commands? }
+ * Headers: Authorization: <GTWY session token>
+ * Body: { botToken, version_id, agent_id, commands? }
+ * org_id comes from the verified agent — it is not read from the body.
  *
  * Webhook URL query params:
  *   - version_id  → agent version this bot is bound to
@@ -37,7 +40,6 @@ export async function POST(request) {
     const botToken = body?.botToken?.trim();
     const version_id = body?.version_id;
     const agent_id = body?.agent_id || null;
-    const org_id = body?.org_id || process.env.ORG_ID || null;
 
     if (!botToken) {
       return NextResponse.json({ success: false, error: "botToken is required" }, { status: 400 });
@@ -51,6 +53,11 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    // Caller must hold a valid GTWY session token and own this agent + version
+    const { orgId } = await requireAgentAccess(request, { agentId: agent_id, versionId: version_id });
+    // org is taken from the verified agent, never from the request body
+    const org_id = orgId || process.env.ORG_ID || null;
 
     const webhookUrl = buildWebhookUrl(version_id);
     const now = new Date();
@@ -147,12 +154,13 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("telegram setup error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return errorResponse(error, "Failed to save Telegram bot");
   }
 }
 
 /**
- * DELETE /api/telegram/setup?version_id=...
+ * DELETE /api/telegram/setup?version_id=...&agent_id=...
+ * Headers: Authorization: <GTWY session token>
  * Clears Telegram webhook + commands (best-effort) and removes only the telegram field
  * (keeps discord on the same channel document if present).
  */
@@ -166,6 +174,11 @@ export async function DELETE(request) {
 
     const collection = await getChannelDetailsCollection();
     const existing = await collection.findOne({ version_id });
+
+    // Authorize before revealing whether a channel exists for this version
+    const agent_id = searchParams.get("agent_id") || existing?.agent_id || null;
+    await requireAgentAccess(request, { agentId: agent_id, versionId: version_id });
+
     if (!existing) {
       return NextResponse.json({ success: false, error: "Channel not found" }, { status: 404 });
     }
@@ -196,6 +209,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true, deleted: 0, unset: "telegram" });
   } catch (error) {
     console.error("telegram setup DELETE error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return errorResponse(error, "Failed to disconnect Telegram");
   }
 }

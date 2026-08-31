@@ -6,6 +6,7 @@ import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
 import { toast } from "react-toastify";
+import { authHeaders } from "@/utils/internalAuth";
 
 /**
  * Connect / manage Discord bot for an agent version (DMs only, v1).
@@ -45,7 +46,7 @@ const DiscordConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDe
     try {
       const res = await fetch("/api/discord/setup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           botToken: token,
           version_id: versionId,
@@ -85,9 +86,13 @@ const DiscordConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDe
 
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/discord/setup?version_id=${encodeURIComponent(versionId)}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/discord/setup?version_id=${encodeURIComponent(versionId)}${agentId ? `&agent_id=${encodeURIComponent(agentId)}` : ""}`,
+        {
+          method: "DELETE",
+          headers: authHeaders(),
+        }
+      );
       const data = await res.json();
       if (!res.ok || !data?.success) {
         throw new Error(data?.error || "Failed to disconnect Discord");
@@ -102,7 +107,7 @@ const DiscordConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDe
     } finally {
       setIsDeleting(false);
     }
-  }, [versionId, onDeleted]);
+  }, [versionId, agentId, onDeleted]);
 
   return (
     <Modal

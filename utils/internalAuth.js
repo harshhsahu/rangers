@@ -14,6 +14,24 @@ export function storeAuthToken(token, { orgId, folderId, userId } = {}) {
   }
 }
 
+/**
+ * GTWY session token used as `Authorization` for GTWY APIs and for our own
+ * authenticated routes (channel setup). Same lookup order as the axios interceptor.
+ */
+export function getStoredAuthToken() {
+  if (typeof sessionStorage !== "undefined") {
+    const fromSession = sessionStorage.getItem("local_token");
+    if (fromSession) return fromSession;
+  }
+  return getFromCookies("local_token");
+}
+
+/** Authorization header for our own authenticated routes; omitted when unknown. */
+export function authHeaders() {
+  const token = getStoredAuthToken();
+  return token ? { Authorization: token } : {};
+}
+
 function getStoredProxyToken() {
   if (typeof sessionStorage !== "undefined") {
     const fromSession = sessionStorage.getItem("proxy_token");

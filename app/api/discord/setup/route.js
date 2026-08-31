@@ -3,6 +3,7 @@ import { getChannelDetailsCollection } from "@/lib/mongo";
 import { encryptSecret, maskSecret, decryptSecret } from "@/lib/crypto";
 import { startDiscordBot, stopDiscordBot } from "@/lib/discordBotManager";
 import { registerDiscordCommands, clearDiscordCommands } from "@/lib/discordCommands";
+import { requireAgentAccess, errorResponse } from "@/lib/apiAuth";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,9 @@ function sanitizeChannel(doc) {
 
 /**
  * POST /api/discord/setup
- * Body: { botToken, version_id, agent_id?, org_id? }
+ * Headers: Authorization: <GTWY session token>
+ * Body: { botToken, version_id, agent_id }
+ * org_id comes from the verified agent — it is not read from the body.
  */
 export async function POST(request) {
   try {
@@ -28,7 +31,6 @@ export async function POST(request) {
     const botToken = body?.botToken?.trim();
     const version_id = body?.version_id;
     const agent_id = body?.agent_id || null;
-    const org_id = body?.org_id || process.env.ORG_ID || null;
 
     if (!botToken) {
       return NextResponse.json({ success: false, error: "botToken is required" }, { status: 400 });
@@ -36,6 +38,11 @@ export async function POST(request) {
     if (!version_id) {
       return NextResponse.json({ success: false, error: "version_id is required" }, { status: 400 });
     }
+
+    // Caller must hold a valid GTWY session token and own this agent + version
+    const { orgId } = await requireAgentAccess(request, { agentId: agent_id, versionId: version_id });
+    // org is taken from the verified agent, never from the request body
+    const org_id = orgId || process.env.ORG_ID || null;
     // Discord bot tokens are typically ~70 chars; reject obvious empties / telegram-style
     if (botToken.length < 50) {
       return NextResponse.json(
@@ -107,12 +114,13 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("discord setup error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return errorResponse(error, "Failed to save Discord bot");
   }
 }
 
 /**
- * DELETE /api/discord/setup?version_id=...
+ * DELETE /api/discord/setup?version_id=...&agent_id=...
+ * Headers: Authorization: <GTWY session token>
  * Removes only the discord field (keeps telegram if present).
  */
 export async function DELETE(request) {
@@ -125,6 +133,11 @@ export async function DELETE(request) {
 
     const collection = await getChannelDetailsCollection();
     const existing = await collection.findOne({ version_id });
+
+    // Authorize before revealing whether a channel exists for this version
+    const agent_id = searchParams.get("agent_id") || existing?.agent_id || null;
+    await requireAgentAccess(request, { agentId: agent_id, versionId: version_id });
+
     if (!existing) {
       return NextResponse.json({ success: false, error: "Channel not found" }, { status: 404 });
     }
@@ -155,6 +168,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true, deleted: 0, unset: "discord" });
   } catch (error) {
     console.error("discord setup DELETE error:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return errorResponse(error, "Failed to disconnect Discord");
   }
 }
