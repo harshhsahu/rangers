@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles, SlidersHorizontal, Zap } from "lucide-react";
+import { AlertTriangle, Sparkles, SlidersHorizontal, Zap } from "lucide-react";
+import { toast } from "react-toastify";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal } from "@/utils/utility";
@@ -106,7 +107,6 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
 
   const {
     createFromIdentity,
-    connectChannel,
     connectTool,
     connectedTools,
     saveTone,
@@ -116,7 +116,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     error,
     channelWarnings,
     created,
-    connectedChannels,
+    identityPhase,
+    identityError,
   } = useCreateRanger({
     orgId,
     folderId,
@@ -133,6 +134,9 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     DEPLOY_PHASES.CHANNELS,
     DEPLOY_PHASES.PUBLISHING,
   ].includes(phase);
+  // Kept separate from isDeploying so it only guards modal-close, never Back/Continue.
+  const isCreatingIdentity = identityPhase === DEPLOY_PHASES.CREATING;
+  const blocksClose = isDeploying || isCreatingIdentity;
 
   const update = useCallback((patch) => setForm((prev) => ({ ...prev, ...patch })), []);
 
@@ -157,19 +161,19 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   }, [reset]);
 
   const handleClose = useCallback(() => {
-    if (isDeploying) return; // never abandon a half-finished deploy
+    if (blocksClose) return; // never abandon a half-finished create/deploy
     closeModal(MODAL_TYPE.CREATE_RANGER_MODAL);
     resetAll();
-  }, [isDeploying, resetAll]);
+  }, [blocksClose, resetAll]);
 
   /**
    * The native ESC path on a <dialog> fires `cancel` then `close`; Modal's
    * `onClose` runs too late to stop it, so intercept `cancel` directly.
-   * The handler reads a ref rather than closing over `isDeploying`, so the
+   * The handler reads a ref rather than closing over `blocksClose`, so the
    * listener can be attached once and still see the current phase.
    */
-  const isDeployingRef = useRef(isDeploying);
-  isDeployingRef.current = isDeploying;
+  const isDeployingRef = useRef(blocksClose);
+  isDeployingRef.current = blocksClose;
   useEffect(() => {
     const dialog = document.getElementById(MODAL_TYPE.CREATE_RANGER_MODAL);
     if (!dialog) return undefined;
@@ -223,8 +227,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   const hint = useMemo(() => {
     switch (currentStep?.key) {
       case "identity":
-        if (error) return error;
-        if (phase === DEPLOY_PHASES.CREATING) return "Creating the ranger...";
+        if (identityError) return identityError;
+        if (isCreatingIdentity) return "Creating the ranger...";
         return canContinue ? "" : isAiMode ? "Name and a description are required." : "Give the ranger a name.";
       case "chat":
         if (!canContinue) return "Name and purpose are required before you can deploy.";
@@ -253,21 +257,28 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     canContinue,
     connectedTools,
     currentStep?.key,
-    error,
+    identityError,
+    isCreatingIdentity,
     form.channels,
     form.prompt,
     isAiMode,
     isDeploying,
-    phase,
   ]);
 
   const goNext = async () => {
     if (currentStep?.key === "identity") {
-      const result = await createFromIdentity(form);
-      if (!result?.success) return;
-      // Autofill Prompt from the create response's prompt object when present.
-      if (result.promptParts) update({ prompt: result.prompt, promptParts: result.promptParts });
-      else if (result.prompt) update({ prompt: result.prompt });
+      // Fire the create in the background and move on immediately — the corner badge tracks it, deploy() waits for it later.
+      createFromIdentity(form).then((result) => {
+        if (!result?.success) {
+          toast.error(result?.message || "Failed to create the ranger. It will retry when you publish.");
+          return;
+        }
+        // Autofill Prompt from the create response's prompt object when present.
+        if (result.promptParts) update({ prompt: result.prompt, promptParts: result.promptParts });
+        else if (result.prompt) update({ prompt: result.prompt });
+      });
+      setStepIndex((prev) => Math.min(steps.length - 1, prev + 1));
+      return;
     }
     if (currentStep?.key === "chat") {
       // Morph & Deploy: hand chat's fields to the same form Guided Setup uses.
@@ -285,20 +296,6 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   const handleToneChange = async (tone) => {
     update({ tone });
     await saveTone(tone);
-  };
-
-  const handleConnectChannel = async (channelKey, credentials) => {
-    const result = await connectChannel(channelKey, credentials);
-    if (!result?.success) {
-      setChannelErrors((prev) => ({
-        ...prev,
-        [channelKey]: result?.message || "Failed to connect.",
-      }));
-    } else {
-      setChannelErrors((prev) => ({ ...prev, [channelKey]: "" }));
-      setChannel(channelKey, { enabled: true, credentials });
-    }
-    return result;
   };
 
   const goBack = () => {
@@ -376,6 +373,27 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
           : "Pick how you want to build it"
       }
       icon={<Sparkles size={16} className="text-trace-gold" />}
+      headerRight={
+        // Shown on every step so the badge tracks Identity's create wherever the user has navigated to.
+        isCreatingIdentity ? (
+          <span
+            className="flex items-center gap-1.5 rounded-full border-2 border-stroke bg-cool px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-soft"
+            data-testid="ranger-identity-creating-badge"
+          >
+            <span className="loading loading-spinner loading-xs" />
+            Creating agent...
+          </span>
+        ) : identityPhase === DEPLOY_PHASES.FAILED ? (
+          <span
+            className="flex items-center gap-1.5 rounded-full border-2 border-error/40 bg-error/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-error"
+            data-testid="ranger-identity-failed-badge"
+            title={identityError}
+          >
+            <AlertTriangle size={12} />
+            Retry on publish
+          </span>
+        ) : null
+      }
       widthClass={isAiMode && currentStep?.key === "chat" ? "w-[min(960px,94vw)]" : "w-[min(860px,94vw)]"}
       footer={footer}
     >
@@ -446,8 +464,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               revealed={revealed}
               toggleReveal={toggleReveal}
               errors={channelErrors}
-              connectedChannels={connectedChannels}
-              onConnectChannel={handleConnectChannel}
+              deferred
+              footnote="Channels are validated now and connected automatically when you publish."
             />
           )}
           {currentStep?.key === "model" && <ModelStep form={form} update={update} orgId={orgId} />}

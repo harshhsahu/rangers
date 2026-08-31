@@ -65,9 +65,9 @@ const Page = () => {
       <header className="sticky top-0 z-40 flex items-center justify-between gap-6 border-b-2 border-stroke bg-paper px-6 py-4 md:px-9">
         <div className="flex items-center gap-3">
           <div className="grid h-[30px] w-[30px] place-items-center rounded-[9px] border-2 border-stroke bg-acc font-mono text-[15px] font-bold text-acc-ink">
-            G
+            R
           </div>
-          <div className="text-[21px] font-extrabold tracking-[-0.03em]">gtwy</div>
+          <div className="text-[21px] font-extrabold tracking-[-0.03em]">rangers</div>
         </div>
         <nav className="hidden gap-7 text-[15px] font-medium md:flex">
           <a className="text-ink hover:text-acc" href="#build">

@@ -20,6 +20,8 @@ const ChannelsStep = ({
   connectedChannels = {},
   onConnectChannel,
   onDisconnectChannel,
+  // When true, hides the per-channel connect button — the wizard just stores credentials and connects them all at publish.
+  deferred = false,
   title = "Channel Connection",
   subtitle = "Toggle on where this ranger should listen, enter its token, then continue setup for that channel.",
   footnote = "Channels bind to the version created on Identity. You can skip a channel and add it later.",
@@ -141,44 +143,46 @@ const ChannelsStep = ({
 
                   {error && <p className="mt-2 text-[11px] text-error">{error}</p>}
 
-                  <div className="mt-3 flex items-center justify-end gap-2">
-                    {isConnected && onDisconnectChannel && (
+                  {!deferred && (
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                      {isConnected && onDisconnectChannel && (
+                        <button
+                          type="button"
+                          data-testid={`ranger-channel-disconnect-${channel.key}`}
+                          className="btn btn-ghost btn-sm text-error"
+                          disabled={disconnectingKey === channel.key}
+                          onClick={() => handleDisconnect(channel.key)}
+                        >
+                          {disconnectingKey === channel.key ? (
+                            <>
+                              <span className="loading loading-spinner loading-xs" />
+                              Disconnecting...
+                            </>
+                          ) : (
+                            "Disconnect"
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
-                        data-testid={`ranger-channel-disconnect-${channel.key}`}
-                        className="btn btn-ghost btn-sm text-error"
-                        disabled={disconnectingKey === channel.key}
-                        onClick={() => handleDisconnect(channel.key)}
+                        data-testid={`ranger-channel-continue-${channel.key}`}
+                        className={`btn btn-sm ${isConnected ? "btn-ghost" : "btn-primary"}`}
+                        disabled={!hasToken || isConnecting || isConnected || !onConnectChannel}
+                        onClick={() => handleConnect(channel.key, state.credentials || {})}
                       >
-                        {disconnectingKey === channel.key ? (
+                        {isConnecting ? (
                           <>
                             <span className="loading loading-spinner loading-xs" />
-                            Disconnecting...
+                            Connecting...
                           </>
+                        ) : isConnected ? (
+                          "Connected"
                         ) : (
-                          "Disconnect"
+                          `Continue ${channel.label} setup`
                         )}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      data-testid={`ranger-channel-continue-${channel.key}`}
-                      className={`btn btn-sm ${isConnected ? "btn-ghost" : "btn-primary"}`}
-                      disabled={!hasToken || isConnecting || isConnected || !onConnectChannel}
-                      onClick={() => handleConnect(channel.key, state.credentials || {})}
-                    >
-                      {isConnecting ? (
-                        <>
-                          <span className="loading loading-spinner loading-xs" />
-                          Connecting...
-                        </>
-                      ) : isConnected ? (
-                        "Connected"
-                      ) : (
-                        `Continue ${channel.label} setup`
-                      )}
-                    </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

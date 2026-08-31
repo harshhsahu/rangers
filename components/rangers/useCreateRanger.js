@@ -52,6 +52,9 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
   const [created, setCreated] = useState(null);
   const [connectedChannels, setConnectedChannels] = useState({});
   const [connectedTools, setConnectedTools] = useState({});
+  // Tracks Identity's background create separately from `phase`, which stays reserved for the Review/deploy pipeline.
+  const [identityPhase, setIdentityPhase] = useState(DEPLOY_PHASES.IDLE);
+  const [identityError, setIdentityError] = useState("");
 
   // Survives retries so a second Deploy click never creates a second agent.
   const createdRef = useRef(null);
@@ -59,6 +62,8 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
   const connectedToolsRef = useRef({});
   const hydratedVersionRef = useRef(null);
   const mountedRef = useRef(true);
+  // In-flight createFromIdentity promise, so a second call reattaches instead of creating a duplicate agent.
+  const creatingPromiseRef = useRef(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -76,12 +81,15 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     connectedChannelsRef.current = {};
     connectedToolsRef.current = {};
     hydratedVersionRef.current = null;
+    creatingPromiseRef.current = null;
     setCreated(null);
     setConnectedChannels({});
     setConnectedTools({});
     setPhase(DEPLOY_PHASES.IDLE);
     setError("");
     setChannelWarnings([]);
+    setIdentityPhase(DEPLOY_PHASES.IDLE);
+    setIdentityError("");
   }, []);
 
   /** Phase 2 — create. Always sends flag:true; description becomes purpose when present. */
@@ -147,48 +155,62 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       if (createdRef.current?.agentId) {
         return { success: true, ...createdRef.current };
       }
+      // Already in flight — await the same request instead of firing a duplicate.
+      if (creatingPromiseRef.current) {
+        return creatingPromiseRef.current;
+      }
 
-      safeSet(setError, "");
-      safeSet(setPhase, DEPLOY_PHASES.CREATING);
+      safeSet(setIdentityError, "");
+      safeSet(setIdentityPhase, DEPLOY_PHASES.CREATING);
 
-      try {
-        const { agent, prompt, promptParts } = await runCreate(form);
-        if (!agent?._id) throw new Error("Agent creation did not return an agent.");
+      const promise = (async () => {
+        try {
+          const { agent, prompt, promptParts } = await runCreate(form);
+          if (!agent?._id) throw new Error("Agent creation did not return an agent.");
 
-        const versionId = agent.versions?.[0];
-        if (!versionId) throw new Error("Agent was created without a version.");
+          const versionId = agent.versions?.[0];
+          if (!versionId) throw new Error("Agent was created without a version.");
 
-        const createdAgent = {
-          agentId: agent._id,
-          versionId,
-          service: agent.service,
-        };
-        createdRef.current = createdAgent;
-        safeSet(setCreated, { agentId: agent._id, versionId, name: form.name.trim() });
+          const createdAgent = {
+            agentId: agent._id,
+            versionId,
+            service: agent.service,
+          };
+          createdRef.current = createdAgent;
+          safeSet(setCreated, { agentId: agent._id, versionId, name: form.name.trim() });
 
-        // Backend may drop `meta` on create; make sure the ranger data lands.
-        if (!agent?.meta?.ranger) {
-          try {
-            await dispatch(
-              updateBridgeAction({
-                bridgeId: agent._id,
-                dataToSend: { meta: mergeRangerMeta(agent?.meta, form) },
-              })
-            );
-          } catch (metaError) {
-            console.error("Failed to persist ranger meta", metaError);
+          // Backend may drop `meta` on create; make sure the ranger data lands.
+          if (!agent?.meta?.ranger) {
+            try {
+              await dispatch(
+                updateBridgeAction({
+                  bridgeId: agent._id,
+                  dataToSend: { meta: mergeRangerMeta(agent?.meta, form) },
+                })
+              );
+            } catch (metaError) {
+              console.error("Failed to persist ranger meta", metaError);
+            }
           }
+
+          await promoteToTrigger(agent._id);
+
+          safeSet(setIdentityPhase, DEPLOY_PHASES.IDLE);
+          return { success: true, ...createdAgent, prompt, promptParts };
+        } catch (err) {
+          console.error("Ranger identity creation failed", err);
+          const message = err?.response?.data?.message || err?.message || "Something went wrong while creating.";
+          safeSet(setIdentityPhase, DEPLOY_PHASES.FAILED);
+          safeSet(setIdentityError, message);
+          return { success: false, message };
         }
+      })();
 
-        await promoteToTrigger(agent._id);
-
-        safeSet(setPhase, DEPLOY_PHASES.IDLE);
-        return { success: true, ...createdAgent, prompt, promptParts };
-      } catch (err) {
-        console.error("Ranger identity creation failed", err);
-        safeSet(setPhase, DEPLOY_PHASES.FAILED);
-        safeSet(setError, err?.response?.data?.message || err?.message || "Something went wrong while creating.");
-        return { success: false };
+      creatingPromiseRef.current = promise;
+      try {
+        return await promise;
+      } finally {
+        creatingPromiseRef.current = null;
       }
     },
     [dispatch, promoteToTrigger, runCreate, safeSet]
@@ -405,13 +427,19 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       safeSet(setError, "");
       safeSet(setChannelWarnings, []);
 
-      let agentId = createdRef.current?.agentId;
-      let versionId = createdRef.current?.versionId;
-      let createdService = createdRef.current?.service;
-      // Captures a backend-generated prompt when form.prompt is empty (chat lets it be skipped).
-      let effectiveForm = form;
-
       try {
+        // Wait for Identity's background create to finish instead of racing it into a second agent.
+        if (creatingPromiseRef.current) {
+          safeSet(setPhase, DEPLOY_PHASES.CREATING);
+          await creatingPromiseRef.current;
+        }
+
+        let agentId = createdRef.current?.agentId;
+        let versionId = createdRef.current?.versionId;
+        let createdService = createdRef.current?.service;
+        // Captures a backend-generated prompt when form.prompt is empty (chat lets it be skipped).
+        let effectiveForm = form;
+
         // ---- create (skipped on retry) ----
         if (!agentId) {
           safeSet(setPhase, DEPLOY_PHASES.CREATING);
@@ -503,6 +531,8 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     channelWarnings,
     created,
     connectedChannels,
+    identityPhase,
+    identityError,
   };
 };
 
