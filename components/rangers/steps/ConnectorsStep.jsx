@@ -5,14 +5,11 @@ import { useDispatch } from "react-redux";
 import { Link2, Maximize2, Minimize2, Plus } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getAllFunctions } from "@/store/action/bridgeAction";
-
-/** Traces the connector builder lifecycle; shares the prefix with embedScriptLoader. */
-const log = (...args) => console.log("[viasocket-embed]", ...args);
+import { EMBED_SCRIPT_ID, EMBED_SCRIPT_SRC } from "@/utils/viasocketEmbed";
 
 /** The box in this step that the builder is docked into. */
 const EMBED_PARENT_ID = "ranger-connector-embed-parent";
-const EMBED_SCRIPT_ID = process.env.NEXT_PUBLIC_EMBED_SCRIPT_ID;
-const EMBED_SCRIPT_SRC = process.env.NEXT_PUBLIC_EMBED_SCRIPT_SRC;
+
 /** Hidden home the script points at; the builder always renders here first. */
 const PAGE_CONTAINER_ID = "viasocket-embed-page-container";
 /** Wrapper the embed injects — this is the node that gets moved into the box. */
@@ -30,15 +27,13 @@ const ensurePageContainer = () => {
 };
 
 const appendEmbedScript = (embedToken) => {
-  log("C3. org layout had not appended the script — appending from ConnectorsStep");
   const script = document.createElement("script");
   script.id = EMBED_SCRIPT_ID;
   script.src = EMBED_SCRIPT_SRC;
   script.async = true;
   script.setAttribute("embedToken", embedToken);
   script.setAttribute("parentId", PAGE_CONTAINER_ID);
-  script.onload = () => log("C3a. fallback script loaded. window.openViasocket is", typeof window.openViasocket);
-  script.onerror = () => console.error("[viasocket-embed] C3a. fallback script FAILED to load from:", EMBED_SCRIPT_SRC);
+  script.onerror = () => console.error("[ConnectorsStep] Embed script failed to load");
   document.body.appendChild(script);
   return script;
 };
@@ -92,26 +87,15 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
   // script-provided window.openViasocket arrive asynchronously and in no fixed
   // order, so poll for readiness instead of guessing with a fixed delay.
   useEffect(() => {
-    log("C1. connector step effect — embedToken present:", Boolean(embedToken), "| host mounted:", Boolean(embedHost));
-    if (!embedToken) {
-      console.warn("[viasocket-embed] C1a. waiting — no embed_token in redux yet (getAllBridgesAction)");
-      return undefined;
-    }
+    if (!embedToken) return undefined;
 
     const target = embedHost;
-    if (!target) {
-      console.warn("[viasocket-embed] C1b. waiting — embed host box not mounted yet");
-      return undefined;
-    }
+    if (!target) return undefined;
 
     const pageContainer = ensurePageContainer();
     // The org layout appends this on every org route; this covers the case
     // where the modal is opened before that has finished.
-    if (document.getElementById(EMBED_SCRIPT_ID)) {
-      log("C2. script tag already present (appended by the org layout)");
-    } else {
-      appendEmbedScript(embedToken);
-    }
+    if (!document.getElementById(EMBED_SCRIPT_ID)) appendEmbedScript(embedToken);
     // The builder renders into its home first, so it cannot stay hidden.
     pageContainer.style.display = "block";
 
@@ -127,9 +111,7 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
       if (cancelled) return;
 
       if (typeof window.openViasocket !== "function") {
-        if (attemptsLeft === 150) log("C4. waiting for window.openViasocket to be defined...");
         if (attemptsLeft-- <= 0) {
-          console.error("[viasocket-embed] C4a. TIMED OUT after ~15s — window.openViasocket never appeared");
           setEmbedError("The connector builder could not be loaded. Check your connection and try again.");
           return;
         }
@@ -138,7 +120,6 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
       }
 
       setEmbedError(null);
-      log("C5. window.openViasocket ready — opening the builder");
       window.openViasocket(undefined, {
         embedToken,
         meta: { type: "tool", createFrom: "Ranger Connectors" },
@@ -151,14 +132,10 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
         if (cancelled) return;
         const wrapper = document.getElementById(EMBED_WRAPPER_ID);
         if (wrapper) {
-          log("C6. builder wrapper found — docking it into the step box");
           dockWrapper(wrapper, target);
           return;
         }
-        if (dockAttempts-- <= 0) {
-          console.error("[viasocket-embed] C6a. wrapper never appeared — builder opened but could not be docked");
-          return;
-        }
+        if (dockAttempts-- <= 0) return;
         dockTimer = window.setTimeout(dockWhenPresent, 100);
       };
       dockWhenPresent();

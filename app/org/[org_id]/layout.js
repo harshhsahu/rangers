@@ -202,18 +202,11 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
   // org — agents, tools, and the Ranger modal — so the script loads on every
   // org route rather than an allow-list of paths. /alerts is the one page that
   // swaps in the alerting token instead.
-  const isAlertsRoute = pathName.includes("alerts") && !isEmbedUser;
-  const activeEmbedToken = isAlertsRoute ? alertingEmbedToken : embedToken;
-  console.log(
-    "[viasocket-embed] 0. org layout — path:",
-    pathName,
-    "| using:",
-    isAlertsRoute ? "alertingEmbedToken" : "embedToken",
-    "| present:",
-    Boolean(activeEmbedToken)
+  useEmbedScriptLoader(
+    pathName.includes("alerts") && !isEmbedUser ? alertingEmbedToken : embedToken,
+    isEmbedUser,
+    false
   );
-
-  useEmbedScriptLoader(activeEmbedToken, isEmbedUser, false);
 
   useRtLayerEventHandler();
 
