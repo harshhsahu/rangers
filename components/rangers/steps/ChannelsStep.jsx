@@ -20,10 +20,7 @@ const ChannelsStep = ({
   connectedChannels = {},
   onConnectChannel,
   onDisconnectChannel,
-  // When true, the per-channel "Continue setup" button (and its immediate
-  // network call) is hidden — used by the create-ranger wizard, where
-  // channel credentials are just stored on `form` and connected all at once
-  // when the ranger is published (see CreateRangerModal/useCreateRanger).
+  // When true, hides the per-channel connect button — the wizard just stores credentials and connects them all at publish.
   deferred = false,
   title = "Channel Connection",
   subtitle = "Toggle on where this ranger should listen, enter its token, then continue setup for that channel.",

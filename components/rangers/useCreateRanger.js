@@ -52,10 +52,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
   const [created, setCreated] = useState(null);
   const [connectedChannels, setConnectedChannels] = useState({});
   const [connectedTools, setConnectedTools] = useState({});
-  // Tracks the Identity step's background create separately from `phase`, so
-  // navigating on to Channels/Model/etc. while it is still in flight never
-  // disables the wizard's footer (that footer only reacts to `phase`, which
-  // is reserved for the Review/deploy pipeline).
+  // Tracks Identity's background create separately from `phase`, which stays reserved for the Review/deploy pipeline.
   const [identityPhase, setIdentityPhase] = useState(DEPLOY_PHASES.IDLE);
   const [identityError, setIdentityError] = useState("");
 
@@ -65,10 +62,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
   const connectedToolsRef = useRef({});
   const hydratedVersionRef = useRef(null);
   const mountedRef = useRef(true);
-  // The in-flight createFromIdentity promise, if any — lets a second call
-  // (e.g. Back-then-Continue while the first is still running) await the
-  // same request instead of firing a duplicate create, and lets deploy()
-  // wait for it instead of racing it into creating a second agent.
+  // In-flight createFromIdentity promise, so a second call reattaches instead of creating a duplicate agent.
   const creatingPromiseRef = useRef(null);
 
   useEffect(() => {
@@ -161,8 +155,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       if (createdRef.current?.agentId) {
         return { success: true, ...createdRef.current };
       }
-      // Already in flight (e.g. Back-then-Continue before the first call
-      // resolved) — await the same request instead of firing a duplicate.
+      // Already in flight — await the same request instead of firing a duplicate.
       if (creatingPromiseRef.current) {
         return creatingPromiseRef.current;
       }
@@ -435,9 +428,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       safeSet(setChannelWarnings, []);
 
       try {
-        // Identity's background create may still be running (the wizard no
-        // longer waits for it before letting the user reach Review) — wait
-        // for it here instead of racing it into creating a second agent.
+        // Wait for Identity's background create to finish instead of racing it into a second agent.
         if (creatingPromiseRef.current) {
           safeSet(setPhase, DEPLOY_PHASES.CREATING);
           await creatingPromiseRef.current;

@@ -131,10 +131,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     DEPLOY_PHASES.CHANNELS,
     DEPLOY_PHASES.PUBLISHING,
   ].includes(phase);
-  // Identity's create now runs in the background after Continue, so it must
-  // NOT feed into `isDeploying` (that disables Back/Continue and would block
-  // navigating on to Channels/Model/etc. while it's still running). It only
-  // guards the modal-close path below — never abandon a half-finished create.
+  // Kept separate from isDeploying so it only guards modal-close, never Back/Continue.
   const isCreatingIdentity = identityPhase === DEPLOY_PHASES.CREATING;
   const blocksClose = isDeploying || isCreatingIdentity;
 
@@ -267,9 +264,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
 
   const goNext = async () => {
     if (currentStep?.key === "identity") {
-      // Fire the create in the background and move on immediately — the
-      // upper-right corner badge (identityPhase) tracks it from here, and
-      // deploy() on Review waits for it before publishing (see useCreateRanger).
+      // Fire the create in the background and move on immediately — the corner badge tracks it, deploy() waits for it later.
       createFromIdentity(form).then((result) => {
         if (!result?.success) {
           toast.error(result?.message || "Failed to create the ranger. It will retry when you publish.");
@@ -376,9 +371,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
       }
       icon={<Sparkles size={16} className="text-trace-gold" />}
       headerRight={
-        // Visible on every step once Identity has kicked off its background
-        // create, so the corner badge tracks it regardless of where the
-        // wizard has since navigated to.
+        // Shown on every step so the badge tracks Identity's create wherever the user has navigated to.
         isCreatingIdentity ? (
           <span
             className="flex items-center gap-1.5 rounded-full border-2 border-stroke bg-cool px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-soft"
