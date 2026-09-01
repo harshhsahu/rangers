@@ -104,8 +104,8 @@ const SettingsTab = () => {
                 <div>
                   <p className="text-sm font-medium text-base-content">Allow Cached Response</p>
                   <p className="text-xs text-base-content/60">
-                    Enabling this will allow GTWY to send cached responses without AI call reducing cost for frequently
-                    asked queries.
+                    Enabling this will allow Rangers to send cached responses without AI call reducing cost for
+                    frequently asked queries.
                   </p>
                 </div>
                 <label className="label cursor-pointer gap-2">

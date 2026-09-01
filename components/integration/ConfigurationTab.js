@@ -136,7 +136,7 @@ const CONFIG_SCHEMA = [
     key: "slide",
     type: "select",
     label: "Slide Position",
-    description: "Choose where GTWY appears on screen",
+    description: "Choose where Rangers appears on screen",
     defaultValue: "right",
     options: [
       { value: "left", label: "Left" },
@@ -149,7 +149,7 @@ const CONFIG_SCHEMA = [
     key: "defaultOpen",
     type: "toggle",
     label: "Default Open",
-    description: "Open GTWY automatically on page load",
+    description: "Open Rangers automatically on page load",
     defaultValue: false,
     section: "Display Settings",
   },
@@ -189,7 +189,7 @@ const CONFIG_SCHEMA = [
     key: "themeMode",
     type: "select",
     label: "Theme Mode",
-    description: "Choose the color theme for the embedded GTWY interface",
+    description: "Choose the color theme for the embedded Rangers interface",
     defaultValue: "system",
     options: [
       { value: "system", label: "System" },

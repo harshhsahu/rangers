@@ -12,7 +12,7 @@ const SessionExpired = () => {
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-error/20 mb-4">
                 <AlertTriangle className="h-8 w-8 text-error" />
               </div>
-              <h2 className="card-title justify-center text-2xl mb-2">GTWY Session Expired</h2>
+              <h2 className="card-title justify-center text-2xl mb-2">Rangers Session Expired</h2>
               <p className="text-base-content/70">Your session has expired.</p>
             </div>
           </div>

@@ -49,7 +49,7 @@ const LifetimeAccessPage = () => {
             frameBorder="0"
             marginHeight="0"
             marginWidth="0"
-            title="GTWY- Lifetime Free Access"
+            title="Rangers - Lifetime Free Access"
             className="w-full min-h-[100vh]"
           />
         </div>

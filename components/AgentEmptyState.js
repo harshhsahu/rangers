@@ -36,7 +36,7 @@ const AgentEmptyState = ({
           {/* Full Width - Heading and Description */}
           {hideHeader ? null : !isEmbedUser ? (
             <PageHeader
-              title={title || "Welcome To GTWY AI"}
+              title={title || "Welcome To Rangers"}
               description={
                 description ||
                 "Build and manage AI agents for your workflows. Agents help automate tasks, answer queries, and deliver intelligent assistance."

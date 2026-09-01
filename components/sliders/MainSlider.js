@@ -808,9 +808,9 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             <div className="border-t border-dashed border-line p-1 pt-[9px]">
               <div className="text-center">
                 {showSidebarContent ? (
-                  <span className="font-mono text-[11px] tracking-[.16em] text-soft">GTWY</span>
+                  <span className="font-mono text-[11px] tracking-[.16em] text-soft">RANGERS</span>
                 ) : (
-                  <span className="font-mono text-[10px] tracking-[.16em] text-soft">GTWY</span>
+                  <span className="font-mono text-[10px] tracking-[.16em] text-soft">RANGERS</span>
                 )}
               </div>
             </div>

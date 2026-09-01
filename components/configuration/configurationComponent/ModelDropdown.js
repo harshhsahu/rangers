@@ -379,7 +379,7 @@ const ModelDropdown = ({
               <Sparkles size={10} />
               Auto Select Model
             </span>
-            <InfoTooltip tooltipContent="Let GTWY's Smart Model Router select the model depending on User Query. Only works for chat type models.">
+            <InfoTooltip tooltipContent="Let Rangers' Smart Model Router select the model depending on User Query. Only works for chat type models.">
               <CircleQuestionMark
                 size={14}
                 className={isAutoModelSelected ? "text-warning cursor-help" : "text-soft hover:text-ink cursor-help"}

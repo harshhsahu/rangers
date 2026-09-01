@@ -54,7 +54,7 @@ window.addEventListener('message', (event) => {
 -H 'Authorization: your_embed_token'`;
 
   const tableData = [
-    ["parentId", "To open GTWY in a specific container"],
+    ["parentId", "To open Rangers in a specific container"],
     ["agent_id", "To open agent in a specific agent"],
     ["agent_name", "To create an agent with a specific name, or redirect if the agent already exists."],
   ];
@@ -139,7 +139,7 @@ window.addEventListener('message', (event) => {
           <h4 className="card-title text-base">Configure Interface</h4>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Send Data to GTWY</span>
+              <span className="label-text">Send Data to Rangers</span>
             </label>
             <CodeBlock className="language-javascript">{interfaceData}</CodeBlock>
           </div>
@@ -205,7 +205,7 @@ window.addEventListener('message', (event) => {
           <h4 className="card-title text-base">Add Event Listener</h4>
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Add this script to receive GTWY events</span>
+              <span className="label-text">Add this script to receive Rangers events</span>
             </label>
             <CodeBlock className="language-jsx">{eventListenerScript}</CodeBlock>
           </div>

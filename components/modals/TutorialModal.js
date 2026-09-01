@@ -79,7 +79,7 @@ const TutorialModal = () => {
     <Modal
       MODAL_ID={MODAL_TYPE.TUTORIAL_MODAL}
       onClose={internalClose}
-      title="GTWY AI Tutorials"
+      title="Rangers Tutorials"
       description="Learn how to use our platform effectively"
       icon={<HelpCircle size={16} className="text-trace-gold" />}
       widthClass="w-[min(900px,92vw)]"
