@@ -17,6 +17,15 @@ const MARQUEE = RANGER_CHANNELS.map(({ key, label, icon, brand }) => ({ key, lab
 const MARQUEE_REPEATS = 4;
 const MARQUEE_HALF = Array.from({ length: MARQUEE_REPEATS }, (_, i) => i);
 
+/** Both edges dissolve into the paper rather than butting against the border. */
+const MARQUEE_FADE = "linear-gradient(90deg, transparent, #000 26%, #000 74%, transparent)";
+
+/**
+ * The design runs 15 marks over 130s. Ours is a shorter loop, so the duration
+ * is scaled to keep the same travel speed rather than the same number.
+ */
+const MARQUEE_SECONDS = 104;
+
 const SERVICES = [
   ["openai", "Openai", "openai", "cool"],
   ["anthropic", "Anthropic", "anthropic", "acc"],
@@ -141,29 +150,27 @@ const Page = () => {
       </section>
 
       {/* ------------------------------ Marquee ------------------------------ */}
-      <div className="overflow-hidden border-y-2 border-stroke bg-ink py-[15px] text-paper">
-        <div className="flex w-max" style={{ animation: "rgMarquee 34s linear infinite" }} aria-hidden="true">
-          {[0, 1].map((half) => (
-            <div key={half} className="flex">
-              {MARQUEE_HALF.map((dup) => (
-                <div key={dup} className="flex items-center whitespace-nowrap">
-                  {MARQUEE.map(({ key, label, Icon, brand }) => (
-                    <span key={`${half}-${dup}-${key}`} className="flex items-center">
-                      <span className="flex items-center gap-2.5 px-[22px]">
-                        <span className="grid h-[18px] w-[18px] flex-none place-items-center" style={{ color: brand }}>
-                          <Icon height={18} width={18} />
-                        </span>
-                        <span className="font-mono text-[13px] font-medium uppercase leading-none tracking-[.11em]">
-                          {label}
-                        </span>
+      <div className="border-y-2 border-stroke bg-paper pb-[34px] pt-[30px]">
+        <div className="overflow-hidden" style={{ maskImage: MARQUEE_FADE, WebkitMaskImage: MARQUEE_FADE }}>
+          <div className="flex w-max" style={{ animation: `rgMarquee ${MARQUEE_SECONDS}s linear infinite` }}>
+            {[0, 1].map((half) => (
+              <div key={half} className="flex">
+                {MARQUEE_HALF.map((dup) => (
+                  <div key={dup} className="flex items-center gap-[18px] pr-[18px]">
+                    {MARQUEE.map(({ key, label, Icon }) => (
+                      <span
+                        key={`${half}-${dup}-${key}`}
+                        title={label}
+                        className="grid h-[76px] w-[76px] flex-none place-items-center rounded-[20px]"
+                      >
+                        <Icon height={46} width={46} />
                       </span>
-                      <span className="h-[3px] w-[3px] flex-none rounded-full bg-paper/35" />
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ))}
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
