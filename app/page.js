@@ -5,15 +5,6 @@ import { getIconOfService } from "@/utils/utility";
 import { RANGER_CHANNELS } from "@/components/rangers/rangerConstants";
 import TelegramPhone from "@/components/landing/TelegramPhone";
 
-const CODE_SAMPLE = `curl $GTWY/api/v2/model/chat/completion \\
-  -H "pauthkey: $GTWY_KEY" \\
-  -d '{
-    "agent_id": "untitled_agent_9",
-    "user": "summarise today's failed payments",
-    "thread_id": "ops-42",
-    "variables": { "region": "eu-west-1" }
-  }'`;
-
 const MARQUEE = RANGER_CHANNELS.map(({ key, label, icon, brand }) => ({ key, label, Icon: icon, brand }));
 
 /**
@@ -145,26 +136,8 @@ const Page = () => {
           <div className="mt-6 font-mono text-[12px] text-soft">bring your own keys · free tier · no card</div>
         </div>
 
-        {/* Right column — talk to it on Telegram, or call it over the API */}
-        <div className="flex flex-col gap-5">
-          <TelegramPhone />
-
-          {/* Request/response card */}
-          <div className="overflow-hidden rounded-[22px] border-2 border-stroke bg-card shadow-sm">
-            <div className="flex items-center justify-between gap-3 border-b-2 border-stroke bg-acc px-4 py-3 text-acc-ink">
-              <span className="font-mono text-[12px] font-bold">POST /api/v2/model/chat/completion</span>
-              <span className="font-mono text-[11px]">200 OK</span>
-            </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap break-words p-[18px] font-mono text-[12.5px] leading-[1.85] text-ink">
-              {CODE_SAMPLE}
-            </pre>
-            <div className="flex justify-between border-t border-dashed border-line px-[18px] py-3 font-mono text-[11px] text-soft">
-              <span>3 tools called</span>
-              <span>1,541 tokens</span>
-              <span>$0.0100</span>
-            </div>
-          </div>
-        </div>
+        {/* Right column — the agent answering on Telegram */}
+        <TelegramPhone />
       </section>
 
       {/* ------------------------------ Marquee ------------------------------ */}
