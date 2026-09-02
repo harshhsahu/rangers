@@ -19,7 +19,10 @@ export const useConfigurationState = (params, searchParams) => {
 
     return {
       bridgeType: state?.bridgeReducer?.allBridgesMap?.[params?.id]?.bridgeType?.trim()?.toLowerCase() || "api",
-      isRanger: Boolean(bridgeDataFromState?.meta?.ranger),
+      // Every agent now uses the ranger single-page setup UI, so this is always
+      // true. Kept as a flag because the shared panels still read it to hide the
+      // pieces that setup UI owns elsewhere (triggers, agent type, pre-tools).
+      isRanger: true,
       modelType: isPublished
         ? bridgeDataFromState?.configuration?.type?.toLowerCase()
         : versionData?.configuration?.type?.toLowerCase(),

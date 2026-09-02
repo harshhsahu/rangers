@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { AlertTriangle, Sparkles, SlidersHorizontal, Zap } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "@/components/UI/Modal";
@@ -167,22 +167,15 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   }, [blocksClose, resetAll]);
 
   /**
-   * The native ESC path on a <dialog> fires `cancel` then `close`; Modal's
-   * `onClose` runs too late to stop it, so intercept `cancel` directly.
-   * The handler reads a ref rather than closing over `blocksClose`, so the
-   * listener can be attached once and still see the current phase.
+   * Done is only rendered once the deploy reached DONE, so there is nothing
+   * left to protect — it closes unconditionally rather than going through
+   * handleClose, whose blocksClose guard would swallow the click if a phase
+   * flag were still set.
    */
-  const isDeployingRef = useRef(blocksClose);
-  isDeployingRef.current = blocksClose;
-  useEffect(() => {
-    const dialog = document.getElementById(MODAL_TYPE.CREATE_RANGER_MODAL);
-    if (!dialog) return undefined;
-    const onCancel = (event) => {
-      if (isDeployingRef.current) event.preventDefault();
-    };
-    dialog.addEventListener("cancel", onCancel);
-    return () => dialog.removeEventListener("cancel", onCancel);
-  }, []);
+  const handleDone = useCallback(() => {
+    closeModal(MODAL_TYPE.CREATE_RANGER_MODAL);
+    resetAll();
+  }, [resetAll]);
 
   const nameError = useMemo(() => {
     const trimmed = form.name.trim();
@@ -313,7 +306,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     <>
       <span className="mr-auto text-[11.5px] text-soft">{hint}</span>
       {isDone ? (
-        <button type="button" className="btn btn-primary btn-sm" onClick={handleClose} data-testid="ranger-done-button">
+        <button type="button" className="btn btn-primary btn-sm" onClick={handleDone} data-testid="ranger-done-button">
           Done
         </button>
       ) : (
@@ -362,6 +355,9 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     <Modal
       MODAL_ID={MODAL_TYPE.CREATE_RANGER_MODAL}
       onClose={handleClose}
+      // The wizard holds several steps of input — only the close button may
+      // dismiss it, so Escape or a stray backdrop click cannot discard it.
+      dismissible={false}
       title={form.mode ? (isAiMode ? "Build with AI" : "Guided Setup") : "Create a New Ranger"}
       description={
         form.mode

@@ -97,7 +97,7 @@ const OrgPageGuard = ({ children }) => {
                 frameBorder="0"
                 marginHeight="0"
                 marginWidth="0"
-                title="Welcome to GTWY 👋"
+                title="Welcome to Rangers 👋"
                 className="border-0 rounded-lg"
               />
             </div>

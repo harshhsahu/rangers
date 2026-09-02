@@ -138,6 +138,14 @@ export const createGuardedNavigate = (router, pendingNavRef, openModalFn, MODAL_
 
 export const HRCollapsed = React.memo(() => <hr className="my-2 w-6 border-ink mx-auto" />);
 
+/**
+ * Every button on the 50px collapsed rail uses this footprint, so the icons sit
+ * on one vertical axis and the borders line up. Only the colours differ per
+ * button — pass those on top (border-transparent, border-acc, bg-acc, ...).
+ */
+export const COLLAPSED_TILE =
+  "mx-auto grid h-[34px] w-[34px] place-items-center rounded-[10px] border-2 transition-colors";
+
 export const BetaBadge = React.memo(() => (
   <span className="badge badge-success rounded-md mb-1 text-base-100 text-xs">Beta</span>
 ));

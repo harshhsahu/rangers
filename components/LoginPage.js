@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useSearchParams } from "next/navigation";
 import { setInCookies } from "@/utils/utility";
-import FavIconSVG from "@/public/favicon";
 
 const LoginPage = ({ loading }) => {
   const urlParams = useSearchParams();
@@ -42,14 +41,14 @@ const LoginPage = ({ loading }) => {
         <div className="container mx-auto">
           {/* Logo and centered secure login label in same row */}
           <div className="flex items-center justify-between mb-8">
-            <div className="w-16 relative">
+            <div className="relative w-40">
               <a
                 data-testid="login-page-logo-link"
                 id="login-page-logo-link"
                 href={process.env.NEXT_PUBLIC_FRONTEND_URL}
                 className="inline-block cursor-pointer relative"
               >
-                <div className="relative w-20 h-20 flex items-center justify-center">
+                <div className="relative flex h-20 items-center">
                   <div className="relative">
                     {/* Rotating box positioned behind the logo - offset to match reference image */}
                     <div
@@ -65,10 +64,10 @@ const LoginPage = ({ loading }) => {
                       }}
                     ></div>
 
-                    {/* Logo and text on top of the rotating box */}
-                    <div className="relative z-10 opacity-90 hover:opacity-100 transition-opacity">
+                    {/* Wordmark on top of the rotating box */}
+                    <div className="relative z-10 opacity-90 transition-opacity hover:opacity-100">
                       <div className="flex items-center">
-                        <FavIconSVG height={100} width={100} />
+                        <span className="text-[22px] font-extrabold tracking-[-0.03em] text-base-content">rangers</span>
                       </div>
                     </div>
                   </div>
@@ -101,9 +100,9 @@ const LoginPage = ({ loading }) => {
             </div>
 
             <div className="flex-1 flex justify-center">
-              <div className="inline-flex items-center gap-2 px-6 py-2 bg-white/80 backdrop-blur-sm border border-black/10 rounded-full shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border-2 border-stroke bg-base-100/80 px-6 py-2 shadow-sm backdrop-blur-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs tracking-wider text-black/60">SECURE LOGIN</span>
+                <span className="text-xs tracking-wider text-base-content/60">SECURE LOGIN</span>
               </div>
             </div>
 
@@ -151,7 +150,7 @@ const LoginPage = ({ loading }) => {
               </div>
             </div>
             <p className="mt-6 text-center text-xs text-base-content/30 tracking-wide leading-relaxed">
-              By continuing, you agree to gtwy&apos;s{" "}
+              By continuing, you agree to Rangers&apos;{" "}
               <a
                 data-testid="login-page-terms-link"
                 id="login-page-terms-link"

@@ -19,14 +19,27 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "GTWY AI | Connect 5000+ apps in just 1 click",
+  title: "Rangers | Connect 5000+ apps in just 1 click",
   description: "Simplified AI & chatbot integration",
   category: "technology",
-  generator: "GTWY AI",
+  generator: "Rangers",
   keywords:
     "gtwy ai, ai middleware, ai integration platform, ai chatbot service, openai integration, anthropic api, groq ai, o1 ai, ai automation tools, ai api gateway, large language model integration, llm api, ai software solutions, ai-powered chatbot, ai model deployment, machine learning api, enterprise ai solutions, ai infrastructure, artificial intelligence services, custom ai development, ai orchestration, ai cloud services, multi-ai platform, ai business solutions, ai developer tools, ai framework, gpt integration, ai tools for business, llm deployment, ai model hosting, ai tech stack, ai-powered applications, smart ai assistant, best ai middleware, chatbot development platform, ai-powered automation",
   alternates: {
     canonical: "https://gtwy.ai",
+  },
+  // Declared here rather than through Next's icon file convention in the app
+  // directory. That convention makes Next inject its IconMark client component,
+  // which is missing from the edge RSC client manifest produced by the edge
+  // runtime set below, and every page then fails with a 500 in a production
+  // build. Serving the images from the public folder and listing them here
+  // renders the same link tags without that component.
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 

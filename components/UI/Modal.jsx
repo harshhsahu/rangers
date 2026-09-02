@@ -12,6 +12,12 @@ const Modal = ({
   widthClass = "w-[min(720px,92vw)]",
   bodyClassName = "",
   footer,
+  /**
+   * When false the modal can only be dismissed through the close button —
+   * Escape and backdrop clicks are ignored. Use it for multi-step flows where
+   * an accidental dismissal would throw away everything the user entered.
+   */
+  dismissible = true,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const onCloseRef = React.useRef(onClose);
@@ -49,6 +55,38 @@ const Modal = ({
     };
   }, [MODAL_ID]);
 
+  /**
+   * Escape is blocked in two places on purpose.
+   *
+   * This one is the reliable half: the keydown is what the browser turns into
+   * a close request for a <dialog>, so preventing its default stops the close
+   * before any close request exists. Capture phase, so it also beats the
+   * app-level Escape handlers that various sliders and dropdowns register.
+   */
+  useEffect(() => {
+    if (dismissible || !isOpen) return undefined;
+
+    const blockEscape = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    document.addEventListener("keydown", blockEscape, true);
+    return () => document.removeEventListener("keydown", blockEscape, true);
+  }, [dismissible, isOpen]);
+
+  // The other half: if a close request is raised anyway (browsers differ on
+  // when the close watcher fires), `cancel` runs before `close` and is the last
+  // point that can still stop it.
+  const handleCancel = (event) => {
+    if (!dismissible) event.preventDefault();
+  };
+
+  const handleBackdropClick = () => {
+    if (dismissible) handleClose();
+  };
+
   const handleClose = () => {
     if (typeof onClose === "function") {
       onClose();
@@ -75,10 +113,11 @@ const Modal = ({
         id={MODAL_ID}
         className="modal open"
         style={{ display: "flex", pointerEvents: "auto" }}
+        onCancel={handleCancel}
       >
         <div
           className="fixed inset-0 z-low-medium flex min-h-[100vh] min-w-[100vw] items-center justify-center overflow-auto bg-black/60 py-8 backdrop-blur-[2px]"
-          onClick={handleClose}
+          onClick={handleBackdropClick}
         >
           <div
             id={`${MODAL_ID}-container`}
@@ -132,7 +171,13 @@ const Modal = ({
   }
 
   return (
-    <dialog data-testid={MODAL_ID} id={MODAL_ID} className="modal" style={{ pointerEvents: "auto" }}>
+    <dialog
+      data-testid={MODAL_ID}
+      id={MODAL_ID}
+      className="modal"
+      style={{ pointerEvents: "auto" }}
+      onCancel={handleCancel}
+    >
       {children}
     </dialog>
   );

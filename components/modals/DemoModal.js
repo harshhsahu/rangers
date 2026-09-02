@@ -29,8 +29,8 @@ const DemoModal = ({ speakToUs }) => {
     <Modal
       MODAL_ID={MODAL_TYPE.DEMO_MODAL}
       onClose={handleClose}
-      title={speakToUs ? "Speak to Us" : "Discover GTWY AI"}
-      description={speakToUs ? "Connect with our team for personalized guidance" : "See GTWY AI in action"}
+      title={speakToUs ? "Speak to Us" : "Discover Rangers"}
+      description={speakToUs ? "Connect with our team for personalized guidance" : "See Rangers in action"}
       icon={<Play size={16} className="text-trace-gold" />}
       widthClass={speakToUs ? "w-[min(700px,92vw)]" : "w-[min(1300px,96vw)]"}
     >
@@ -38,7 +38,7 @@ const DemoModal = ({ speakToUs }) => {
         {speakToUs ? (
           <div id="demo-modal-speak-to-us-content" className="p-6 bg-base-200/60 rounded-xl">
             <p className="text-base-content mb-4">
-              Discover how GTWY AI can transform your workflow. With our <strong>"Speak to Us"</strong> option, you'll:
+              Discover how Rangers can transform your workflow. With our <strong>"Speak to Us"</strong> option, you'll:
             </p>
             <ul className="list-disc list-inside text-base-content space-y-2">
               <li className="flex items-start">
@@ -51,7 +51,7 @@ const DemoModal = ({ speakToUs }) => {
               </li>
               <li className="flex items-start">
                 <span className="mr-2">•</span>
-                <span>See live demonstrations of GTWY AI in action</span>
+                <span>See live demonstrations of Rangers in action</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2">•</span>
@@ -60,7 +60,7 @@ const DemoModal = ({ speakToUs }) => {
             </ul>
             <p className="text-base-content mt-4">
               Whether you're a developer, business leader, or exploring automation, our team is here to help you unlock
-              the full potential of GTWY AI.
+              the full potential of Rangers.
             </p>
           </div>
         ) : (

@@ -75,9 +75,11 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
           </div>
         </div>
 
-        <Row label="Purpose">
-          {form.description?.trim() || form.purpose?.trim() || <em className="text-soft">Not set</em>}
-        </Row>
+        {/* Guided setup no longer asks for a description, so the row would read
+            "Not set" on every guided review — show it only when there is one. */}
+        {(form.description?.trim() || form.purpose?.trim()) && (
+          <Row label="Purpose">{form.description?.trim() || form.purpose?.trim()}</Row>
+        )}
 
         <Row label="Channels">
           {enabledChannels.length ? (

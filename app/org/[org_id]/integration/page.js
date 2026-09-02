@@ -226,14 +226,14 @@ const Page = ({ params }) => {
         <MainLayout>
           <div className="flex flex-col sm:flex-row">
             <PageHeader
-              title=" GTWY Embed Integration"
+              title=" Rangers Embed Integration"
               docLink={
                 linksData?.find((link) => link.title === "GTWY as Embed")?.blog_link ||
                 "https://gtwy.ai/blogs/features/gtwy-embed--1"
               }
               description={
                 descriptions?.["Gtwy as Embed"] ||
-                "Embedded GTWY allows you to seamlessly integrate the full GTWY AI interface directly into any product or website."
+                "Embedded Rangers allows you to seamlessly integrate the full Rangers interface directly into any product or website."
               }
             />
           </div>

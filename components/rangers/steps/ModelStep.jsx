@@ -26,6 +26,7 @@ const ModelStep = ({ form, update, orgId }) => {
   const dispatch = useDispatch();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const panelRef = useRef(null);
   const requestedServicesRef = useRef(new Set());
   const { services, serviceModels, modelsConfig, apikeys } = useCustomSelector((state) => ({
     services: state?.serviceReducer?.services || [],
@@ -51,6 +52,16 @@ const ModelStep = ({ form, update, orgId }) => {
     requestedServicesRef.current.add(service);
     dispatch(getModelAction({ service }));
   }, [dispatch, form.service, serviceModels]);
+
+  /**
+   * The list is inline rather than an overlay, so opening it near the bottom of
+   * the modal body pushed it past the fold and it read as cut off. Nudge the
+   * panel into the scroll container once it renders.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+    panelRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [isOpen]);
 
   const selectedServiceLabel = useMemo(() => {
     const service = services.find((item) => item?.value === form.service);
@@ -234,8 +245,15 @@ const ModelStep = ({ form, update, orgId }) => {
             </button>
 
             {isOpen && (
-              <div className="overflow-hidden rounded-[12px] rounded-t-none border-2 border-t-0 border-acc bg-base-100">
-                <div className="relative border-b border-stroke">
+              <div
+                ref={panelRef}
+                className="overflow-hidden rounded-[12px] rounded-t-none border-2 border-t-0 border-acc bg-base-100"
+              >
+                {/* The important modifiers are load-bearing. globals.css styles
+                    text inputs through an attribute selector, whose specificity
+                    outranks a plain utility class, so without them this search
+                    field renders as a heavy pill overhanging the panel. */}
+                <div className="relative border-b border-line">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-soft" />
                   <input
                     autoComplete="off"
@@ -243,7 +261,7 @@ const ModelStep = ({ form, update, orgId }) => {
                     type="text"
                     data-testid="ranger-model-search"
                     placeholder="Search models..."
-                    className="w-full bg-transparent py-2.5 pl-9 pr-3 text-[12.5px] outline-none placeholder:text-soft"
+                    className="w-full !rounded-none !border-0 !bg-transparent py-2.5 pl-9 pr-3 text-[12.5px] outline-none placeholder:text-soft"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -251,7 +269,7 @@ const ModelStep = ({ form, update, orgId }) => {
 
                 {/* Inline list, not an overlay dropdown — an absolutely positioned
                     menu gets clipped by the modal's scroll container. */}
-                <div className="max-h-[260px] overflow-y-auto p-1.5">
+                <div className="max-h-[176px] overflow-y-auto p-1.5">
                   {filteredModels.length === 0 && (
                     <p className="px-2 py-6 text-center text-[12px] text-soft">
                       {query ? `No models match “${query}”.` : `No models available for ${selectedServiceLabel}.`}
@@ -266,17 +284,23 @@ const ModelStep = ({ form, update, orgId }) => {
                         aria-pressed={isActive}
                         data-testid={`ranger-model-option-${model.modelName}`}
                         onClick={() => handleSelect(model)}
-                        className={`flex w-full items-center gap-2 rounded-[8px] px-2 py-[7px] text-left transition-colors ${
-                          isActive ? "bg-acc/15 ring-1 ring-inset ring-acc" : "hover:bg-base-200"
+                        // Selected uses the same filled accent the sidebar gives
+                        // its active item — a faint tint read as a hover state.
+                        className={`flex w-full items-center gap-2 rounded-[8px] border-2 px-2 py-[7px] text-left transition-colors ${
+                          isActive ? "border-ink bg-acc text-acc-ink" : "border-transparent hover:bg-base-200"
                         }`}
                       >
                         <span className="grid h-4 w-4 place-items-center">
                           {getIconOfService(model.service, 14, 14)}
                         </span>
-                        <span className="min-w-0 flex-1 truncate font-mono text-[12px] text-base-content">
+                        <span
+                          className={`min-w-0 flex-1 truncate font-mono text-[12px] ${
+                            isActive ? "font-bold text-acc-ink" : "text-base-content"
+                          }`}
+                        >
                           {model.label}
                         </span>
-                        {isActive && <Check size={13} className="flex-none text-acc" />}
+                        {isActive && <Check size={13} className="flex-none text-acc-ink" />}
                       </button>
                     );
                   })}

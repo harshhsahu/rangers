@@ -518,7 +518,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
 
   useEffect(() => {
     if (bridgeName) {
-      updateTitle(`GTWY Ai | ${bridgeName}`);
+      updateTitle(`Rangers | ${bridgeName}`);
     }
   }, [bridgeName]);
 
