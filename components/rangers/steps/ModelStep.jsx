@@ -235,7 +235,11 @@ const ModelStep = ({ form, update, orgId }) => {
 
             {isOpen && (
               <div className="overflow-hidden rounded-[12px] rounded-t-none border-2 border-t-0 border-acc bg-base-100">
-                <div className="relative border-b border-stroke">
+                {/* The important modifiers are load-bearing. globals.css styles
+                    text inputs through an attribute selector, whose specificity
+                    outranks a plain utility class, so without them this search
+                    field renders as a heavy pill overhanging the panel. */}
+                <div className="relative border-b border-line">
                   <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-soft" />
                   <input
                     autoComplete="off"
@@ -243,7 +247,7 @@ const ModelStep = ({ form, update, orgId }) => {
                     type="text"
                     data-testid="ranger-model-search"
                     placeholder="Search models..."
-                    className="w-full bg-transparent py-2.5 pl-9 pr-3 text-[12.5px] outline-none placeholder:text-soft"
+                    className="w-full !rounded-none !border-0 !bg-transparent py-2.5 pl-9 pr-3 text-[12.5px] outline-none placeholder:text-soft"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                   />
@@ -266,8 +270,8 @@ const ModelStep = ({ form, update, orgId }) => {
                         aria-pressed={isActive}
                         data-testid={`ranger-model-option-${model.modelName}`}
                         onClick={() => handleSelect(model)}
-                        className={`flex w-full items-center gap-2 rounded-[8px] px-2 py-[7px] text-left transition-colors ${
-                          isActive ? "bg-acc/15 ring-1 ring-inset ring-acc" : "hover:bg-base-200"
+                        className={`flex w-full items-center gap-2 rounded-[8px] border px-2 py-[7px] text-left transition-colors ${
+                          isActive ? "border-acc bg-acc/15" : "border-transparent hover:bg-base-200"
                         }`}
                       >
                         <span className="grid h-4 w-4 place-items-center">
