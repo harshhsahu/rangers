@@ -719,9 +719,12 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                   onMouseEnter={(e) => onItemEnter("admin-toggle", e)}
                   onMouseLeave={onItemLeave}
                   className={
+                    // Sits in the footer group, where lifetime/theme/refer/keys all
+                    // carry a visible border — so this one keeps its stroke when
+                    // idle instead of going transparent like the nav items above.
                     showSidebarContent
-                      ? `w-full flex items-center gap-3 rounded-[9px] border-2 px-[11px] py-2 text-[13.5px] font-semibold transition-colors ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"}`
-                      : `${COLLAPSED_TILE} ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "border-transparent text-ink hover:border-stroke hover:bg-paper"}`
+                      ? `w-full flex items-center gap-3 rounded-[9px] border-2 px-[11px] py-2 text-[13.5px] font-semibold transition-colors ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "border-stroke bg-card text-ink hover:bg-paper"}`
+                      : `${COLLAPSED_TILE} ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "border-stroke bg-card text-ink hover:bg-paper"}`
                   }
                 >
                   {ITEM_ICONS.adminSettings}
