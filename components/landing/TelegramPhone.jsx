@@ -126,7 +126,11 @@ const TelegramPhone = () => {
     <div style={{ display: "flex", justifyContent: "center" }}>
       <div
         style={{
-          width: "min(330px, 100%)",
+          // The canvas has no box-sizing reset, so its `width: 330px` is the
+          // content box: 330 screen + 11px padding + 2px border a side = 356px
+          // overall. Tailwind applies border-box globally, so the width has to
+          // be the outer total to land on the same 330px screen.
+          width: "min(356px, 100%)",
           borderRadius: 54,
           border: "2px solid #14110D",
           background: "#14110D",

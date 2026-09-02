@@ -11,12 +11,12 @@ import {
   ArrowLeft,
   Keyboard,
   Plus,
+  Users,
 } from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutUserFromMsg91 } from "@/config/index";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { truncate } from "@/components/historyPageComponents/AssistFile";
 import { clearCookie, getFromCookies, openModal, closeModal } from "@/utils/utility";
 import TutorialModal from "@/components/modals/TutorialModal";
 import DemoModal from "../modals/DemoModal";
@@ -133,6 +133,15 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
       }
     };
   }, [orgDropdownTimeout]);
+
+  // Determine if sidebar should show content (expanded view) with delayed
+  // hiding. Declared up here because the render helpers below close over it.
+  const showSidebarContent = isMobile ? false : showContent;
+
+  // The rail's target state, flipped the instant a toggle happens.
+  // showSidebarContent lags it by 300ms on close (so content does not reflow
+  // mid-animation); anything that should animate *with* the width uses this.
+  const railExpanded = isMobile ? isMobileVisible : isOpen;
 
   /** Logout handler */
   const handleLogout = useCallback(async () => {
@@ -306,6 +315,21 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     setIsAdminMode((prev) => !prev);
   }, []);
 
+  /** Live agents in this org — the count badge on the Rangers nav row. */
+  const agentCount = useMemo(
+    () =>
+      (allBridges || []).filter(
+        (bridge) => !bridge?.deletedAt && (bridge?.status === 1 || bridge?.status === undefined)
+      ).length,
+    [allBridges]
+  );
+
+  /** ⌘K on Apple keyboards, Ctrl+K everywhere else. */
+  const shortcutHint = useMemo(() => {
+    if (typeof navigator === "undefined") return "Ctrl+K";
+    return /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent) ? "\u2318K" : "Ctrl+K";
+  }, []);
+
   const buildNavUrlForOrg = useCallback((key) => buildNavUrl(key, orgId), [orgId]);
 
   // Guard navigation when there are unsaved prompt changes
@@ -368,12 +392,12 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     return (
       <>
         {/* User info */}
-        <div className="flex items-start gap-3 p-3 border-b-2 border-stroke mb-3">
+        <div className="flex items-start gap-3 p-3 border-b border-line mb-3">
           {!openDetails ? (
             <User size={16} className="text-base-content/60 mt-3 flex-shrink-0" />
           ) : (
-            <div className="shrink-0 w-9 h-9 bg-primary flex items-center justify-center cursor-pointer">
-              <span className="text-primary-content font-semibold text-sm">
+            <div className="shrink-0 w-9 h-9 rounded-full bg-paper-sunken grid place-items-center cursor-pointer">
+              <span className="font-mono text-[11px] font-bold text-soft">
                 {getInitials(userdetailsfromOrg?.name || userdetails?.name || "U")}
               </span>
             </div>
@@ -398,7 +422,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
               }
               handleLogout();
             }}
-            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-error/10 transition-colors text-left text-error"
+            className="w-full flex items-center gap-3 rounded-[9px] px-3 py-2 hover:bg-error/10 transition-colors text-left text-error"
           >
             <LogOut size={14} className="flex-shrink-0" />
             <div className="font-medium text-sm">Logout</div>
@@ -408,12 +432,84 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     );
   }, [userdetails, handleLogout, openDetails, userdetailsfromOrg]);
 
+  /**
+   * Account row — the canvas parks it at the foot of the rail: round initials
+   * avatar, name over email, chevron. The dropdown opens upward from there
+   * (expanded) or to the side (collapsed rail).
+   */
+  const renderAccountRow = useCallback(
+    () => (
+      <div className="relative account-dropdown-container" onMouseEnter={handleOrgHover} onMouseLeave={handleOrgLeave}>
+        <button
+          id="main-slider-account-dropdown-button"
+          onClick={handleOrgClick}
+          className={`w-full flex items-center gap-[9px] rounded-[10px] border border-line bg-card transition-colors hover:bg-paper ${
+            showSidebarContent ? "px-2 py-[7px]" : "justify-center py-2"
+          }`}
+        >
+          <div className="shrink-0 w-[30px] h-[30px] grid place-items-center rounded-full bg-paper-sunken">
+            <span className="font-mono text-[11px] font-bold text-soft">
+              {getInitials(userdetailsfromOrg?.name || userdetails?.name || "U")}
+            </span>
+          </div>
+          {showSidebarContent && (
+            <>
+              <div className="flex min-w-0 flex-1 flex-col text-left">
+                <span className="truncate text-[12.5px] font-semibold text-ink">
+                  {userdetails?.name || userdetailsfromOrg?.name || "Account"}
+                </span>
+                <span className="truncate text-[10.5px] text-soft">{userdetails?.email || "Account"}</span>
+              </div>
+              <ChevronDown
+                size={14}
+                className={`shrink-0 opacity-45 transition-transform ${isOrgDropdownExpanded ? "rotate-180" : ""}`}
+              />
+            </>
+          )}
+        </button>
+
+        {isOrgDropdownOpen && !showSidebarContent && (
+          <div
+            className="absolute left-full bottom-0 ml-2 bg-card border border-line rounded-[12px] shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200"
+            onMouseEnter={() => {
+              if (orgDropdownTimeout) {
+                clearTimeout(orgDropdownTimeout);
+                setOrgDropdownTimeout(null);
+              }
+            }}
+            onMouseLeave={handleOrgLeave}
+          >
+            {renderOrganizationDropdown()}
+          </div>
+        )}
+
+        {isOrgDropdownExpanded && showSidebarContent && (
+          <div className="absolute bottom-full left-0 mb-2 bg-card border border-line rounded-[12px] shadow-lg p-2 w-[280px] z-50 animate-in fade-in-0 zoom-in-95 duration-200">
+            {renderOrganizationDropdown()}
+          </div>
+        )}
+      </div>
+    ),
+    [
+      showSidebarContent,
+      userdetails,
+      userdetailsfromOrg,
+      isOrgDropdownExpanded,
+      isOrgDropdownOpen,
+      orgDropdownTimeout,
+      renderOrganizationDropdown,
+      handleOrgClick,
+      handleOrgHover,
+      handleOrgLeave,
+    ]
+  );
+
   /* ------------------------------------------------------------------------ */
   /*                                  Render                                  */
   /* ------------------------------------------------------------------------ */
 
-  // Fixed sidebar width - always 64px collapsed, 256px expanded
-  const spacerW = isMobile ? "50px" : isOpen ? "256px" : "50px";
+  // Fixed sidebar width — 56px collapsed, 244px expanded (matches the canvas)
+  const spacerW = isMobile ? "56px" : isOpen ? "244px" : "56px";
   const sidebarAgentType = searchParams?.get("type")?.toLowerCase();
   const activeKey = useMemo(() => {
     if (pathParts[3] === "agents") {
@@ -425,12 +521,9 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const sidebarPositioning = isSideBySideMode && !shouldCollapse ? "relative" : "fixed";
   const sidebarZIndex = isMobile || isMobileVisible ? "z-50" : "z-30";
 
-  // Determine if sidebar should show content (expanded view) with delayed hiding
-  const showSidebarContent = isMobile ? false : showContent;
-
   if (openDetails) {
     return (
-      <div className="absolute top-23 right-2 mt-2 bg-base-100 border-2 border-stroke shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2 z-[9999]">
+      <div className="absolute top-23 right-2 mt-2 bg-card border border-line rounded-[12px] shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2 z-[9999]">
         {renderOrganizationDropdown()}
       </div>
     );
@@ -477,7 +570,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
           <button
             id="main-slider-mobile-menu-toggle"
             onClick={handleMobileMenuToggle}
-            className="fixed top-3 left-2 w-8 h-8 bg-base-100 border-2 border-stroke flex items-center justify-center hover:bg-base-200 transition-colors z-50 shadow-md"
+            className="fixed top-3 left-2 w-8 h-8 rounded-[9px] bg-card border border-line flex items-center justify-center hover:bg-paper transition-colors z-50 shadow-md"
           >
             <AlignJustify size={12} />
           </button>
@@ -488,9 +581,9 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         {/* ------------------------------------------------------------------ */}
         <div
           data-testid="main-sidebar"
-          className={`${sidebarPositioning} sidebar bg-base-100 border-r-2 ${isMobile ? "overflow-hidden" : ""} border-ink left-0 top-0 h-[100dvh] my-0 ${isMobile ? "mx-1" : isSideBySideMode ? "ml-3 mr-0" : "mx-3"} flex flex-col pb-2 ${sidebarZIndex}`}
+          className={`${sidebarPositioning} sidebar bg-card border-r border-line ${isMobile ? "overflow-hidden" : ""} left-0 top-0 h-[100dvh] m-0 flex flex-col ${showSidebarContent ? "px-3" : "px-[11px]"} py-[14px] ${sidebarZIndex}`}
           style={{
-            width: isMobile ? (isMobileVisible ? "56px" : "0px") : isOpen ? "220px" : "50px",
+            width: isMobile ? (isMobileVisible ? "56px" : "0px") : isOpen ? "244px" : "56px",
             transform: isMobile ? (isMobileVisible ? "translateX(0)" : "translateX(-100%)") : "translateX(0)",
             opacity: isMobile ? (isMobileVisible ? "1" : "0") : "1",
             transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)",
@@ -502,7 +595,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             <button
               id="main-slider-mobile-close-button"
               onClick={() => setIsMobileVisible(false)}
-              className="absolute -right-3 top-3 w-7 h-7 bg-base-100 border-2 border-stroke flex items-center justify-center hover:bg-base-200 transition-colors z-10 shadow-sm"
+              className="absolute -right-3 top-3 w-7 h-7 rounded-full bg-card border border-line flex items-center justify-center hover:bg-paper transition-colors z-10 shadow-sm"
             >
               <ChevronLeft size={14} />
             </button>
@@ -513,7 +606,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             <button
               id="main-slider-toggle-button"
               onClick={handleToggle}
-              className="absolute -right-3 top-[50px] w-7 h-7 bg-base-100 border-2 border-stroke flex items-center justify-center hover:bg-base-200 transition-colors z-10 shadow-sm"
+              className="absolute -right-3 top-[50px] w-7 h-7 rounded-full bg-card border border-line flex items-center justify-center hover:bg-paper transition-colors z-10 shadow-sm"
             >
               {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>
@@ -521,89 +614,47 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
           {/* -------------------------- NAVIGATION -------------------------- */}
           <div className="flex flex-col h-full">
-            {/* Header section — account menu (no org switcher) */}
-            <div className="p-2 border-b-2 border-stroke relative">
-              {pathParts.length >= 4 && (
-                <div
-                  className="relative account-dropdown-container"
-                  onMouseEnter={handleOrgHover}
-                  onMouseLeave={handleOrgLeave}
-                >
-                  <button
-                    id="main-slider-account-dropdown-button"
-                    onClick={handleOrgClick}
-                    className={`w-full flex items-center gap-[10px] transition-colors ${showSidebarContent ? "border-2 border-ink rounded-[12px] px-[11px] py-[9px] hover:bg-paper" : "py-2"}`}
-                  >
-                    <div className="shrink-0 w-[30px] h-[30px] grid place-items-center rounded-[9px] border-2 border-stroke bg-acc">
-                      <span className="text-acc-ink font-mono font-bold text-[12px]">
-                        {getInitials(userdetailsfromOrg?.name || userdetails?.name || "U")}
-                      </span>
-                    </div>
-                    {showSidebarContent && (
-                      <>
-                        <div className="flex-1 text-left overflow-hidden">
-                          <div className="text-[13.5px] font-bold truncate">
-                            {truncate(userdetails?.name || userdetailsfromOrg?.name || "Account", 20)}
-                          </div>
-                          <div className="font-mono text-[9.5px] text-soft truncate">
-                            {userdetails?.email || "Account"}
-                          </div>
-                        </div>
-                        <ChevronDown
-                          size={16}
-                          className={`shrink-0 transition-transform ${isOrgDropdownExpanded ? "rotate-180" : ""}`}
-                        />
-                      </>
-                    )}
-                  </button>
-
-                  {isOrgDropdownOpen && !showSidebarContent && (
-                    <div
-                      className="absolute left-full top-0 ml-2 bg-base-100 border-2 border-stroke shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2"
-                      onMouseEnter={() => {
-                        if (orgDropdownTimeout) {
-                          clearTimeout(orgDropdownTimeout);
-                          setOrgDropdownTimeout(null);
-                        }
-                      }}
-                      onMouseLeave={handleOrgLeave}
-                    >
-                      {renderOrganizationDropdown()}
-                    </div>
-                  )}
-
-                  {isOrgDropdownExpanded && showSidebarContent && (
-                    <div className="absolute top-0 left-0 mt-2 bg-base-100 border-2 border-stroke shadow-lg p-2 w-[320px] z-50 animate-in fade-in-0 zoom-in-95 duration-200 slide-in-from-top-2">
-                      {renderOrganizationDropdown()}
-                    </div>
-                  )}
-                </div>
+            {/* Brand lockup — the canvas puts the wordmark at the top and the
+                account row at the bottom of the rail. */}
+            <div
+              className={`flex items-center gap-[10px] pb-4 ${showSidebarContent ? "px-1.5 pt-1" : "justify-center pt-1"}`}
+            >
+              <div className="grid h-7 w-7 flex-none place-items-center rounded-[8px] bg-acc font-mono text-[13px] font-bold text-acc-ink">
+                R
+              </div>
+              {showSidebarContent && (
+                <span className="text-[17px] font-bold tracking-[-0.025em] text-ink">rangers</span>
               )}
             </div>
 
-            {/* Create new agent — primary sidebar action (design) */}
+            {/* Create new Ranger. One element across both rail states, so the label squeezes with the 300ms width animation instead of wrapping mid-collapse. */}
             {targetOrgId && (
-              <div className={showSidebarContent ? "px-2 pt-2" : "px-1 pt-2"}>
+              <div>
                 <button
                   id="main-slider-create-agent-button"
                   data-testid="main-slider-create-agent-button"
                   onClick={handleCreateAgent}
                   onMouseEnter={(e) => onItemEnter("create-agent", e)}
                   onMouseLeave={onItemLeave}
-                  aria-label="Create new agent"
-                  className={
-                    showSidebarContent
-                      ? "w-full flex items-center justify-between gap-2 rounded-[12px] border-2 border-ink bg-acc px-[13px] py-[10px] text-[14px] font-bold text-acc-ink shadow-sm transition-colors"
-                      : `${COLLAPSED_TILE} border-ink bg-acc text-acc-ink shadow-sm`
-                  }
+                  aria-label="Create new Ranger"
+                  className={`w-full flex flex-none items-center justify-center overflow-hidden whitespace-nowrap rounded-[10px] bg-acc text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:opacity-90 ${
+                    railExpanded ? "h-[38px] gap-[7px] px-3" : "h-[34px] gap-0 px-0"
+                  }`}
                 >
-                  {showSidebarContent ? <span>+ Create new agent</span> : <Plus size={17} strokeWidth={2.75} />}
+                  <Plus size={15} strokeWidth={2.5} className="flex-none" />
+                  <span
+                    className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                      railExpanded ? "max-w-[170px] opacity-100" : "max-w-0 opacity-0"
+                    }`}
+                  >
+                    Create new Ranger
+                  </span>
                 </button>
               </div>
             )}
 
             {/* Main navigation - scrollable */}
-            <div className={`flex-1 scrollbar-hide overflow-x-hidden scroll-smooth p-1`}>
+            <div className={`flex-1 scrollbar-hide overflow-x-hidden scroll-smooth pt-5`}>
               <div className="">
                 {/* Main Menu Button - Show only in Admin Mode */}
                 {isAdminMode && (
@@ -634,11 +685,11 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     {NAV_SECTIONS.map(({ title, items }, idx) => (
                       <div key={idx} className="">
                         {showSidebarContent && title && (
-                          <h3 className="my-1 font-mono text-[9.5px] text-soft uppercase tracking-[.14em] px-1">
+                          <h3 className="px-2 pb-1.5 text-[10.5px] font-bold uppercase tracking-[.1em] text-soft">
                             {title}
                           </h3>
                         )}
-                        <div className="space-y-0.5">
+                        <div className="flex flex-col gap-0.5">
                           {items.map((key) => (
                             <button
                               id={`main-slider-nav-${key}`}
@@ -651,16 +702,21 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                               onMouseLeave={onItemLeave}
                               className={
                                 showSidebarContent
-                                  ? `w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] border-2 text-[14px] font-semibold transition-colors ${activeKey === key ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"}`
-                                  : `${COLLAPSED_TILE} ${activeKey === key ? "bg-acc text-acc-ink border-ink" : "border-transparent text-ink hover:border-stroke hover:bg-paper"}`
+                                  ? `w-full flex items-center gap-[10px] rounded-[9px] border px-[10px] py-2 text-[13.5px] font-semibold transition-colors ${activeKey === key ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
+                                  : `${COLLAPSED_TILE} ${activeKey === key ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
                               }
                             >
-                              <div className="shrink-0">{ITEM_ICONS[key]}</div>
+                              <div className="shrink-0 opacity-85">{ITEM_ICONS[key]}</div>
                               {showSidebarContent && (
-                                <div className="flex items-center gap-2 justify-center">
-                                  <span className="text-[14px] capitalize truncate">{DISPLAY_NAMES(key)}</span>
-                                  <span>{(key === "orchestratal_model" || key === "widgets") && <BetaBadge />}</span>
-                                </div>
+                                <>
+                                  <span className="truncate capitalize">{DISPLAY_NAMES(key)}</span>
+                                  {(key === "orchestratal_model" || key === "widgets") && <BetaBadge />}
+                                  {key === "agents" && agentCount > 0 && (
+                                    <span className="ml-auto rounded-[6px] bg-card px-1.5 py-px font-mono text-[10.5px]">
+                                      {agentCount}
+                                    </span>
+                                  )}
+                                </>
                               )}
                             </button>
                           ))}
@@ -678,7 +734,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                     }}
                   >
                     {showSidebarContent && (
-                      <h3 className="my-2 font-mono text-[9.5px] text-soft uppercase tracking-[.14em] px-1">
+                      <h3 className="px-2 pb-1.5 text-[10.5px] font-bold uppercase tracking-[.1em] text-soft">
                         Admin Settings
                       </h3>
                     )}
@@ -695,12 +751,12 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                           onMouseLeave={onItemLeave}
                           className={
                             showSidebarContent
-                              ? "w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] border-2 border-transparent text-[13.5px] font-semibold transition-colors hover:bg-paper text-ink"
-                              : `${COLLAPSED_TILE} border-transparent text-ink hover:border-stroke hover:bg-paper`
+                              ? "w-full flex items-center gap-[10px] rounded-[9px] border border-line bg-card px-[10px] py-2 text-[13.5px] font-semibold text-soft transition-colors hover:bg-paper hover:text-ink"
+                              : `${COLLAPSED_TILE} border-line bg-card text-soft hover:bg-paper hover:text-ink`
                           }
                         >
-                          <div className="shrink-0">{item.icon}</div>
-                          {showSidebarContent && <span className="text-sm truncate">{item.label}</span>}
+                          <div className="shrink-0 opacity-85">{item.icon}</div>
+                          {showSidebarContent && <span className="truncate">{item.label}</span>}
                         </button>
                       ))}
                     </div>
@@ -709,148 +765,103 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
               </div>
             </div>
 
-            {/* Footer Actions Section */}
-            <div className="border-t-2 border-stroke p-1 pt-2">
-              <div className="space-y-1">
-                {/* Primary action: Admin */}
+            {/* Footer Actions Section — canvas order: nav-ish rows, the
+                lifetime chip, the theme switcher, then the account row. */}
+            <div className="flex flex-col gap-0.5 border-t border-line pt-[10px]">
+              {/* Admin settings */}
+              <button
+                id="main-slider-admin-settings-toggle"
+                onClick={handleAdminToggle}
+                onMouseEnter={(e) => onItemEnter("admin-toggle", e)}
+                onMouseLeave={onItemLeave}
+                className={
+                  showSidebarContent
+                    ? `w-full flex items-center gap-[10px] rounded-[9px] border px-[10px] py-2 text-[13px] font-medium transition-colors ${isAdminMode ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
+                    : `${COLLAPSED_TILE} ${isAdminMode ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
+                }
+              >
+                <span className="shrink-0 opacity-60">{ITEM_ICONS.adminSettings}</span>
+                {showSidebarContent && (
+                  <span className="truncate">{isAdminMode ? "Back to Main" : "Admin Settings"}</span>
+                )}
+              </button>
+
+              {/* Refer & Earn */}
+              <button
+                id="main-slider-refer-earn-button"
+                onClick={() => {
+                  if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/referAndEarn`);
+                  if (isMobile) setIsMobileVisible(false);
+                }}
+                onMouseEnter={(e) => onItemEnter("refer-earn", e)}
+                onMouseLeave={onItemLeave}
+                aria-label="Refer and earn"
+                className={
+                  showSidebarContent
+                    ? "w-full flex items-center gap-[10px] rounded-[9px] border border-line bg-card px-[10px] py-2 text-[13px] font-medium text-soft transition-colors hover:bg-paper hover:text-ink"
+                    : `${COLLAPSED_TILE} border-line bg-card text-soft hover:bg-paper hover:text-ink`
+                }
+              >
+                <Users size={16} className="shrink-0 opacity-60" />
+                {showSidebarContent && <span className="truncate">Refer &amp; Earn</span>}
+              </button>
+
+              {/* Keyboard shortcuts */}
+              <button
+                id="main-slider-keyboard-shortcuts-button"
+                onClick={() => {
+                  openModal(MODAL_TYPE.KEYBOARD_SHORTCUTS_MODAL);
+                  if (isMobile) setIsMobileVisible(false);
+                }}
+                onMouseEnter={(e) => onItemEnter("keyboard-shortcuts", e)}
+                onMouseLeave={onItemLeave}
+                aria-label="Keyboard shortcuts"
+                className={
+                  showSidebarContent
+                    ? "w-full flex items-center gap-[10px] rounded-[9px] border border-line bg-card px-[10px] py-2 text-[13px] font-medium text-soft transition-colors hover:bg-paper hover:text-ink"
+                    : `${COLLAPSED_TILE} border-line bg-card text-soft hover:bg-paper hover:text-ink`
+                }
+              >
+                <Keyboard size={16} className="shrink-0 opacity-60" />
+                {showSidebarContent && (
+                  <>
+                    <span className="truncate">Shortcuts</span>
+                    <span className="ml-auto rounded-[5px] border border-line px-[5px] py-px font-mono text-[10px] text-soft">
+                      {shortcutHint}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              {/* Free lifetime access */}
+              {!currrentOrgDetail?.meta?.unlimited_access && (
                 <button
-                  id="main-slider-admin-settings-toggle"
-                  onClick={handleAdminToggle}
-                  onMouseEnter={(e) => onItemEnter("admin-toggle", e)}
+                  id="main-slider-lifetime-access-button"
+                  onClick={() => {
+                    guardedNavigate(`/org/${orgId}/lifetime-access`);
+                    if (isMobile) setIsMobileVisible(false);
+                  }}
+                  onMouseEnter={(e) => onItemEnter("lifetimeAccess", e)}
                   onMouseLeave={onItemLeave}
+                  aria-label="Free Lifetime Access"
                   className={
-                    // Sits in the footer group, where lifetime/theme/refer/keys all
-                    // carry a visible border — so this one keeps its stroke when
-                    // idle instead of going transparent like the nav items above.
                     showSidebarContent
-                      ? `w-full flex items-center gap-3 rounded-[9px] border-2 px-[11px] py-2 text-[13.5px] font-semibold transition-colors ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "border-stroke bg-card text-ink hover:bg-paper"}`
-                      : `${COLLAPSED_TILE} ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "border-stroke bg-card text-ink hover:bg-paper"}`
+                      ? "my-2 w-full flex items-center gap-[9px] rounded-[9px] border border-acc-line bg-acc-soft px-[10px] py-2 text-[12.5px] font-semibold text-acc-deep transition-colors hover:bg-acc-tint"
+                      : `${COLLAPSED_TILE} my-2 border-acc-line bg-acc-soft text-acc-deep hover:bg-acc-tint`
                   }
                 >
-                  {ITEM_ICONS.adminSettings}
-                  {showSidebarContent && (
-                    <span className="truncate">{isAdminMode ? "Back to Main" : "Admin Settings"}</span>
-                  )}
+                  <span className="shrink-0 opacity-80">{ITEM_ICONS.lifetimeAccess}</span>
+                  {showSidebarContent && <span className="truncate">Free Lifetime Access</span>}
                 </button>
+              )}
 
-                {/* Primary action: Lifetime access */}
-                {!currrentOrgDetail?.meta?.unlimited_access && (
-                  <div className="relative">
-                    <button
-                      id="main-slider-lifetime-access-button"
-                      onClick={() => {
-                        guardedNavigate(`/org/${orgId}/lifetime-access`);
-                        if (isMobile) setIsMobileVisible(false);
-                      }}
-                      onMouseEnter={(e) => onItemEnter("lifetimeAccess", e)}
-                      onMouseLeave={onItemLeave}
-                      aria-label="Free Lifetime Access"
-                      className={
-                        showSidebarContent
-                          ? "w-full flex items-center gap-3 rounded-[9px] px-[11px] py-2 transition-colors border-2 border-acc text-acc hover:bg-acc/10"
-                          : `${COLLAPSED_TILE} border-acc text-acc hover:bg-acc/10`
-                      }
-                    >
-                      <div
-                        className={`relative z-10 flex items-center ${showSidebarContent ? "w-full gap-3" : "justify-center"}`}
-                      >
-                        <div className="relative">
-                          {ITEM_ICONS.lifetimeAccess}
-                          <div className="absolute -top-1 -right-1 w-1 h-1 bg-acc animate-ping opacity-40"></div>
-                        </div>
-                        {showSidebarContent && (
-                          <span className="text-[13.5px] truncate font-bold text-acc">Free Lifetime Access</span>
-                        )}
-                      </div>
-                    </button>
-
-                    {showSidebarContent && (
-                      <div className="absolute -top-0.5 -right-0.5 text-xs opacity-60 transform rotate-12">🎁</div>
-                    )}
-                  </div>
-                )}
-
-                {/* Theme switcher — full dropdown when expanded, cycling icon when collapsed */}
-                <div className={showSidebarContent ? "px-0.5" : ""}>
-                  <ThemeToggle compact={!showSidebarContent} />
-                </div>
-
-                {/* Secondary footer actions */}
-                {showSidebarContent ? (
-                  <div className="border-t border-dashed border-line pt-2">
-                    <div className="grid grid-cols-2 gap-1">
-                      <button
-                        id="main-slider-refer-earn-button"
-                        onClick={() => {
-                          if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/referAndEarn`);
-                          if (isMobile) setIsMobileVisible(false);
-                        }}
-                        onMouseEnter={(e) => onItemEnter("refer-earn", e)}
-                        onMouseLeave={onItemLeave}
-                        className="flex flex-col items-center justify-center gap-1 rounded-[9px] border-2 border-stroke p-[7px] font-mono text-[10.5px] hover:bg-paper transition-colors text-ink"
-                      >
-                        <span className="text-sm">🎁</span>
-                        <span className="text-[10.5px] leading-none">Refer</span>
-                      </button>
-
-                      <button
-                        id="main-slider-keyboard-shortcuts-button"
-                        onClick={() => {
-                          openModal(MODAL_TYPE.KEYBOARD_SHORTCUTS_MODAL);
-                          if (isMobile) setIsMobileVisible(false);
-                        }}
-                        onMouseEnter={(e) => onItemEnter("keyboard-shortcuts", e)}
-                        onMouseLeave={onItemLeave}
-                        className="flex flex-col items-center justify-center gap-1 rounded-[9px] border-2 border-stroke p-[7px] font-mono text-[10.5px] hover:bg-paper transition-colors text-ink"
-                      >
-                        <Keyboard size={16} className="text-base-content/70" />
-                        <span className="text-[10.5px] leading-none">Keys</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <button
-                      id="main-slider-refer-earn-button"
-                      onClick={() => {
-                        if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/referAndEarn`);
-                        if (isMobile) setIsMobileVisible(false);
-                      }}
-                      onMouseEnter={(e) => onItemEnter("refer-earn", e)}
-                      onMouseLeave={onItemLeave}
-                      aria-label="Refer and earn"
-                      className={`${COLLAPSED_TILE} border-stroke bg-card text-ink hover:bg-paper`}
-                    >
-                      <span className="text-[15px] leading-none">🎁</span>
-                    </button>
-
-                    <button
-                      id="main-slider-keyboard-shortcuts-button"
-                      onClick={() => {
-                        openModal(MODAL_TYPE.KEYBOARD_SHORTCUTS_MODAL);
-                        if (isMobile) setIsMobileVisible(false);
-                      }}
-                      onMouseEnter={(e) => onItemEnter("keyboard-shortcuts", e)}
-                      onMouseLeave={onItemLeave}
-                      aria-label="Keyboard shortcuts"
-                      className={`${COLLAPSED_TILE} border-stroke bg-card text-ink hover:bg-paper`}
-                    >
-                      <Keyboard size={16} />
-                    </button>
-                  </div>
-                )}
+              {/* Theme switcher — segmented when expanded, cycling icon when collapsed */}
+              <div className="mb-[10px]">
+                <ThemeToggle compact={!showSidebarContent} />
               </div>
-            </div>
 
-            {/* Wordmark */}
-            <div className="border-t border-dashed border-line p-1 pt-[9px]">
-              <div className="text-center">
-                <span
-                  className={`font-mono tracking-[.16em] text-soft ${showSidebarContent ? "text-[11px]" : "text-[9px]"}`}
-                >
-                  RANGERS
-                </span>
-              </div>
+              {/* Account row */}
+              {pathParts.length >= 4 && renderAccountRow()}
             </div>
           </div>
         </div>
@@ -874,10 +885,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
         {/* ------------------------------------------------------------------ */}
         {hovered && !showSidebarContent && (isMobileVisible || (!isMobile && !isOpen)) && (
           <div
-            className="fixed capitalize bg-base-300 text-base-content py-2 px-3 rounded-lg shadow-lg whitespace-nowrap border-2 border-stroke pointer-events-none z-50"
+            className="fixed capitalize bg-card text-ink py-2 px-3 rounded-[9px] shadow-lg whitespace-nowrap border border-line pointer-events-none z-50"
             style={{ top: tooltipPos.top - 20, left: tooltipPos.left }}
           >
-            <div className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-base-300 border-2 rotate-45 capitalize -left-1 border-r-0 border-b-0 border-stroke" />
+            <div className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-card border rotate-45 capitalize -left-1 border-r-0 border-b-0 border-line" />
             {DISPLAY_NAMES(hovered)}
           </div>
         )}

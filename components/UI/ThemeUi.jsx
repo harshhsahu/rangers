@@ -28,7 +28,7 @@ export default function ThemeToggle({ compact = false }) {
         title={getThemeLabel()}
         aria-label={getThemeLabel()}
         onClick={() => changeTheme(MODES[(activeIndex + 1) % MODES.length].id)}
-        className="mx-auto grid h-[34px] w-[34px] place-items-center rounded-[10px] border-2 border-stroke bg-card text-ink transition-colors hover:bg-paper"
+        className="mx-auto grid h-[34px] w-[34px] place-items-center rounded-[10px] border border-line bg-card text-ink transition-colors hover:bg-paper"
       >
         <ActiveIcon size={16} />
       </button>
@@ -41,9 +41,9 @@ export default function ThemeToggle({ compact = false }) {
       id="theme-toggle"
       role="radiogroup"
       aria-label="Colour theme"
-      className="flex w-full items-center gap-1 rounded-full border-2 border-stroke bg-card p-[3px]"
+      className="flex w-full items-center rounded-[9px] border border-line bg-paper-sunken p-[3px] text-[11px]"
     >
-      {MODES.map(({ id, label, Icon }) => {
+      {MODES.map(({ id, label }) => {
         const isActive = id === theme;
         return (
           <button
@@ -54,12 +54,13 @@ export default function ThemeToggle({ compact = false }) {
             aria-checked={isActive}
             title={label}
             onClick={() => changeTheme(id)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-[5px] font-mono text-[10px] uppercase tracking-[.08em] transition-colors ${
-              isActive ? "bg-acc text-acc-ink font-bold" : "text-soft hover:text-ink"
+            className={`flex-1 rounded-[7px] py-[5px] text-center transition-colors ${
+              isActive
+                ? "bg-card font-semibold text-ink shadow-[0_1px_1px_rgba(20,17,13,.08)]"
+                : "text-soft hover:text-ink"
             }`}
           >
-            <Icon size={13} />
-            <span>{label}</span>
+            {label}
           </button>
         );
       })}

@@ -11,6 +11,7 @@ const SearchItems = ({
   isEmbedUser,
   containerClass = "",
   inputContainerClass = "",
+  placeholder,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const searchParams = useSearchParams();
@@ -126,7 +127,14 @@ const SearchItems = ({
 
   const containerClasses =
     containerClass || (isWorkspaceItem ? `${item === "org" ? "w-full mt-2" : "max-w-xs ml-2"}` : "max-w-xs ml-2");
-  const inputClasses = style ? style : "input input-sm w-full border-2 bg-base-200 border-stroke pr-16";
+  // `!` modifiers are load-bearing: globals.css gives text inputs a 2px ink
+  // border through an attribute selector, which is far heavier than the rest of
+  // the page's 1px hairlines.
+  // Keeps daisy's sizing and only replaces the border: globals.css gives text
+  // inputs a 2px ink stroke through an attribute selector, which reads far
+  // heavier than the 1px hairlines the rest of the page uses. The `!`
+  // modifiers are load-bearing against that selector.
+  const inputClasses = style ? style : "input input-sm w-full !border !border-line !bg-card pr-16";
 
   return (
     <div className={containerClasses}>
@@ -138,7 +146,7 @@ const SearchItems = ({
           type="text"
           ref={searchInputRef}
           aria-label={`Search ${itemLabel} by Name, SlugName, Service, or ID`}
-          placeholder={filterParam ? "Filtered - Click X to clear" : "Search"}
+          placeholder={filterParam ? "Filtered - Click X to clear" : placeholder || "Search"}
           value={searchTerm}
           className={inputClasses}
           data-allow-org-nav={isWorkspaceItem ? "true" : "false"}
@@ -167,9 +175,7 @@ const SearchItems = ({
               </button>
             )}
             {!filterParam && (
-              <kbd
-                className={`kbd kbd-xs bg-base-200 text-base-content/70 border-2 border-stroke ${isMac ? "px-1.5" : "px-1"}`}
-              >
+              <kbd className={`kbd kbd-xs border border-line bg-paper text-soft ${isMac ? "px-1.5" : "px-1"}`}>
                 {shortcutText}
               </kbd>
             )}

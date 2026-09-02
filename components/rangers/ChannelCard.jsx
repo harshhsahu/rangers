@@ -17,35 +17,37 @@ const ChannelCard = ({ channel, connectedCount = 0, agentNames = [], isLoading =
     <article
       data-testid={`channel-card-${channel.key}`}
       id={`channel-card-${channel.key}`}
-      className={`flex flex-col gap-3 rounded-[14px] border-2 border-stroke bg-card p-4 ${
-        channel.enabled ? "" : "opacity-60"
+      className={`flex flex-col rounded-[16px] border border-line bg-card shadow-[0_1px_2px_rgba(20,17,13,.06)] ${
+        channel.enabled ? "" : "opacity-[.62]"
       }`}
     >
-      <div className="flex items-start gap-3">
-        <Icon size={32} className="flex-none" />
+      <div className="flex items-start gap-3 p-4 pb-[14px]">
+        <span className="grid h-8 w-8 flex-none place-items-center">
+          <Icon size={30} />
+        </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[14px] font-bold text-ink">{channel.label}</div>
-          <div className="mt-[2px] text-[11.5px] leading-snug text-soft">{channel.blurb}</div>
+          <div className="truncate text-[14.5px] font-semibold text-ink">{channel.label}</div>
+          <div className="mt-[3px] text-[12px] leading-[1.45] text-soft">{channel.blurb}</div>
         </div>
         <span
-          className={`shrink-0 rounded-full border-2 border-stroke px-2 py-[2px] font-mono text-[9px] font-bold uppercase tracking-[.08em] ${
-            !channel.enabled ? "bg-paper text-soft" : isLive ? "bg-acc text-acc-ink" : "bg-cool text-ink"
+          className={`flex-none rounded-full px-[9px] py-[3px] text-[9.5px] font-bold uppercase tracking-[.08em] ${
+            !channel.enabled ? "bg-paper text-soft" : isLive ? "bg-acc-tint text-acc-deep" : "bg-cool text-ink"
           }`}
         >
           {!channel.enabled ? "Coming soon" : isLive ? "Live" : "Standby"}
         </span>
       </div>
 
-      <div className="border-t-2 border-line pt-3">
+      <div className="mt-auto border-t border-card-line bg-card-band px-4 py-3">
         {!channel.enabled ? (
-          <p className="text-[11.5px] text-soft">Not available yet.</p>
+          <p className="text-[12px] text-soft">Not available yet.</p>
         ) : isLoading ? (
           <div className="h-4 w-24 animate-pulse rounded bg-base-300" />
         ) : (
           <>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-mono text-[19px] font-semibold leading-none text-ink">{connectedCount}</span>
-              <span className="text-[10px] font-semibold uppercase tracking-[.07em] text-soft">
+            <div className="flex items-baseline gap-[7px]">
+              <span className="font-mono text-[18px] font-semibold leading-none text-ink">{connectedCount}</span>
+              <span className="text-[10.5px] font-semibold uppercase tracking-[.05em] text-soft">
                 {connectedCount === 1 ? "ranger connected" : "rangers connected"}
               </span>
             </div>
@@ -54,7 +56,7 @@ const ChannelCard = ({ channel, connectedCount = 0, agentNames = [], isLoading =
                 {agentNames.slice(0, 4).map((name) => (
                   <span
                     key={name}
-                    className="rounded-[5px] border-[1.5px] border-line px-1.5 py-[2px] font-mono text-[9.5px] text-soft"
+                    className="rounded-[6px] bg-card px-[7px] py-[3px] font-mono text-[9.5px] text-soft"
                     title={name}
                   >
                     {name}

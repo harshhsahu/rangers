@@ -32,6 +32,26 @@ const resolvePromptText = (prompt) => {
 };
 
 /**
+ * The create call can come back with a backend-generated name (it does when a
+ * `purpose` is sent, which is what drafts the prompt). The name the user typed
+ * is the one they expect to see, so it is written back when they differ.
+ * Non-fatal: a failure here leaves the generated name, not a broken agent.
+ */
+const useRestoreName = (dispatch) =>
+  useCallback(
+    async (agent, typedName) => {
+      const wanted = (typedName || "").trim();
+      if (!agent?._id || !wanted || agent.name === wanted) return;
+      try {
+        await dispatch(updateBridgeAction({ bridgeId: agent._id, dataToSend: { name: wanted } }));
+      } catch (err) {
+        console.error("Restoring the ranger name failed", err);
+      }
+    },
+    [dispatch]
+  );
+
+/**
  * Orchestrates ranger creation end to end.
  *
  * Phase order matters:
@@ -46,9 +66,11 @@ const resolvePromptText = (prompt) => {
  */
 const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
   const dispatch = useDispatch();
+  const restoreName = useRestoreName(dispatch);
   const [phase, setPhase] = useState(DEPLOY_PHASES.IDLE);
   const [error, setError] = useState("");
   const [channelWarnings, setChannelWarnings] = useState([]);
+  const [toolWarnings, setToolWarnings] = useState([]);
   const [created, setCreated] = useState(null);
   const [connectedChannels, setConnectedChannels] = useState({});
   const [connectedTools, setConnectedTools] = useState({});
@@ -88,6 +110,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     setPhase(DEPLOY_PHASES.IDLE);
     setError("");
     setChannelWarnings([]);
+    setToolWarnings([]);
     setIdentityPhase(DEPLOY_PHASES.IDLE);
     setIdentityError("");
   }, []);
@@ -175,7 +198,12 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
             agentId: agent._id,
             versionId,
             service: agent.service,
+            meta: agent?.meta,
           };
+
+          // Creating with a `purpose` lets the backend name the agent itself,
+          // which throws away the name the user typed. Put theirs back.
+          await restoreName(agent, form.name);
           createdRef.current = createdAgent;
           safeSet(setCreated, { agentId: agent._id, versionId, name: form.name.trim() });
 
@@ -213,7 +241,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         creatingPromiseRef.current = null;
       }
     },
-    [dispatch, promoteToTrigger, runCreate, safeSet]
+    [dispatch, promoteToTrigger, restoreName, runCreate, safeSet]
   );
 
   /** Phase 4 — one consolidated version update, never three concurrent ones. */
@@ -224,6 +252,15 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
       const dataToSend = {
         ...(form.service && form.service !== createdService ? { service: form.service } : {}),
+        // Binds the version to the org API key for its own service, so the
+        // ranger runs on the user's quota instead of silently falling back.
+        // Same shape ApiKeyModal writes. Omitted when there is no key.
+        ...(form.apikeyObjectId && Object.keys(form.apikeyObjectId).length
+          ? { apikey_object_id: form.apikeyObjectId }
+          : {}),
+        // Knowledge bases picked before the version existed. Same doc_ids shape
+        // KnowledgebaseList writes on the configure page.
+        ...(Array.isArray(form.docIds) && form.docIds.length ? { doc_ids: form.docIds } : {}),
         configuration: {
           // Preserve the backend's structured shape when the prompt came back
           // as {role, goal, instruction}; templates fall back to a string.
@@ -233,6 +270,11 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           // Omitted entirely when the model does not expose temperature —
           // an unsupported parameter can fail the provider call.
           ...(temperature !== null ? { temperature } : {}),
+          // Same shape McpServerList saves. Collected before the version
+          // exists, so it is written here rather than as it is typed.
+          ...(Array.isArray(form.mcpServers) && form.mcpServers.length
+            ? { mcp_config: { servers: form.mcpServers } }
+            : {}),
         },
         ...(tone ? { settings: { tone: { value: tone.value, prompt: tone.prompt } } } : {}),
       };
@@ -256,6 +298,10 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         if (!form.channels?.[channel.key]?.enabled) continue;
         if (connectedChannelsRef.current[channel.key]) continue;
         const creds = form.channels[channel.key].credentials || {};
+        // No credential means the user chose not to connect this one. Skip it
+        // silently rather than calling the setup route with an empty token and
+        // reporting the rejection back as a warning they never asked for.
+        if (!(creds.botToken || "").trim()) continue;
         try {
           const res = await fetch(channel.setupEndpoint, {
             method: "POST",
@@ -287,6 +333,43 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       return warnings;
     },
     [orgId]
+  );
+
+  /**
+   * Attaches tools chosen before the agent existed. Sequential, and non-fatal
+   * like channels: a tool that fails to attach is reported as a warning rather
+   * than sinking a deploy that has already published everything else.
+   * Tools already attached from the Connectors step are skipped.
+   */
+  const runTools = useCallback(
+    async (form, { agentId, versionId }) => {
+      const toolIds = Array.isArray(form.toolIds) ? form.toolIds : [];
+      const warnings = [];
+      for (const functionId of toolIds) {
+        if (!functionId || connectedToolsRef.current[functionId]) continue;
+        try {
+          await dispatch(
+            updateBridgeVersionAction({
+              bridgeId: agentId,
+              versionId,
+              dataToSend: { functionData: { function_id: functionId, function_operation: "1" } },
+            })
+          );
+          connectedToolsRef.current[functionId] = true;
+        } catch (err) {
+          console.error("Attaching the tool failed", err);
+          warnings.push({
+            tool: functionId,
+            message: err?.response?.data?.message || err?.message || "Failed to attach.",
+          });
+        }
+      }
+      if (Object.keys(connectedToolsRef.current).length) {
+        safeSet(setConnectedTools, { ...connectedToolsRef.current });
+      }
+      return warnings;
+    },
+    [dispatch, safeSet]
   );
 
   /**
@@ -422,6 +505,31 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     [dispatch, ensureHydratedVersion]
   );
 
+  /**
+   * Bridge-level fields (name and `meta.ranger`) are written at create time,
+   * but the wizard lets the user keep editing them afterwards — the agent may
+   * already exist by the time they change the name or the colour, and deploy
+   * skips create in that case. So they are pushed once more here. Non-fatal.
+   */
+  const syncIdentity = useCallback(
+    async (form, agentId) => {
+      try {
+        await dispatch(
+          updateBridgeAction({
+            bridgeId: agentId,
+            dataToSend: {
+              name: form.name.trim(),
+              meta: mergeRangerMeta(createdRef.current?.meta, form),
+            },
+          })
+        );
+      } catch (err) {
+        console.error("Syncing the ranger name and meta failed", err);
+      }
+    },
+    [dispatch]
+  );
+
   const deploy = useCallback(
     async (form) => {
       safeSet(setError, "");
@@ -449,8 +557,10 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           versionId = agent.versions?.[0];
           createdService = agent.service;
           if (!versionId) throw new Error("Agent was created without a version.");
-          createdRef.current = { agentId, versionId, service: createdService };
+          createdRef.current = { agentId, versionId, service: createdService, meta: agent?.meta };
           safeSet(setCreated, { agentId, versionId, name: form.name.trim() });
+
+          await restoreName(agent, form.name);
 
           if (!form.prompt?.trim() && (prompt || promptParts)) {
             effectiveForm = { ...form, prompt: prompt || "", promptParts: promptParts || null };
@@ -470,6 +580,11 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           await promoteToTrigger(agentId);
         }
 
+        // ---- identity sync ----
+        // Catches edits made after the agent was created (the prompt step can
+        // create it well before Review).
+        await syncIdentity(effectiveForm, agentId);
+
         // ---- hydrate (mandatory) ----
         // getBridgeVersionAction swallows its own errors and returns undefined,
         // so assert here rather than letting the next phase blow up two levels
@@ -485,6 +600,13 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         // Runs for AI mode too: the form (or the fallback above) is final, not the create response.
         safeSet(setPhase, DEPLOY_PHASES.CONFIGURING);
         await runConfigure(effectiveForm, { agentId, versionId, createdService });
+
+        // ---- tools (non-fatal) ----
+        // Shares the configure phase rather than adding one of its own, so the
+        // modal's phase list stays a fixed five steps.
+        const toolIssues = await runTools(effectiveForm, { agentId, versionId });
+        safeSet(setToolWarnings, toolIssues);
+        toolIssues.forEach((warning) => toast.warning(`Tool: ${warning.message}`));
 
         // ---- channels (non-fatal) ----
         safeSet(setPhase, DEPLOY_PHASES.CHANNELS);
@@ -507,7 +629,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         safeSet(setPhase, DEPLOY_PHASES.DONE);
         toast.success(`${form.name.trim()} deployed and published.`);
         onDeployed?.({ agentId, versionId });
-        return { success: true, agentId, versionId };
+        return { success: true, agentId, versionId, warnings: [...warnings, ...toolIssues] };
       } catch (err) {
         console.error("Ranger deploy failed", err);
         safeSet(setPhase, DEPLOY_PHASES.FAILED);
@@ -515,7 +637,19 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         return { success: false };
       }
     },
-    [dispatch, onDeployed, orgId, promoteToTrigger, runChannels, runConfigure, runCreate, safeSet]
+    [
+      dispatch,
+      onDeployed,
+      orgId,
+      promoteToTrigger,
+      restoreName,
+      runChannels,
+      runConfigure,
+      runCreate,
+      runTools,
+      safeSet,
+      syncIdentity,
+    ]
   );
 
   return {
@@ -529,6 +663,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     phase,
     error,
     channelWarnings,
+    toolWarnings,
     created,
     connectedChannels,
     identityPhase,

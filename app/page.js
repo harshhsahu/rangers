@@ -150,7 +150,7 @@ const Page = () => {
       </section>
 
       {/* ------------------------------ Marquee ------------------------------ */}
-      <div className="border-y-2 border-stroke bg-paper pb-[34px] pt-[30px]">
+      <div className="w-3/4 mx-auto border-stroke bg-paper pb-[34px] pt-[30px]">
         <div className="overflow-hidden" style={{ maskImage: MARQUEE_FADE, WebkitMaskImage: MARQUEE_FADE }}>
           <div className="flex w-max" style={{ animation: `rgMarquee ${MARQUEE_SECONDS}s linear infinite` }}>
             {[0, 1].map((half) => (

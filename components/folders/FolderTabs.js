@@ -29,8 +29,27 @@ export const FolderTabs = ({
   showTrashTab = false,
   deletedCount = 0,
   folderCounts = {},
+  variant = "stroke",
 }) => {
   const { activeFolderId, setActiveFolderId, draggedResourceId } = useFolderContext();
+
+  /**
+   * "stroke" is the app-wide neo-brutalist chip (2px ink border, solid accent
+   * when selected). "soft" is the quieter 1px chip the Rangers page uses, where
+   * the selected chip is an accent tint rather than a solid fill.
+   */
+  const isSoft = variant === "soft";
+  const chipBase = isSoft
+    ? "flex items-center gap-[7px] px-[11px] py-[6px] cursor-pointer transition-colors shrink-0 text-[12.5px] font-semibold rounded-[9px] border"
+    : "flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2";
+  const chipTone = (selected) => {
+    if (isSoft) {
+      return selected ? "border-acc-line bg-acc-soft text-acc-deep" : "border-line bg-card text-soft hover:text-ink";
+    }
+    return selected ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink";
+  };
+  const chipClass = (selected) => `${chipBase} ${chipTone(selected)}`;
+  const iconSize = isSoft ? 14 : 15;
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [editingFolderId, setEditingFolderId] = useState(null);
@@ -73,14 +92,11 @@ export const FolderTabs = ({
   };
 
   return (
-    <div className="w-full px-4 pb-3 pt-1 select-none flex flex-col gap-2">
+    <div className={`w-full select-none flex flex-col gap-2 pb-3 ${isSoft ? "pt-4" : "px-4 pt-1"}`}>
       <div className="flex flex-wrap items-center gap-2 py-1">
         {/* All Items Tab */}
-        <div
-          onClick={() => setActiveFolderId(null)}
-          className={`flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2 ${activeFolderId === null ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
-        >
-          {activeFolderId === null ? <FolderOpen size={15} /> : <Folder size={15} />}
+        <div onClick={() => setActiveFolderId(null)} className={chipClass(activeFolderId === null)}>
+          {activeFolderId === null ? <FolderOpen size={iconSize} /> : <Folder size={iconSize} />}
           <span>All {folderCounts.all !== undefined ? `(${folderCounts.all})` : ""}</span>
         </div>
 
@@ -97,14 +113,18 @@ export const FolderTabs = ({
               onDragOver={(e) => handleDragOver(e, folder._id)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, folder._id)}
-              className={`group flex items-center gap-1.5 px-[13px] py-1.5 rounded-[9px] cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold border-2 ${isSelected ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
+              className={`group ${chipClass(isSelected)}`}
               style={{
                 borderStyle: isDragOver ? "dashed" : "solid",
                 borderWidth: isDragOver ? "2px" : "1px",
                 borderColor: isDragOver ? "var(--acc)" : isSelected ? "transparent" : undefined,
               }}
             >
-              {isSelected ? <FolderOpen size={15} className="shrink-0" /> : <Folder size={15} className="shrink-0" />}
+              {isSelected ? (
+                <FolderOpen size={iconSize} className="shrink-0" />
+              ) : (
+                <Folder size={iconSize} className="shrink-0" />
+              )}
               {isEditing ? (
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   <input
@@ -162,7 +182,7 @@ export const FolderTabs = ({
         {/* Uncategorized Tab */}
         <div
           onClick={() => setActiveFolderId("uncategorized")}
-          className={`flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2 ${activeFolderId === "uncategorized" ? "bg-acc text-acc-ink border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
+          className={chipClass(activeFolderId === "uncategorized")}
           onDragOver={(e) => handleDragOver(e, "uncategorized")}
           onDragLeave={handleDragLeave}
           onDrop={(e) => handleDrop(e, "uncategorized")}
@@ -172,7 +192,7 @@ export const FolderTabs = ({
             borderColor: dragOverFolderId === "uncategorized" ? "var(--acc)" : "transparent",
           }}
         >
-          <FileMinus size={15} />
+          <FileMinus size={iconSize} />
           <span>Uncategorized {folderCounts.uncategorized !== undefined ? `(${folderCounts.uncategorized})` : ""}</span>
         </div>
 
@@ -180,10 +200,14 @@ export const FolderTabs = ({
         {showTrashTab && (
           <div
             onClick={() => setActiveFolderId("trash")}
-            className={`flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-bold rounded-[9px] border-2 ${activeFolderId === "trash" ? "bg-error text-error-content border-ink" : "bg-card hover:bg-paper text-ink border-ink"}`}
+            className={
+              activeFolderId === "trash"
+                ? `${chipBase} bg-error text-error-content ${isSoft ? "border-error" : "border-ink"}`
+                : chipClass(false)
+            }
             data-testid="folder-tab-trash"
           >
-            <Trash2 size={15} />
+            <Trash2 size={iconSize} />
             <span>Trash ({deletedCount})</span>
           </div>
         )}
@@ -217,9 +241,11 @@ export const FolderTabs = ({
         ) : (
           <button
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-1.5 px-[13px] py-1.5 cursor-pointer transition-all duration-200 shrink-0 text-[12.5px] font-semibold rounded-[9px] border-2 border-dashed border-stroke text-soft hover:text-acc bg-transparent"
+            className={`${chipBase} border-dashed bg-transparent text-soft hover:text-acc ${
+              isSoft ? "border-line" : "border-stroke"
+            }`}
           >
-            <Plus size={15} />
+            <Plus size={iconSize} />
             <span>Add Folder</span>
           </button>
         )}
