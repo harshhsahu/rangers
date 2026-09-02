@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { AlertTriangle, Sparkles, SlidersHorizontal, Zap } from "lucide-react";
 import { toast } from "react-toastify";
 import Modal from "@/components/UI/Modal";
@@ -165,24 +165,6 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     closeModal(MODAL_TYPE.CREATE_RANGER_MODAL);
     resetAll();
   }, [blocksClose, resetAll]);
-
-  /**
-   * The native ESC path on a <dialog> fires `cancel` then `close`; Modal's
-   * `onClose` runs too late to stop it, so intercept `cancel` directly.
-   * The handler reads a ref rather than closing over `blocksClose`, so the
-   * listener can be attached once and still see the current phase.
-   */
-  const isDeployingRef = useRef(blocksClose);
-  isDeployingRef.current = blocksClose;
-  useEffect(() => {
-    const dialog = document.getElementById(MODAL_TYPE.CREATE_RANGER_MODAL);
-    if (!dialog) return undefined;
-    const onCancel = (event) => {
-      if (isDeployingRef.current) event.preventDefault();
-    };
-    dialog.addEventListener("cancel", onCancel);
-    return () => dialog.removeEventListener("cancel", onCancel);
-  }, []);
 
   const nameError = useMemo(() => {
     const trimmed = form.name.trim();
@@ -362,6 +344,9 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     <Modal
       MODAL_ID={MODAL_TYPE.CREATE_RANGER_MODAL}
       onClose={handleClose}
+      // The wizard holds several steps of input — only the close button may
+      // dismiss it, so Escape or a stray backdrop click cannot discard it.
+      dismissible={false}
       title={form.mode ? (isAiMode ? "Build with AI" : "Guided Setup") : "Create a New Ranger"}
       description={
         form.mode

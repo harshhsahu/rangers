@@ -12,6 +12,12 @@ const Modal = ({
   widthClass = "w-[min(720px,92vw)]",
   bodyClassName = "",
   footer,
+  /**
+   * When false the modal can only be dismissed through the close button —
+   * Escape and backdrop clicks are ignored. Use it for multi-step flows where
+   * an accidental dismissal would throw away everything the user entered.
+   */
+  dismissible = true,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const onCloseRef = React.useRef(onClose);
@@ -49,6 +55,16 @@ const Modal = ({
     };
   }, [MODAL_ID]);
 
+  // Escape on a native <dialog> fires `cancel` before `close`; preventing the
+  // default here is the only place that can stop it.
+  const handleCancel = (event) => {
+    if (!dismissible) event.preventDefault();
+  };
+
+  const handleBackdropClick = () => {
+    if (dismissible) handleClose();
+  };
+
   const handleClose = () => {
     if (typeof onClose === "function") {
       onClose();
@@ -75,10 +91,11 @@ const Modal = ({
         id={MODAL_ID}
         className="modal open"
         style={{ display: "flex", pointerEvents: "auto" }}
+        onCancel={handleCancel}
       >
         <div
           className="fixed inset-0 z-low-medium flex min-h-[100vh] min-w-[100vw] items-center justify-center overflow-auto bg-black/60 py-8 backdrop-blur-[2px]"
-          onClick={handleClose}
+          onClick={handleBackdropClick}
         >
           <div
             id={`${MODAL_ID}-container`}
@@ -132,7 +149,13 @@ const Modal = ({
   }
 
   return (
-    <dialog data-testid={MODAL_ID} id={MODAL_ID} className="modal" style={{ pointerEvents: "auto" }}>
+    <dialog
+      data-testid={MODAL_ID}
+      id={MODAL_ID}
+      className="modal"
+      style={{ pointerEvents: "auto" }}
+      onCancel={handleCancel}
+    >
       {children}
     </dialog>
   );
