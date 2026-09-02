@@ -28,9 +28,9 @@ export default function ThemeToggle({ compact = false }) {
         title={getThemeLabel()}
         aria-label={getThemeLabel()}
         onClick={() => changeTheme(MODES[(activeIndex + 1) % MODES.length].id)}
-        className="w-full flex items-center justify-center rounded-[9px] border-2 border-stroke bg-card p-[7px] text-ink transition-colors hover:bg-paper"
+        className="mx-auto grid h-[34px] w-[34px] place-items-center rounded-[10px] border-2 border-stroke bg-card text-ink transition-colors hover:bg-paper"
       >
-        <ActiveIcon size={15} />
+        <ActiveIcon size={16} />
       </button>
     );
   }

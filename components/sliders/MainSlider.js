@@ -1,7 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { ChevronDown, LogOut, ChevronRight, ChevronLeft, User, AlignJustify, ArrowLeft, Keyboard } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  ChevronRight,
+  ChevronLeft,
+  User,
+  AlignJustify,
+  ArrowLeft,
+  Keyboard,
+  Plus,
+} from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutUserFromMsg91 } from "@/config/index";
@@ -18,6 +28,7 @@ import {
   buildNavUrl,
   createGuardedNavigate,
   DISPLAY_NAMES,
+  COLLAPSED_TILE,
   HRCollapsed,
   ITEM_ICONS,
   NAV_SECTIONS,
@@ -572,18 +583,21 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
             {/* Create new agent — primary sidebar action (design) */}
             {targetOrgId && (
-              <div className="px-2 pt-2">
+              <div className={showSidebarContent ? "px-2 pt-2" : "px-1 pt-2"}>
                 <button
                   id="main-slider-create-agent-button"
                   data-testid="main-slider-create-agent-button"
                   onClick={handleCreateAgent}
                   onMouseEnter={(e) => onItemEnter("create-agent", e)}
                   onMouseLeave={onItemLeave}
-                  className={`w-full flex items-center ${
-                    showSidebarContent ? "justify-between px-[13px]" : "justify-center px-0"
-                  } gap-2 rounded-[12px] border-2 border-ink bg-acc py-[10px] text-[14px] font-bold text-acc-ink shadow-sm transition-transform `}
+                  aria-label="Create new agent"
+                  className={
+                    showSidebarContent
+                      ? "w-full flex items-center justify-between gap-2 rounded-[12px] border-2 border-ink bg-acc px-[13px] py-[10px] text-[14px] font-bold text-acc-ink shadow-sm transition-colors"
+                      : `${COLLAPSED_TILE} border-ink bg-acc text-acc-ink shadow-sm`
+                  }
                 >
-                  {showSidebarContent ? <span>+ Create new agent</span> : <span className="text-[16px]">+</span>}
+                  {showSidebarContent ? <span>+ Create new agent</span> : <Plus size={17} strokeWidth={2.75} />}
                 </button>
               </div>
             )}
@@ -635,7 +649,11 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                               }}
                               onMouseEnter={(e) => onItemEnter(key, e)}
                               onMouseLeave={onItemLeave}
-                              className={`w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] border-2 text-[14px] font-semibold transition-all duration-200 ${activeKey === key ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"} ${!showSidebarContent ? "justify-center" : ""}`}
+                              className={
+                                showSidebarContent
+                                  ? `w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] border-2 text-[14px] font-semibold transition-colors ${activeKey === key ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"}`
+                                  : `${COLLAPSED_TILE} ${activeKey === key ? "bg-acc text-acc-ink border-ink" : "border-transparent text-ink hover:border-stroke hover:bg-paper"}`
+                              }
                             >
                               <div className="shrink-0">{ITEM_ICONS[key]}</div>
                               {showSidebarContent && (
@@ -675,7 +693,11 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                           }}
                           onMouseEnter={(e) => onItemEnter(item.id, e)}
                           onMouseLeave={onItemLeave}
-                          className={`w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] text-[13.5px] font-semibold transition-all duration-200 hover:bg-paper text-ink ${!showSidebarContent ? "justify-center" : ""}`}
+                          className={
+                            showSidebarContent
+                              ? "w-full flex items-center gap-3 py-2 px-[11px] rounded-[9px] border-2 border-transparent text-[13.5px] font-semibold transition-colors hover:bg-paper text-ink"
+                              : `${COLLAPSED_TILE} border-transparent text-ink hover:border-stroke hover:bg-paper`
+                          }
                         >
                           <div className="shrink-0">{item.icon}</div>
                           {showSidebarContent && <span className="text-sm truncate">{item.label}</span>}
@@ -696,7 +718,11 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                   onClick={handleAdminToggle}
                   onMouseEnter={(e) => onItemEnter("admin-toggle", e)}
                   onMouseLeave={onItemLeave}
-                  className={`w-full flex items-center gap-3 rounded-[9px] border-2 px-[11px] py-2 text-[13.5px] font-semibold transition-colors ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"} ${!showSidebarContent ? "justify-center" : ""}`}
+                  className={
+                    showSidebarContent
+                      ? `w-full flex items-center gap-3 rounded-[9px] border-2 px-[11px] py-2 text-[13.5px] font-semibold transition-colors ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "hover:bg-paper text-ink border-transparent"}`
+                      : `${COLLAPSED_TILE} ${isAdminMode ? "bg-acc text-acc-ink border-ink" : "border-transparent text-ink hover:border-stroke hover:bg-paper"}`
+                  }
                 >
                   {ITEM_ICONS.adminSettings}
                   {showSidebarContent && (
@@ -715,9 +741,16 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                       }}
                       onMouseEnter={(e) => onItemEnter("lifetimeAccess", e)}
                       onMouseLeave={onItemLeave}
-                      className={`w-full flex items-center gap-3 rounded-[9px] px-[11px] py-2 transition-all duration-300 border-2 border-acc text-acc hover:bg-acc/10 ${!showSidebarContent ? "justify-center" : ""}`}
+                      aria-label="Free Lifetime Access"
+                      className={
+                        showSidebarContent
+                          ? "w-full flex items-center gap-3 rounded-[9px] px-[11px] py-2 transition-colors border-2 border-acc text-acc hover:bg-acc/10"
+                          : `${COLLAPSED_TILE} border-acc text-acc hover:bg-acc/10`
+                      }
                     >
-                      <div className="relative z-10 flex items-center gap-3 w-full">
+                      <div
+                        className={`relative z-10 flex items-center ${showSidebarContent ? "w-full gap-3" : "justify-center"}`}
+                      >
                         <div className="relative">
                           {ITEM_ICONS.lifetimeAccess}
                           <div className="absolute -top-1 -right-1 w-1 h-1 bg-acc animate-ping opacity-40"></div>
@@ -735,7 +768,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                 )}
 
                 {/* Theme switcher — full dropdown when expanded, cycling icon when collapsed */}
-                <div className="px-0.5">
+                <div className={showSidebarContent ? "px-0.5" : ""}>
                   <ThemeToggle compact={!showSidebarContent} />
                 </div>
 
@@ -782,9 +815,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                       }}
                       onMouseEnter={(e) => onItemEnter("refer-earn", e)}
                       onMouseLeave={onItemLeave}
-                      className="w-full flex items-center justify-center p-2.5 rounded-lg hover:bg-base-200 transition-colors"
+                      aria-label="Refer and earn"
+                      className={`${COLLAPSED_TILE} border-stroke bg-card text-ink hover:bg-paper`}
                     >
-                      <span className="text-sm">🎁</span>
+                      <span className="text-[15px] leading-none">🎁</span>
                     </button>
 
                     <button
@@ -795,23 +829,24 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                       }}
                       onMouseEnter={(e) => onItemEnter("keyboard-shortcuts", e)}
                       onMouseLeave={onItemLeave}
-                      className="w-full flex items-center justify-center p-2.5 rounded-lg hover:bg-base-200 transition-colors"
+                      aria-label="Keyboard shortcuts"
+                      className={`${COLLAPSED_TILE} border-stroke bg-card text-ink hover:bg-paper`}
                     >
-                      <Keyboard size={18} className="text-base-content/70" />
+                      <Keyboard size={16} />
                     </button>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* GTWY Label Section */}
+            {/* Wordmark */}
             <div className="border-t border-dashed border-line p-1 pt-[9px]">
               <div className="text-center">
-                {showSidebarContent ? (
-                  <span className="font-mono text-[11px] tracking-[.16em] text-soft">RANGERS</span>
-                ) : (
-                  <span className="font-mono text-[10px] tracking-[.16em] text-soft">RANGERS</span>
-                )}
+                <span
+                  className={`font-mono tracking-[.16em] text-soft ${showSidebarContent ? "text-[11px]" : "text-[9px]"}`}
+                >
+                  RANGERS
+                </span>
               </div>
             </div>
           </div>

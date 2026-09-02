@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { getIconOfService } from "@/utils/utility";
 import { RANGER_CHANNELS } from "@/components/rangers/rangerConstants";
+import TelegramPhone from "@/components/landing/TelegramPhone";
 
 const CODE_SAMPLE = `curl $GTWY/api/v2/model/chat/completion \\
   -H "pauthkey: $GTWY_KEY" \\
@@ -14,6 +15,16 @@ const CODE_SAMPLE = `curl $GTWY/api/v2/model/chat/completion \\
   }'`;
 
 const MARQUEE = RANGER_CHANNELS.map(({ key, label, icon, brand }) => ({ key, label, Icon: icon, brand }));
+
+/**
+ * The track is two identical halves and the animation shifts it by exactly -50%,
+ * so the second half lands where the first started and the loop is seamless.
+ * That only holds while one half is wider than the viewport — with a single set
+ * of six channels (~735px) a 1080p screen showed ~450px of empty bar at the
+ * wrap. REPEATS keeps each half comfortably wider than any desktop.
+ */
+const MARQUEE_REPEATS = 4;
+const MARQUEE_HALF = Array.from({ length: MARQUEE_REPEATS }, (_, i) => i);
 
 const SERVICES = [
   ["openai", "Openai", "openai", "cool"],
@@ -134,38 +145,49 @@ const Page = () => {
           <div className="mt-6 font-mono text-[12px] text-soft">bring your own keys · free tier · no card</div>
         </div>
 
-        {/* Request/response card */}
-        <div className="overflow-hidden rounded-[22px] border-2 border-stroke bg-card shadow-sm">
-          <div className="flex items-center justify-between gap-3 border-b-2 border-stroke bg-acc px-4 py-3 text-acc-ink">
-            <span className="font-mono text-[12px] font-bold">POST /api/v2/model/chat/completion</span>
-            <span className="font-mono text-[11px]">200 OK</span>
-          </div>
-          <pre className="overflow-x-auto whitespace-pre-wrap break-words p-[18px] font-mono text-[12.5px] leading-[1.85] text-ink">
-            {CODE_SAMPLE}
-          </pre>
-          <div className="flex justify-between border-t border-dashed border-line px-[18px] py-3 font-mono text-[11px] text-soft">
-            <span>3 tools called</span>
-            <span>1,541 tokens</span>
-            <span>$0.0100</span>
+        {/* Right column — talk to it on Telegram, or call it over the API */}
+        <div className="flex flex-col gap-5">
+          <TelegramPhone />
+
+          {/* Request/response card */}
+          <div className="overflow-hidden rounded-[22px] border-2 border-stroke bg-card shadow-sm">
+            <div className="flex items-center justify-between gap-3 border-b-2 border-stroke bg-acc px-4 py-3 text-acc-ink">
+              <span className="font-mono text-[12px] font-bold">POST /api/v2/model/chat/completion</span>
+              <span className="font-mono text-[11px]">200 OK</span>
+            </div>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-words p-[18px] font-mono text-[12.5px] leading-[1.85] text-ink">
+              {CODE_SAMPLE}
+            </pre>
+            <div className="flex justify-between border-t border-dashed border-line px-[18px] py-3 font-mono text-[11px] text-soft">
+              <span>3 tools called</span>
+              <span>1,541 tokens</span>
+              <span>$0.0100</span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ------------------------------ Marquee ------------------------------ */}
-      <div className="overflow-hidden border-y-2 border-stroke bg-ink py-4 text-paper">
-        <div className="flex w-max" style={{ animation: "rgMarquee 34s linear infinite" }}>
-          {[0, 1, 2, 3].map((dup) => (
-            <div
-              key={dup}
-              className="flex items-center gap-10 whitespace-nowrap pr-10 font-mono text-[14px] uppercase tracking-[.06em]"
-            >
-              {MARQUEE.map(({ key, label, Icon, brand }) => (
-                <span key={`${dup}-${key}`} className="flex items-center gap-2.5">
-                  <span className="grid h-[17px] w-[17px] place-items-center" style={{ color: brand }}>
-                    <Icon height={17} width={17} />
-                  </span>
-                  {label}
-                </span>
+      <div className="overflow-hidden border-y-2 border-stroke bg-ink py-[15px] text-paper">
+        <div className="flex w-max" style={{ animation: "rgMarquee 34s linear infinite" }} aria-hidden="true">
+          {[0, 1].map((half) => (
+            <div key={half} className="flex">
+              {MARQUEE_HALF.map((dup) => (
+                <div key={dup} className="flex items-center whitespace-nowrap">
+                  {MARQUEE.map(({ key, label, Icon, brand }) => (
+                    <span key={`${half}-${dup}-${key}`} className="flex items-center">
+                      <span className="flex items-center gap-2.5 px-[22px]">
+                        <span className="grid h-[18px] w-[18px] flex-none place-items-center" style={{ color: brand }}>
+                          <Icon height={18} width={18} />
+                        </span>
+                        <span className="font-mono text-[13px] font-medium uppercase leading-none tracking-[.11em]">
+                          {label}
+                        </span>
+                      </span>
+                      <span className="h-[3px] w-[3px] flex-none rounded-full bg-paper/35" />
+                    </span>
+                  ))}
+                </div>
               ))}
             </div>
           ))}
@@ -257,7 +279,7 @@ const Page = () => {
           </button>
         </div>
         <div className="flex flex-wrap justify-between gap-5 border-t-2 border-stroke px-6 py-5 font-mono text-[11.5px] text-soft md:px-9">
-          <span>gtwy — agents, models and MCP in one place</span>
+          <span>rangers — agents, models and MCP in one place</span>
           <span>docs · status · privacy · © 2026</span>
         </div>
       </section>
