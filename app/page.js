@@ -69,7 +69,7 @@ const Page = () => {
           <div className="grid h-[30px] w-[30px] place-items-center rounded-[9px] border-2 border-stroke bg-acc font-mono text-[15px] font-bold text-acc-ink">
             R
           </div>
-          <div className="text-[21px] font-extrabold tracking-[-0.03em]">rangers</div>
+          <div className="text-[21px] font-extrabold tracking-[-0.03em]">RANGERS</div>
         </div>
         <nav className="hidden gap-7 text-[15px] font-medium md:flex">
           <a className="text-ink hover:text-acc" href="#build">
