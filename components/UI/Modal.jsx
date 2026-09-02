@@ -55,8 +55,30 @@ const Modal = ({
     };
   }, [MODAL_ID]);
 
-  // Escape on a native <dialog> fires `cancel` before `close`; preventing the
-  // default here is the only place that can stop it.
+  /**
+   * Escape is blocked in two places on purpose.
+   *
+   * This one is the reliable half: the keydown is what the browser turns into
+   * a close request for a <dialog>, so preventing its default stops the close
+   * before any close request exists. Capture phase, so it also beats the
+   * app-level Escape handlers that various sliders and dropdowns register.
+   */
+  useEffect(() => {
+    if (dismissible || !isOpen) return undefined;
+
+    const blockEscape = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    document.addEventListener("keydown", blockEscape, true);
+    return () => document.removeEventListener("keydown", blockEscape, true);
+  }, [dismissible, isOpen]);
+
+  // The other half: if a close request is raised anyway (browsers differ on
+  // when the close watcher fires), `cancel` runs before `close` and is the last
+  // point that can still stop it.
   const handleCancel = (event) => {
     if (!dismissible) event.preventDefault();
   };
