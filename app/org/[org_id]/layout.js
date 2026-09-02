@@ -513,6 +513,20 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
 
   const themeUserType = isEmbedUser ? "embed" : "default";
 
+  // First-run onboarding brings its own full-screen chrome (a step rail and a
+  // footer bar), so the sidebar and navbar are dropped for that route. Every
+  // data fetch above still runs — the wizard reads services, models, API keys,
+  // tools and the embed token straight out of the store.
+  if (path[3] === "onboarding") {
+    return (
+      <>
+        <ThemeManager userType={themeUserType} />
+        <ServiceInitializer />
+        {children}
+      </>
+    );
+  }
+
   if (!isEmbedUser) {
     const hasFolders = ["agents", "apikeys", "tools", "knowledge_base"].includes(path[3]);
 
@@ -564,7 +578,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Sticky Navbar - hidden in historyEmbed mode */}
           {(!isEmbedUser || (isEmbedUser && !historyEmbed)) && (
-            <div className="sticky top-0 z-medium bg-base-200 border-b-2 border-stroke ml-2">
+            <div className="sticky top-0 z-medium bg-base-200 border-b border-line ml-2">
               <Navbar params={resolvedParams} searchParams={resolvedSearchParams} />
             </div>
           )}

@@ -10,7 +10,7 @@ const TABS = [
 ];
 
 /**
- * Two-tab strip for the Rangers page.
+ * Two-tab segmented control for the Rangers page.
  *
  * Deliberately not built on components/configuration/sections/TabsLayout.js —
  * that one hardcodes the prompt unsaved-changes guard and configure-page
@@ -20,7 +20,7 @@ const RangerTabs = ({ activeTab, onChange }) => (
   <div
     role="tablist"
     aria-label="Rangers views"
-    className="inline-flex items-center gap-1 rounded-full border-2 border-stroke bg-card p-1"
+    className="inline-flex flex-none items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]"
   >
     {TABS.map((tab) => {
       const isActive = activeTab === tab.key;
@@ -33,8 +33,8 @@ const RangerTabs = ({ activeTab, onChange }) => (
           data-testid={`ranger-tab-${tab.key}`}
           id={`ranger-tab-${tab.key}`}
           onClick={() => onChange(tab.key)}
-          className={`rounded-full px-4 py-[6px] text-[13px] font-bold transition-colors ${
-            isActive ? "bg-acc text-acc-ink" : "text-soft hover:text-ink"
+          className={`whitespace-nowrap rounded-[8px] px-[13px] py-[6px] text-[13px] font-semibold transition-colors ${
+            isActive ? "bg-card text-ink shadow-[0_1px_1px_rgba(20,17,13,.1)]" : "text-soft hover:text-ink"
           }`}
         >
           {tab.label}

@@ -1,15 +1,17 @@
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
+import { Plus } from "lucide-react";
 import { MessageCircleMoreIcon } from "./Icons";
 import PageHeader from "./Pageheader";
 import Protected from "./Protected";
-import useTutorialVideos from "@/hooks/useTutorialVideos";
-import { useCustomSelector } from "@/customHooks/customSelector";
 
 /**
+ * Shown when the current view has no agents to list — an empty folder, or a
+ * filter that matched nothing. An org with no agents at all never reaches this:
+ * the Rangers page sends it to the onboarding wizard instead.
+ *
  * `hideHeader` is set when the host page already renders the page header (the
  * Rangers page does, above its tab strip), so it isn't printed twice.
- * The create modal itself is mounted by the host page, not here.
  */
 const AgentEmptyState = ({
   orgid,
@@ -20,14 +22,6 @@ const AgentEmptyState = ({
   docLink,
   hideHeader = false,
 }) => {
-  const { getApiAgentCreationVideo, getChatbotAgentCreationVideo } = useTutorialVideos();
-  const { tutorialData } = useCustomSelector((state) => ({
-    tutorialData: state.flowDataReducer?.flowData?.tutorialData || [],
-  }));
-  const agentCreationvideoUrl =
-    defaultBridgeType === "chatbot" ? getChatbotAgentCreationVideo() : getApiAgentCreationVideo();
-  const embedAgentCreationTutorial = tutorialData?.find((item) => item.title === "Agent Creation Video: Embed");
-  const embedAgentCreationvideoUrl = embedAgentCreationTutorial?.videoUrl || "";
   return (
     <div data-testid="agent-empty-state-container" id="agent-empty-state-container" className=" mt-8 px-4">
       <div className=" mx-2 ">
@@ -57,16 +51,17 @@ const AgentEmptyState = ({
 
           {/* Floating Right - Create Agent Buttons */}
           <div className="absolute top-0 right-0">
-            <div className="text-center flex flex-row gap-2">
+            <div className="flex flex-row items-center gap-2">
               <button
                 data-testid="agent-empty-create-agent-button"
                 id="agent-empty-create-agent-button"
-                className="btn btn-primary btn-sm"
+                className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)]"
                 onClick={() => {
                   openModal(MODAL_TYPE.CREATE_RANGER_MODAL);
                 }}
               >
-                + Create Ranger
+                <Plus size={15} />
+                Create Ranger
               </button>
 
               {!isEmbedUser ? (
@@ -77,39 +72,12 @@ const AgentEmptyState = ({
                   data-cal-link="human-gtwy-ai/book-a-demo-with-gtwy"
                   data-cal-origin="https://cal.id"
                   data-cal-config='{"layout":"month_view"}'
-                  className="btn btn-primary btn-sm gap-1"
+                  className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] border border-line bg-card px-4 py-[9px] text-[13.5px] font-semibold text-ink"
                 >
-                  <MessageCircleMoreIcon size={12} />
-                  <span className="text-sm">Speak To Us</span>
+                  <MessageCircleMoreIcon size={14} />
+                  Speak To Us
                 </button>
               ) : null}
-            </div>
-          </div>
-        </div>
-
-        {/* Video Section */}
-        <div className="flex justify-center">
-          <div
-            data-testid="agent-empty-video-section"
-            id="agent-empty-video-section"
-            className=" rounded-2xl p-6 border-2 border-stroke/50"
-          >
-            <div className="text-center mb-3">
-              <h2 className="text-lg mb-4 font-bold text-base-content">Watch How to Create Your First Agent</h2>
-            </div>
-            <div className=" h-[70vh] w-[80vw] rounded-xl flex justify-center items-center overflow-hidden">
-              <iframe
-                src={
-                  isEmbedUser
-                    ? embedAgentCreationvideoUrl
-                    : agentCreationvideoUrl || "https://app.supademo.com/embed/cmlv69nq54egsd2ntb6wxihti?embed_v"
-                }
-                height={!isEmbedUser ? "100%" : "80%"}
-                width={!isEmbedUser ? "70%" : "100%"}
-                style={{ border: "none" }}
-                allowFullScreen
-                title="How to Create an Agent"
-              />
             </div>
           </div>
         </div>

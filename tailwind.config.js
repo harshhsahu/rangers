@@ -67,13 +67,22 @@ module.exports = {
         "history-page": "var(--history-page-bg)",
         /* Raw design tokens from the GTWY paper design system */
         paper: "var(--paper)",
+        "paper-sunken": "var(--paper-sunken)",
+        "paper-raised": "var(--paper-raised)",
         card: "var(--card)",
         ink: "var(--ink)",
         soft: "var(--soft)",
         line: "var(--line)",
         acc: "var(--acc)",
         "acc-ink": "var(--accInk)",
+        "card-band": "var(--card-band)",
+        "card-line": "var(--card-line)",
+        "acc-tint": "var(--acc-tint)",
+        "acc-soft": "var(--acc-soft)",
+        "acc-line": "var(--acc-line)",
+        "acc-deep": "var(--acc-deep)",
         cool: "var(--cool)",
+        "line-strong": "var(--line-strong)",
         stroke: "var(--stroke)",
         "stroke-strong": "var(--stroke-strong)",
       },
@@ -178,13 +187,36 @@ module.exports = {
         /* Custom themed tokens */
         ':root, [data-theme="light"]': {
           /* GTWY paper design system — raw values, used by hard shadows/strokes */
-          "--paper": "#EFEAE0",
-          "--card": "#FFFDF8",
+          "--paper": "#EAE5D9",
+          /* One step darker than paper: segmented-control tracks and other inset wells. */
+          "--paper-sunken": "#E1DBCD",
+          /* One step lighter than paper, still short of --card: the canvas the
+             onboarding wizard runs on, so its cream rail and footer read as
+             raised off it. Straight from the design canvas. */
+          "--paper-raised": "#F4F0E7",
+          "--card": "#FBF8F1",
+          /* A card's lower stat band and the divider above it. Deliberately
+             separate from --paper/--line: the canvas keeps the band a hair off
+             the card (not page-coloured) and the internal divider lighter than
+             the card's outer border, so a card reads as one panel. */
+          "--card-band": "#F8F4EB",
+          "--card-line": "#EDE6D9",
           "--ink": "#14110D",
           "--soft": "#6A6357",
-          "--line": "#D8D0C2",
+          "--line": "#DFD9CB",
+          /* One step darker than --line: dashed placeholders and other outlines
+             that have to read as an edge without a fill behind them. */
+          "--line-strong": "#D5CBB8",
           "--acc": "#F2540B",
           "--accInk": "#FFF6EE",
+          /* Accent tints from the design canvas. --acc-tint is the selected-row
+             wash, --acc-soft/--acc-line the quieter chip pair, and --acc-deep
+             the text colour that sits on all three (--acc itself is too light
+             to read as body text on a tint). */
+          "--acc-tint": "#F6E3D6",
+          "--acc-soft": "#FDF1E9",
+          "--acc-line": "#F3C7AE",
+          "--acc-deep": "#C2430A",
           "--cool": "#C9DCC4",
           /* Borders: the design's hard ink stroke. --stroke and --shd-col are
              the single knob for border/shadow weight across the whole app. */
@@ -193,30 +225,39 @@ module.exports = {
           "--shd-col": "#14110D",
           "--bd": "2px",
           "--shd": "4px 4px 0 #14110D",
-          "--base-50": "#FFFDF8",
+          "--base-50": "#FBF8F1",
           "--trace-gold": "0.52 0.11 62",
           "--trace-gold-bg": "0.98 0.012 75",
           "--trace-gold-border": "0.93 0.025 75",
           "--trace-blue": "0.55 0.14 250",
           "--trace-green": "0.52 0.12 165",
-          "--history-page-bg": "#EFEAE0",
-          "--pill-bg": "#EFEAE0",
-          "--pill-bg-hover": "#E4DDD0",
-          "--ai-config-header-bg": "#EFEAE0",
-          "--ai-config-container-bg": "#FFFDF8",
-          "--ai-config-section-header": "#EFEAE0",
-          "--ai-config-section-bg": "#FFFDF8",
+          "--history-page-bg": "#EAE5D9",
+          "--pill-bg": "#EAE5D9",
+          "--pill-bg-hover": "#E1DBCD",
+          "--ai-config-header-bg": "#EAE5D9",
+          "--ai-config-container-bg": "#FBF8F1",
+          "--ai-config-section-header": "#EAE5D9",
+          "--ai-config-section-bg": "#FBF8F1",
           "--final-response-bg": "#FFF6EE",
         },
         '[data-theme="dark"]': {
           /* Inverted paper: ink canvas, cream strokes, same orange accent */
           "--paper": "#14110D",
+          "--paper-sunken": "#1D1915",
+          "--paper-raised": "#1B1712",
           "--card": "#221D18",
+          "--card-band": "#262019",
+          "--card-line": "#2A241C",
           "--ink": "#EFEAE0",
           "--soft": "#9A9184",
-          "--line": "#3A332A",
+          "--line": "#2F2921",
+          "--line-strong": "#3C352B",
           "--acc": "#F2540B",
           "--accInk": "#1A1611",
+          "--acc-tint": "#3A2113",
+          "--acc-soft": "#2C1A11",
+          "--acc-line": "#6B3A19",
+          "--acc-deep": "#FF8A4C",
           "--cool": "#2E3A2C",
           "--stroke": "#EFEAE0",
           "--stroke-strong": "#EFEAE0",

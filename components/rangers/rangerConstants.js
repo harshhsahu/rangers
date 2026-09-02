@@ -9,14 +9,20 @@ import { TelegramIcon, DiscordIcon, WhatsappIcon, SlackIcon, SmsIcon, VoiceIcon 
  * from the production build.
  */
 export const RANGER_COLORS = [
-  { key: "red", label: "Red", hex: "#E03131" },
-  { key: "blue", label: "Blue", hex: "#1C7ED6" },
-  { key: "green", label: "Green", hex: "#2F9E44" },
-  { key: "purple", label: "Purple", hex: "#7048E8" },
-  { key: "pink", label: "Pink", hex: "#D6336C" },
-  { key: "yellow", label: "Yellow", hex: "#F2540B" },
-  { key: "black", label: "Slate", hex: "#495057" },
+  { key: "red", label: "Red", callsign: "Crimson", hex: "#E03131" },
+  { key: "blue", label: "Blue", callsign: "Cobalt", hex: "#1C7ED6" },
+  { key: "green", label: "Green", callsign: "Jade", hex: "#2F9E44" },
+  { key: "purple", label: "Purple", callsign: "Violet", hex: "#7048E8" },
+  { key: "pink", label: "Pink", callsign: "Rose", hex: "#D6336C" },
+  { key: "yellow", label: "Yellow", callsign: "Ember", hex: "#F2540B" },
+  { key: "black", label: "Slate", callsign: "Slate", hex: "#495057" },
 ];
+
+/** Swatch hex -> callsign, so a card can name a ranger by its colour. */
+export const CALLSIGN_BY_HEX = RANGER_COLORS.reduce((acc, color) => {
+  acc[color.hex] = color.callsign;
+  return acc;
+}, {});
 
 export const DEFAULT_RANGER_COLOR = RANGER_COLORS[5].hex;
 
@@ -112,10 +118,27 @@ export const CREATIVITY_LEVELS = [
 export const DEFAULT_CREATIVITY = "balanced";
 
 /**
+ * Where Balanced lands: the model's declared default, else mid-range. A default
+ * sitting on the ceiling is ignored — Creative has to stay above Balanced, and
+ * nothing is above the maximum.
+ */
+const balancedTemperature = (min, max, tempParam) => {
+  const declared = Number(tempParam.default);
+  if (Number.isFinite(declared) && declared >= min && declared < max) return declared;
+  return Number((min + 0.5 * (max - min)).toFixed(2));
+};
+
+/**
  * Resolves a creativity preset to a concrete temperature for the given model
  * parameter spec. Returns null when the model does not expose temperature — in
  * that case the key must be omitted from the payload entirely, since an
  * unsupported parameter can fail the provider call.
+ *
+ * Creative is derived from Balanced rather than from a fixed fraction of the
+ * range. A flat fraction collides with the declared default on common specs —
+ * a 0–1 model declaring 0.7 made Balanced and Creative send the identical
+ * number — so it sits partway between Balanced and the top of the range, and
+ * is always strictly above Balanced unless Balanced is already at the ceiling.
  */
 export const resolveTemperature = (levelKey, tempParam) => {
   if (!tempParam) return null;
@@ -125,12 +148,11 @@ export const resolveTemperature = (levelKey, tempParam) => {
 
   const level = CREATIVITY_LEVELS.find((item) => item.key === levelKey) || CREATIVITY_LEVELS[1];
   if (level.key === "precise") return min;
-  if (level.key === "balanced") {
-    const fallback = min + 0.5 * (max - min);
-    const declared = Number(tempParam.default);
-    return Number.isFinite(declared) ? declared : Number(fallback.toFixed(2));
-  }
-  return Number((min + 0.7 * (max - min)).toFixed(2));
+
+  const balanced = balancedTemperature(min, max, tempParam);
+  if (level.key === "balanced") return balanced;
+
+  return Number((balanced + 0.5 * (max - balanced)).toFixed(2));
 };
 
 /**

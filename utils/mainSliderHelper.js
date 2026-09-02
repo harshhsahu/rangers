@@ -95,6 +95,12 @@ export const DISPLAY_NAMES = (key) => {
       return "Keyboard Shortcuts";
     case "refer-earn":
       return "Refer & Earn";
+    case "create-agent":
+      return "Create new Ranger";
+    case "admin-toggle":
+      return "Admin Settings";
+    case "main-menu":
+      return "Main Menu";
     case "model-garden":
       return "Model Garden";
     case "tools":
@@ -136,7 +142,7 @@ export const createGuardedNavigate = (router, pendingNavRef, openModalFn, MODAL_
   router.push(url);
 };
 
-export const HRCollapsed = React.memo(() => <hr className="my-2 w-6 border-ink mx-auto" />);
+export const HRCollapsed = React.memo(() => <hr className="my-2 w-6 border-line mx-auto" />);
 
 /**
  * Every button on the 50px collapsed rail uses this footprint, so the icons sit
@@ -144,7 +150,7 @@ export const HRCollapsed = React.memo(() => <hr className="my-2 w-6 border-ink m
  * button — pass those on top (border-transparent, border-acc, bg-acc, ...).
  */
 export const COLLAPSED_TILE =
-  "mx-auto grid h-[34px] w-[34px] place-items-center rounded-[10px] border-2 transition-colors";
+  "mx-auto grid h-[34px] w-[34px] place-items-center rounded-[10px] border transition-colors";
 
 export const BetaBadge = React.memo(() => (
   <span className="badge badge-success rounded-md mb-1 text-base-100 text-xs">Beta</span>

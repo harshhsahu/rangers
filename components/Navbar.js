@@ -401,7 +401,7 @@ const Navbar = ({ isEmbedUser, params }) => {
     <div data-testid="navbar" className="bg-base-100 z-medium">
       {/* Main navigation header */}
       <div
-        className={`sticky top-0 z-high transition-all duration-300 ${isScrolled ? "bg-base-100/95 backdrop-blur-sm shadow-md border-b-2 border-stroke" : "bg-base-100 border-b-2 border-stroke "}`}
+        className={`sticky top-0 z-high transition-all duration-300 ${isScrolled ? "bg-base-100/95 backdrop-blur-sm shadow-md border-b border-line" : "bg-base-100 border-b border-line"}`}
       >
         {/* Top bar with breadcrumb/home and actions */}
         <div className="flex w-full items-center justify-between px-2 sm:px-4 lg:px-6 h-10 min-w-0">
@@ -593,7 +593,7 @@ const Navbar = ({ isEmbedUser, params }) => {
       </div>
 
       {/* Mobile agent name bar */}
-      <div id="navbar-mobile-agent-name-display" className="sm:hidden bg-base-100 border-b-2 border-stroke px-2 py-2">
+      <div id="navbar-mobile-agent-name-display" className="sm:hidden bg-base-100 border-b border-line px-2 py-2">
         <div className="flex items-center justify-between gap-2">
           {/* Agent Name - Editable */}
           <div className="flex items-center min-w-0 flex-1">

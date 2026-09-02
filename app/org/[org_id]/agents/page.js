@@ -3,6 +3,7 @@
 import CreateRangerModal from "@/components/rangers/CreateRangerModal";
 import RangerTabs, { RANGER_TAB_KEYS } from "@/components/rangers/RangerTabs";
 import CommandCenterTab from "@/components/rangers/CommandCenterTab";
+import useChannelDetails from "@/components/rangers/useChannelDetails";
 import RangerGrid from "@/components/rangers/RangerGrid";
 import CustomTable from "@/components/customTable/CustomTable";
 import MainLayout from "@/components/layoutComponents/MainLayout";
@@ -27,7 +28,7 @@ import FolderTabs from "@/components/folders/FolderTabs";
 import MoveToFolderMenu from "@/components/folders/MoveToFolderMenu";
 import useFolders from "@/hooks/useFolders";
 import { useFolderContext } from "@/components/folders/FolderContext";
-import { Folder, Funnel, Undo2, Infinity, Trash2, LayoutGrid, Rows3 } from "lucide-react";
+import { Folder, Funnel, Undo2, Infinity, Trash2, LayoutGrid, Rows3, Plus, Search } from "lucide-react";
 
 import { ClockIcon, EllipsisIcon } from "@/components/Icons";
 import { useRouter } from "next/navigation";
@@ -61,6 +62,14 @@ const ModelBadge = ({ model, service, modelsConfig }) => {
     </span>
   );
 };
+
+/** One header metric: a big mono number over a quiet label. */
+const SquadStatTile = ({ value, label, ...props }) => (
+  <div className="min-w-[96px] rounded-[14px] border border-line bg-card px-4 py-3" {...props}>
+    <div className="font-mono text-[21px] font-bold leading-none text-ink">{value}</div>
+    <div className="pt-[6px] text-[11px] text-soft">{label}</div>
+  </div>
+);
 
 const formatUsageNumber = (value, maximumFractionDigits = 2) => {
   const numericValue = Number(value ?? 0);
@@ -333,6 +342,7 @@ function Home({ params, searchParams, isEmbedUser }) {
   const { setParam } = useQueryParams();
   const {
     allBridges,
+    bridgesLoaded,
     averageResponseTime,
     isLoading,
     isFirstBridgeCreation,
@@ -349,6 +359,10 @@ function Home({ params, searchParams, isEmbedUser }) {
 
     return {
       allBridges: (orgData.orgs || []).slice().reverse(),
+      // Only true once a bridges fetch has actually landed for this org — the
+      // reducer's `loading` starts false, so it cannot tell "none yet" from
+      // "not fetched yet" on the first render.
+      bridgesLoaded: Object.prototype.hasOwnProperty.call(orgData, "orgs"),
       averageResponseTime: orgData.average_response_time || [],
       isLoading: state.bridgeReducer.loading,
       isFirstBridgeCreation: user.meta?.onboarding?.bridgeCreation || "",
@@ -361,6 +375,17 @@ function Home({ params, searchParams, isEmbedUser }) {
       showDeleteAgentOption: state.appInfoReducer.embedUserDetails?.showDeleteAgentOption ?? false,
     };
   });
+  /**
+   * A workspace with no agents has nothing to show here, so the squad page is
+   * not a destination yet — anyone landing on it with an empty org is sent to
+   * the onboarding wizard, every time, until a first ranger exists.
+   */
+  useEffect(() => {
+    if (isEmbedUser || isLoading || !bridgesLoaded) return;
+    if (allBridges.length > 0) return;
+    router.replace(`/org/${resolvedParams.org_id}/onboarding`);
+  }, [allBridges.length, bridgesLoaded, isEmbedUser, isLoading, resolvedParams.org_id, router]);
+
   const pageHeaderContent = useMemo(() => {
     return {
       title: "Rangers",
@@ -741,6 +766,14 @@ function Home({ params, searchParams, isEmbedUser }) {
         isLoading: loadingAgentId === item._id,
         users: item?.users,
         last_used: renderMetricsTimestamp(item, lastUsed),
+        // Plain-text relative time for the card's "Last run" stat (the table
+        // column above renders a tooltip-bearing node, which cards can't use).
+        lastRunLabel: (() => {
+          const stamp = item.metrics?.last_used_time || lastUsed;
+          if (!stamp) return "—";
+          const label = formatRelativeTime(stamp);
+          return label === "No records found" ? "—" : label;
+        })(),
         last_used_original: item.metrics?.last_used_time || lastUsed,
         last_used_orignal: usageMetricsMap[item._id]?.last_used_time || lastUsed,
         created_by: renderCreatedByCell(
@@ -936,6 +969,27 @@ function Home({ params, searchParams, isEmbedUser }) {
     });
     return map;
   }, [processedBridges]);
+
+  // Channels an agent is wired to — shown as overlapping brand marks on cards.
+  // Shared with the Command Center so the endpoint is hit once per page.
+  const { channelsByAgentId } = useChannelDetails({ orgId: resolvedParams.org_id, agents: allBridges });
+
+  // Header tiles: squad size plus the cost/token totals for the active usage
+  // window, so the numbers always agree with what the cards below show.
+  const squadSummary = useMemo(() => {
+    const bridges = Array.isArray(processedBridges) ? processedBridges : [];
+    const live = bridges.filter((bridge) => bridge?.status === 1 || bridge?.status === undefined);
+    return live.reduce(
+      (acc, bridge) => ({
+        count: acc.count + 1,
+        tokens: acc.tokens + Number(bridge?.metrics?.total_tokens ?? 0),
+        cost: acc.cost + Number(bridge?.metrics?.total_cost ?? 0),
+      }),
+      { count: 0, tokens: 0, cost: 0 }
+    );
+  }, [processedBridges]);
+
+  const usageWindowLabel = isUsageFilterActive && usageFilterLabel ? usageFilterLabel : "last 24h";
 
   const prefetchedRoutes = useRef(new Set());
   const handleRowHover = (row) => {
@@ -1295,28 +1349,125 @@ function Home({ params, searchParams, isEmbedUser }) {
           <div className="drawer-content flex flex-col items-start justify-start">
             <div className="flex w-full justify-start gap-4 lg:gap-16 items-start">
               <div className="w-full">
-                <div className="flex flex-col lg:mx-0">
-                  <div className="px-2 pt-4">
-                    <MainLayout>
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between w-full ">
-                        <PageHeader
-                          title={pageHeaderContent.title}
-                          description={pageHeaderContent.description}
-                          docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
-                          isEmbedUser={isEmbedUser}
-                        />
+                <div className="flex flex-col px-4 lg:mx-0">
+                  <div className="pt-4">
+                    <MainLayout withPadding={false}>
+                      <div className="flex w-full flex-wrap items-end justify-between gap-[22px]">
+                        <div className="min-w-0 flex-[1_1_420px]">
+                          <PageHeader
+                            title={pageHeaderContent.title}
+                            description={pageHeaderContent.description}
+                            docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
+                            isEmbedUser={isEmbedUser}
+                          />
+                        </div>
+                        <div className="flex flex-[0_1_auto] flex-wrap gap-[10px] pb-6">
+                          <SquadStatTile
+                            data-testid="squad-stat-count"
+                            value={formatUsageNumber(squadSummary.count, 0)}
+                            label="Rangers"
+                          />
+                          <SquadStatTile
+                            data-testid="squad-stat-tokens"
+                            value={squadSummary.tokens ? formatUsageNumber(squadSummary.tokens, 0) : "—"}
+                            label={`Tokens · ${usageWindowLabel}`}
+                          />
+                          <SquadStatTile
+                            data-testid="squad-stat-cost"
+                            value={squadSummary.cost ? `$${squadSummary.cost.toFixed(4)}` : "—"}
+                            label={`Cost · ${usageWindowLabel}`}
+                          />
+                        </div>
                       </div>
                     </MainLayout>
+                  </div>
 
-                    <div className="pb-3">
+                  <div
+                    data-testid="rangers-toolbar"
+                    className="sticky top-0 z-20 -mx-4 border-b border-line bg-paper px-4 py-3"
+                  >
+                    <div className="flex flex-wrap items-center gap-[10px]">
                       <RangerTabs activeTab={activeTab} onChange={handleTabChange} />
+
+                      {activeTab === RANGER_TAB_KEYS.SQUAD && typeFilteredBridges.length > 0 && (
+                        <>
+                          <div className="relative min-w-0 max-w-[280px] flex-[1_1_190px]">
+                            <Search
+                              size={14}
+                              aria-hidden
+                              className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-soft opacity-70"
+                            />
+                            <SearchItems
+                              data={allBridges}
+                              setFilterItems={setFilterBridges}
+                              item="Agents"
+                              placeholder="Search rangers"
+                              containerClass="w-full"
+                              inputContainerClass="relative"
+                              style="w-full !rounded-[10px] !border !border-line !bg-card py-[7px] pl-9 pr-16 text-[13.5px] text-ink outline-none placeholder:text-soft"
+                            />
+                          </div>
+
+                          <div className="flex flex-none items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]">
+                            <button
+                              type="button"
+                              aria-label="Card view"
+                              aria-pressed={viewMode === "grid"}
+                              data-testid="ranger-view-grid"
+                              onClick={() => handleViewModeChange("grid")}
+                              className={`grid place-items-center rounded-[8px] px-[9px] py-[6px] ${
+                                viewMode === "grid"
+                                  ? "bg-card text-ink shadow-[0_1px_1px_rgba(20,17,13,.1)]"
+                                  : "text-soft"
+                              }`}
+                            >
+                              <LayoutGrid size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Table view"
+                              aria-pressed={viewMode === "list"}
+                              data-testid="ranger-view-list"
+                              onClick={() => handleViewModeChange("list")}
+                              className={`grid place-items-center rounded-[8px] px-[9px] py-[6px] ${
+                                viewMode === "list"
+                                  ? "bg-card text-ink shadow-[0_1px_1px_rgba(20,17,13,.1)]"
+                                  : "text-soft"
+                              }`}
+                            >
+                              <Rows3 size={14} />
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            data-testid="agents-usage-filter-button"
+                            className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] border border-line bg-card px-3 py-[7px] text-[12.5px] text-soft"
+                            onClick={handleUsageFilterDropdownClick}
+                          >
+                            <Funnel size={13} />
+                            <span>Usage · {usageWindowLabel}</span>
+                          </button>
+
+                          <span className="flex-[1_1_0]" />
+
+                          {!isEmbedUser && (
+                            <button
+                              data-testid="create-new-agent-button"
+                              className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)]"
+                              onClick={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
+                            >
+                              <Plus size={15} />
+                              Create Ranger
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
 
                   {activeTab === RANGER_TAB_KEYS.COMMAND ? (
-                    <div className="px-2">
-                      <CommandCenterTab orgId={resolvedParams.org_id} agents={allBridges} />
-                    </div>
+                    <CommandCenterTab orgId={resolvedParams.org_id} agents={allBridges} />
                   ) : typeFilteredBridges.length === 0 ? (
                     <AgentEmptyState
                       orgid={resolvedParams.org_id}
@@ -1329,58 +1480,9 @@ function Home({ params, searchParams, isEmbedUser }) {
                     />
                   ) : (
                     <>
-                      <div className="px-2">
-                        <div className="flex flex-row flex-wrap gap-4 pb-3 items-center">
-                          {allBridges.length > 5 && (
-                            <SearchItems data={allBridges} setFilterItems={setFilterBridges} item="Agents" />
-                          )}
-                          <div className="flex items-center gap-2 ml-2">
-                            <div className="flex items-center rounded-full border-2 border-stroke bg-card p-[3px]">
-                              <button
-                                type="button"
-                                aria-label="Card view"
-                                aria-pressed={viewMode === "grid"}
-                                data-testid="ranger-view-grid"
-                                onClick={() => handleViewModeChange("grid")}
-                                className={`rounded-full p-[5px] ${viewMode === "grid" ? "bg-acc text-acc-ink" : "text-soft"}`}
-                              >
-                                <LayoutGrid size={13} />
-                              </button>
-                              <button
-                                type="button"
-                                aria-label="Table view"
-                                aria-pressed={viewMode === "list"}
-                                data-testid="ranger-view-list"
-                                onClick={() => handleViewModeChange("list")}
-                                className={`rounded-full p-[5px] ${viewMode === "list" ? "bg-acc text-acc-ink" : "text-soft"}`}
-                              >
-                                <Rows3 size={13} />
-                              </button>
-                            </div>
-
-                            <button
-                              type="button"
-                              data-testid="agents-usage-filter-button"
-                              className="cursor-pointer rounded-full border-2 border-stroke bg-card px-[14px] py-[7px] font-mono text-[11.5px] text-ink flex items-center gap-1.5"
-                              onClick={handleUsageFilterDropdownClick}
-                            >
-                              <Funnel size={13} />
-                              <span>Usage filter ·</span>
-                              <span>{isUsageFilterActive ? usageFilterLabel || "last 24h" : "last 24h"}</span>
-                            </button>
-
-                            <button
-                              data-testid="create-new-agent-button"
-                              className="cursor-pointer rounded-full border-2 border-stroke bg-acc px-4 py-2 text-[13.5px] font-bold text-acc-ink"
-                              onClick={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
-                            >
-                              + Create Ranger
-                            </button>
-                          </div>
-                        </div>
-                      </div>
                       {!isEmbedUser && (
                         <FolderTabs
+                          variant="soft"
                           folders={folders}
                           resourceType="agent"
                           onCreateFolder={createFolder}
@@ -1398,6 +1500,7 @@ function Home({ params, searchParams, isEmbedUser }) {
                           <RangerGrid
                             rows={displayedUnArchivedBridges}
                             rawById={rawBridgeById}
+                            channelsByAgentId={channelsByAgentId}
                             loadingAgentId={loadingAgentId}
                             isReadOnly={isEmbedUser}
                             onOpen={(row) => onClickConfigure(row?._id, row?.versionId, row?.bridgeType)}
