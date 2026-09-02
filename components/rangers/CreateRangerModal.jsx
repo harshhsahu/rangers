@@ -166,6 +166,17 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     resetAll();
   }, [blocksClose, resetAll]);
 
+  /**
+   * Done is only rendered once the deploy reached DONE, so there is nothing
+   * left to protect — it closes unconditionally rather than going through
+   * handleClose, whose blocksClose guard would swallow the click if a phase
+   * flag were still set.
+   */
+  const handleDone = useCallback(() => {
+    closeModal(MODAL_TYPE.CREATE_RANGER_MODAL);
+    resetAll();
+  }, [resetAll]);
+
   const nameError = useMemo(() => {
     const trimmed = form.name.trim();
     if (!trimmed) return "";
@@ -295,7 +306,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     <>
       <span className="mr-auto text-[11.5px] text-soft">{hint}</span>
       {isDone ? (
-        <button type="button" className="btn btn-primary btn-sm" onClick={handleClose} data-testid="ranger-done-button">
+        <button type="button" className="btn btn-primary btn-sm" onClick={handleDone} data-testid="ranger-done-button">
           Done
         </button>
       ) : (

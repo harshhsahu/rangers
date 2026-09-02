@@ -247,9 +247,12 @@ const ModelGardenPage = ({ params }) => {
                 </button>
               </div>
 
-              {/* Search Bar */}
+              {/* Search Bar — no bottom rule of its own: the header above already
+                  has one and the sticky table head below reads as the next edge,
+                  so a third 2px line just boxed the field in. `input-bordered`
+                  is dropped too; globals.css already gives .input the stroke. */}
               {modelRows.length > 5 && (
-                <div className="px-5 py-3 border-b-2 border-stroke">
+                <div className="px-5 py-3">
                   <div className="relative">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
                     <input
@@ -258,7 +261,7 @@ const ModelGardenPage = ({ params }) => {
                       placeholder="Search models..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="input input-bordered input-sm w-full pl-9"
+                      className="input input-sm w-full pl-9"
                     />
                   </div>
                 </div>
