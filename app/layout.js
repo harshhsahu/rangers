@@ -28,6 +28,19 @@ export const metadata = {
   alternates: {
     canonical: "https://gtwy.ai",
   },
+  // Declared here rather than through Next's icon file convention in the app
+  // directory. That convention makes Next inject its IconMark client component,
+  // which is missing from the edge RSC client manifest produced by the edge
+  // runtime set below, and every page then fails with a 500 in a production
+  // build. Serving the images from the public folder and listing them here
+  // renders the same link tags without that component.
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const runtime = "edge";
