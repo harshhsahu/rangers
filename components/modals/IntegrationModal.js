@@ -4,7 +4,7 @@ import { closeModal } from "@/utils/utility";
 import React from "react";
 import { useDispatch } from "react-redux";
 import Modal from "@/components/UI/Modal";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { Blocks } from "lucide-react";
 
 const IntegrationModal = ({ params, type = "embed" }) => {

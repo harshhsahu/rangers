@@ -47,7 +47,10 @@ export const runtime = "edge";
 
 // Applies a saved theme before first paint, so a dark preference does not flash
 // light on load. The server renders the light theme, which is the default.
-const THEME_INIT = `(function(){try{var t=localStorage.getItem("theme")||sessionStorage.getItem("theme")||"light";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;e.setAttribute("data-theme",r);e.classList.remove("light","dark");e.classList.add(r);}catch(_){}})();`;
+// The landing page is the one exception: it is always light, whatever the
+// visitor picked inside the app, so the marketing design is never rendered in
+// a palette it was not drawn for. The preference itself is left untouched.
+const THEME_INIT = `(function(){try{var t=location.pathname==="/"?"light":(localStorage.getItem("theme")||sessionStorage.getItem("theme")||"light");var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;e.setAttribute("data-theme",r);e.classList.remove("light","dark");e.classList.add(r);}catch(_){}})();`;
 
 export default function RootLayout({ children }) {
   return (

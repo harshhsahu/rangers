@@ -5,7 +5,7 @@ import { MODAL_TYPE, ON_CLICK_ACTION_TYPES, PARAMETER_TYPES } from "@/utils/enum
 import { TrashIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/Icons";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "@/components/UI/Modal";
 import { PlusCircleIcon, Braces } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";

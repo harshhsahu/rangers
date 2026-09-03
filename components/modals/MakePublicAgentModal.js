@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { CircleX, Globe } from "lucide-react";
 import Modal from "../UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { closeModal } from "@/utils/utility";
 import { useDispatch } from "react-redux";
 import { updateBridgeAction } from "@/store/action/bridgeAction";

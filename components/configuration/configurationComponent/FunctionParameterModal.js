@@ -5,7 +5,7 @@ import { isEqual } from "lodash";
 import { CopyIcon, TrashIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/Icons";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "@/components/UI/Modal";
 import InfoTooltip from "@/components/InfoTooltip";
 import { useCustomSelector } from "@/customHooks/customSelector";

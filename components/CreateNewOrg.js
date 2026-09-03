@@ -3,7 +3,7 @@ import { userDetails } from "@/store/action/userDetailsAction";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import LoadingSpinner from "./LoadingSpinner";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";

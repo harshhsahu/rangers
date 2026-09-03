@@ -36,7 +36,7 @@ import DeleteModal from "./UI/DeleteModal";
 import Protected from "./Protected";
 import useDeleteOperation from "@/customHooks/useDeleteOperation";
 import { updateBridgeAction, updateBridgeVersionAction } from "@/store/action/bridgeAction";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { isEqual } from "lodash";
 
 /* ========================= Helpers ========================= */

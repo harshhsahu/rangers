@@ -2,7 +2,7 @@
 
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { AlertTriangle, Sparkles, SlidersHorizontal, Zap } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal } from "@/utils/utility";
@@ -290,7 +290,15 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     }
     if (currentStep?.key === "channels" && !validateChannels()) return;
     if (currentStep?.key === "review") {
-      await deploy(form);
+      const result = await deploy(form);
+      // Any channel whose setup call was rejected gives up its stored token —
+      // a credential the setup route refused is not worth keeping around.
+      (result?.warnings || []).forEach((warning) => {
+        if (warning.failed && warning.key) {
+          setChannel(warning.key, { credentials: {} });
+          setChannelErrors((prev) => ({ ...prev, [warning.key]: warning.message }));
+        }
+      });
       return;
     }
     setStepIndex((prev) => Math.min(steps.length - 1, prev + 1));

@@ -18,7 +18,7 @@ import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateBridgeAction, deleteBridgeAction } from "@/store/action/bridgeAction";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal, closeModal, sendDataToParent } from "@/utils/utility";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 const ChatBotSlider = dynamic(() => import("./sliders/ChatBotSlider"), { ssr: false });
 import Protected from "./Protected";
 const DeleteModal = dynamic(() => import("./UI/DeleteModal"), { ssr: false });

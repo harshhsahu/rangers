@@ -17,7 +17,7 @@ const ChannelCard = ({ channel, connectedCount = 0, agentNames = [], isLoading =
     <article
       data-testid={`channel-card-${channel.key}`}
       id={`channel-card-${channel.key}`}
-      className={`flex flex-col rounded-[16px] border border-line bg-card shadow-[0_1px_2px_rgba(20,17,13,.06)] ${
+      className={`flex flex-col rounded-[16px] border border-line bg-card shadow-[0_1px_2px_var(--shadow-tint)] ${
         channel.enabled ? "" : "opacity-[.62]"
       }`}
     >

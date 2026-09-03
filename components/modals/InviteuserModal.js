@@ -2,7 +2,7 @@ import { MODAL_TYPE } from "@/utils/enums";
 import React, { useState } from "react";
 import Modal from "../UI/Modal";
 import { getInvitedUsers, inviteUser } from "@/config/index";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { closeModal, RequiredItem } from "@/utils/utility";
 import { Mail, UserPlus } from "lucide-react";
 

@@ -48,7 +48,7 @@ import {
   Brain,
 } from "lucide-react";
 import { rerunApi } from "@/config/modelApi";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { GenericSlider, useSlider } from "@/utils/sliderUtility";
 import CodeBlock from "../codeBlock/CodeBlock";
 import MessageExecutionTrace from "../historyUi/executionTrace/MessageExecutionTrace";

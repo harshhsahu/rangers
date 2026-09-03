@@ -15,7 +15,7 @@ import { ClockFading, Pencil } from "lucide-react";
 import Modal from "@/components/UI/Modal";
 import UsageLimitModal from "@/components/modals/UsageLimitModal";
 import { updateIntegrationDataAction } from "@/store/action/integrationAction";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import usePortalDropdown from "@/customHooks/usePortalDropdown";
 
 export const runtime = "edge";

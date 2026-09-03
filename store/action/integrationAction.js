@@ -6,7 +6,7 @@ import {
   getAllIntegrationApi,
   updateIntegrationData,
 } from "@/config/index";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import {
   addIntegrationDataReducer,
   fetchAllIntegrationData,

@@ -34,7 +34,7 @@ const RangerTabs = ({ activeTab, onChange }) => (
           id={`ranger-tab-${tab.key}`}
           onClick={() => onChange(tab.key)}
           className={`whitespace-nowrap rounded-[8px] px-[13px] py-[6px] text-[13px] font-semibold transition-colors ${
-            isActive ? "bg-card text-ink shadow-[0_1px_1px_rgba(20,17,13,.1)]" : "text-soft hover:text-ink"
+            isActive ? "bg-card text-ink shadow-[0_1px_1px_var(--shadow-tint)]" : "text-soft hover:text-ink"
           }`}
         >
           {tab.label}

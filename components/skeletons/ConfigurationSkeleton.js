@@ -29,7 +29,7 @@ const StatTileSkeleton = () => (
 
 const ConfigurationSkeleton = () => {
   return (
-    <div className="h-full w-full overflow-hidden bg-[#F4EFE7] text-base-content">
+    <div className="h-full w-full overflow-hidden bg-paper-raised text-base-content">
       <div className="flex h-full">
         {/* Left: agent setup */}
         <div className="flex w-1/2 min-w-0 flex-col gap-4 overflow-hidden px-8 pt-5">

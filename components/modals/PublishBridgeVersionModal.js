@@ -10,7 +10,7 @@ import { convertAgentToTemplate } from "@/config/bridgeApi";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, openModal, sendDataToParent } from "@/utils/utility";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "../UI/Modal";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import Protected from "../Protected";

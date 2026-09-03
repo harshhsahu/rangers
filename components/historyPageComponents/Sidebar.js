@@ -12,7 +12,7 @@ import { ThumbsDownIcon, ThumbsUpIcon, UserIcon, MessageCircleIcon } from "@/com
 import { useEffect, useState, memo, useCallback, useRef, Fragment } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import CreateFineTuneModal from "../modals/CreateFineTuneModal.js";
 import DateRangePicker from "./DateRangePicker.js";
 import { usePathname, useRouter } from "next/navigation.js";

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link2, Maximize2, Minimize2, Plus, X } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import ToolsSection from "../ToolsSection";
 import McpServerList from "../configurationComponent/McpServerList";
 import { useConfigurationContext } from "../ConfigurationContext";

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { deleteApikeyAction, saveApiKeysAction } from "@/store/action/apiKeyAction";
 import { shortUniqueId } from "@/utils/utility";

@@ -682,7 +682,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
     <div
       id="configure-page-container"
       ref={containerRef}
-      className={`w-full bg-[#F4EFE7] h-full transition-all duration-300 ease-in-out overflow-hidden ${!isFocus ? "max-h-[calc(100vh-2rem)]" : "overflow-y-hidden"} ${uiState.isDesktop ? "flex flex-row" : "overflow-y-auto"}`}
+      className={`w-full bg-paper-raised h-full transition-all duration-300 ease-in-out overflow-hidden ${!isFocus ? "max-h-[calc(100vh-2rem)]" : "overflow-y-hidden"} ${uiState.isDesktop ? "flex flex-row" : "overflow-y-auto"}`}
     >
       {/* Unsaved prompt — refresh guard modal */}
       <ConfirmationModal
@@ -737,7 +737,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               defaultSize={panelSizes.config}
               minSize={3}
               maxSize={100}
-              className="bg-[#F4EFE7] rounded-none"
+              className="bg-paper-raised rounded-none"
               collapsible={false}
               onResize={(size) => {
                 const isCollapsed = size <= 5;
@@ -809,7 +809,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   ref={chatPanelRef}
                   defaultSize={panelSizes.chat}
                   minSize={3}
-                  className="bg-[#F4EFE7] rounded-none"
+                  className="bg-paper-raised rounded-none"
                   collapsible={false}
                   onResize={(size) => {
                     const isCollapsed = size <= 5;
@@ -855,7 +855,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   defaultSize={panelSizes.promptHelper}
                   minSize={3}
                   maxSize={100}
-                  className="bg-[#F4EFE7] rounded-none"
+                  className="bg-paper-raised rounded-none"
                   collapsible={false}
                   onResize={(size) => {
                     // Don't update state if we're manually keeping it collapsed
@@ -907,7 +907,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     defaultSize={panelSizes.notes}
                     minSize={3}
                     maxSize={100}
-                    className="bg-[#F4EFE7] rounded-none"
+                    className="bg-paper-raised rounded-none"
                     collapsible={false}
                     onResize={(size) => {
                       const isCollapsed = size <= 5;

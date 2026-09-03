@@ -55,7 +55,7 @@ const AgentEmptyState = ({
               <button
                 data-testid="agent-empty-create-agent-button"
                 id="agent-empty-create-agent-button"
-                className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)]"
+                className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_var(--shadow-tint)]"
                 onClick={() => {
                   openModal(MODAL_TYPE.CREATE_RANGER_MODAL);
                 }}

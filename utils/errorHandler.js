@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 
 /**
  * Safely extracts error message from axios error or network error

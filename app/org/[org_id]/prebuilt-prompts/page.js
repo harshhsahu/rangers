@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { RefreshIcon } from "@/components/Icons";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { SaveAllIcon } from "lucide-react";

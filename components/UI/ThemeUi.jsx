@@ -56,7 +56,7 @@ export default function ThemeToggle({ compact = false }) {
             onClick={() => changeTheme(id)}
             className={`flex-1 rounded-[7px] py-[5px] text-center transition-colors ${
               isActive
-                ? "bg-card font-semibold text-ink shadow-[0_1px_1px_rgba(20,17,13,.08)]"
+                ? "bg-card font-semibold text-ink shadow-[0_1px_1px_var(--shadow-tint)]"
                 : "text-soft hover:text-ink"
             }`}
           >

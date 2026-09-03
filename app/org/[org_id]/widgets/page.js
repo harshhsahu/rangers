@@ -12,7 +12,7 @@ import SearchItems from "@/components/UI/SearchItems";
 import TemplatePlayground from "@/components/modals/TemplatePlayground";
 import SaveWidgetModal from "@/components/modals/SaveWidgetModal";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { generateRichUITemplate } from "@/config/utilityApi";
 import ReactMarkdown from "@/components/LazyMarkdown";
 import { mdComponentsDark, mdRemarkPlugins } from "@/utils/markdownComponents";

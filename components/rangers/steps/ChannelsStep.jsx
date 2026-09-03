@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { RANGER_CHANNELS } from "../rangerConstants";
 
 /**
@@ -78,7 +78,20 @@ const ChannelsStep = ({
               <div className="flex items-center gap-3 px-3 py-2.5">
                 <Icon size={30} className="flex-none" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13.5px] font-bold text-ink">{channel.label}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[13.5px] font-bold text-ink">{channel.label}</span>
+                    {/* The row's own connected marker — the Continue button
+                        below reads "Connected" too, but it is hidden while the
+                        channel is collapsed. */}
+                    {isConnected && (
+                      <CheckCircle2
+                        size={14}
+                        aria-label={`${channel.label} connected`}
+                        data-testid={`ranger-channel-connected-${channel.key}`}
+                        className="flex-none text-success"
+                      />
+                    )}
+                  </div>
                   <div className="text-[11px] text-soft">{channel.blurb}</div>
                 </div>
 

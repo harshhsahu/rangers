@@ -5,7 +5,7 @@ import { MessageCircle, Eye, EyeOff, Loader2, Trash2 } from "lucide-react";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { authHeaders } from "@/utils/internalAuth";
 
 /**
