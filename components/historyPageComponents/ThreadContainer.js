@@ -45,6 +45,12 @@ const ThreadContainer = ({
   isErrorTrue,
   fillParent = false,
   keepSearchMessageId = false,
+  /**
+   * Analytics renders this too, and there the auto-select is view state: pushing
+   * it stacked history entries the page never reads back, which is what broke
+   * the browser Back button. On History it stays normal navigation.
+   */
+  isAnalytics = false,
 }) => {
   const routeParams = useParams();
   const orgId = routeParams?.org_id;
@@ -287,9 +293,11 @@ const ThreadContainer = ({
           if (error) params.set("error", String(error));
           if (search?.type) params.set("type", search.type);
           params.set("navigated", "true");
-          // Auto-selecting the first thread on load is not navigation; pushing it
-          // put a synthetic entry in front of the page the user came from.
-          router.replace(`${pathName}?${params.toString()}`, { scroll: false });
+          // Analytics only: pushing this put a synthetic entry in front of the
+          // page the user came from, which is what broke Back there. On History,
+          // auto-selecting the first thread stays a normal navigation.
+          if (isAnalytics) router.replace(`${pathName}?${params.toString()}`, { scroll: false });
+          else router.push(`${pathName}?${params.toString()}`, { scroll: false });
           return;
         }
       }

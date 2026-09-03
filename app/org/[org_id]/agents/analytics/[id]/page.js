@@ -1493,6 +1493,7 @@ function Page({ params, searchParams }) {
               setSearchMessageId={setSearchMessageId}
               keepSearchMessageId={true}
               fillParent={true}
+              isAnalytics
               pathName={pathName}
               search={search}
               historyData={historyData}
