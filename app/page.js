@@ -204,7 +204,7 @@ const Page = () => {
               <div key={value} className="flex items-center gap-3 rounded-[16px] border border-line bg-paper p-4">
                 {/* The provider mark stands on its own — no chip, no border. */}
                 <span className="grid h-[30px] w-[30px] flex-none place-items-center">
-                  {getIconOfService(slug, 22, 22)}
+                  {getIconOfService(slug, 28, 28)}
                 </span>
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-[15px] font-bold">{label}</span>
