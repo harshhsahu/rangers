@@ -134,7 +134,7 @@ body {
 
   /* --------------------------------- Buttons ----------------------------- */
   .btn {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 9999px;
     font-weight: 700;
     text-transform: none;
@@ -208,7 +208,7 @@ body {
   .stats,
   .alert,
   .collapse:not(.collapse-arrow):not(.collapse-plus) {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 16px;
   }
 
@@ -276,7 +276,7 @@ body {
   input[type="url"],
   input[type="tel"],
   textarea {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 11px;
     background: var(--card);
     color: var(--ink);
@@ -395,7 +395,7 @@ body {
 
   .checkbox,
   .radio {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
   }
 
   .checkbox:checked,
@@ -416,7 +416,7 @@ body {
   .range {
     --range-shdw: var(--acc);
     height: 9px;
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 9999px;
     background: var(--card);
   }
@@ -432,18 +432,18 @@ body {
   }
 
   .range::-webkit-slider-thumb {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     background: var(--acc);
   }
 
   .range::-moz-range-thumb {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     background: var(--acc);
   }
 
   /* ------------------------------ Chat bubbles --------------------------- */
   .chat-bubble {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     font-size: 13.5px;
     line-height: 1.5;
     text-wrap: pretty;
@@ -463,7 +463,7 @@ body {
 
   /* --------------------------------- Badges ------------------------------ */
   .badge {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 9999px;
     font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
     font-size: 9px;
@@ -482,7 +482,7 @@ body {
   .table thead tr th,
   .table tfoot tr th {
     background: var(--paper);
-    border-bottom: 2px solid var(--stroke);
+    border-bottom: 1px solid var(--stroke);
     font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
     font-size: 9.5px;
     font-weight: 500;
@@ -552,14 +552,14 @@ body {
   .dropdown-content > .menu,
   .dropdown-content > ul,
   .dropdown-content > .card {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 12px;
     box-shadow: 4px 4px 0 var(--shd-col);
     background: var(--card);
   }
 
   .tooltip:before {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 8px;
     background: var(--ink);
     color: var(--paper);
@@ -569,7 +569,7 @@ body {
 
   /* -------------------------------- Progress ----------------------------- */
   .progress {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     background: var(--card);
     border-radius: 9999px;
     height: 9px;
@@ -595,7 +595,7 @@ body {
   /* Keyboard hint chips (⌘K and friends) */
   kbd,
   .kbd {
-    border: 2px solid var(--stroke);
+    border: 1px solid var(--stroke);
     border-radius: 9999px;
     background: var(--card);
     color: var(--ink);
@@ -1456,4 +1456,41 @@ summary:focus-visible {
     outline: 2px solid var(--acc-line);
     outline-offset: 2px;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Border weight. The design language started on a 2px ink stroke around every
+   box; at this component density that reads as a wireframe, so --stroke is now
+   a hairline (see tailwind.config.js). The colour change alone leaves the
+   *width* at 2px wherever a `border-2` utility is used — 344 call sites across
+   144 files — so the utility is downgraded here instead of being edited out of
+   every component.
+
+   Unlayered on purpose: Tailwind's @layer is compile-time ordering, so a rule
+   inside @layer components would be emitted before the utilities and lose.
+   `border-4` is left alone — it is only used for drag-and-drop drop zones,
+   where the heavy dashed outline is the point.
+--------------------------------------------------------------------------- */
+.border-2 {
+  border-width: 1px;
+}
+.border-x-2 {
+  border-left-width: 1px;
+  border-right-width: 1px;
+}
+.border-y-2 {
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+.border-t-2 {
+  border-top-width: 1px;
+}
+.border-r-2 {
+  border-right-width: 1px;
+}
+.border-b-2 {
+  border-bottom-width: 1px;
+}
+.border-l-2 {
+  border-left-width: 1px;
 }

@@ -35,22 +35,28 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
     return set;
   }, [apikeys]);
 
+  /**
+   * Every provider the org can use, not a hardcoded shortlist — this used to be
+   * openai/anthropic/gemini plus whatever was keyed, so the other ten providers
+   * simply never appeared in onboarding.
+   *
+   * Ordered keyed-first, then the common three, then the rest of the catalogue,
+   * so the provider you already have a key for is the one that opens.
+   */
   const targetServices = useMemo(() => {
-    const known = new Set(services.map((service) => service?.value).filter(Boolean));
-    const wanted = [...keyedServices, ...MODEL_STEP_DEFAULT_SERVICES, form.service].filter(Boolean);
-    // `known` is empty until GET /api/service lands; fall through then rather
-    // than dropping every service and rendering an empty list.
-    return [...new Set(wanted)].filter((service) => known.size === 0 || known.has(service));
+    const known = services.map((service) => service?.value).filter(Boolean);
+    if (!known.length) {
+      // GET /api/service has not landed yet; show the common three meanwhile.
+      const fallback = [...keyedServices, ...MODEL_STEP_DEFAULT_SERVICES, form.service].filter(Boolean);
+      return [...new Set(fallback)];
+    }
+    const rank = (service) => {
+      if (keyedServices.has(service)) return 0;
+      if (MODEL_STEP_DEFAULT_SERVICES.includes(service)) return 1;
+      return 2;
+    };
+    return [...new Set(known)].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   }, [form.service, keyedServices, services]);
-
-  useEffect(() => {
-    targetServices.forEach((service) => {
-      const hasResponse = Object.prototype.hasOwnProperty.call(serviceModels, service);
-      if (hasResponse || requestedRef.current.has(service)) return;
-      requestedRef.current.add(service);
-      dispatch(getModelAction({ service }));
-    });
-  }, [dispatch, serviceModels, targetServices]);
 
   const serviceLabel = useMemo(() => {
     const map = {};
@@ -84,21 +90,14 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
     return rows.sort((a, b) => Number(b.keyed) - Number(a.keyed));
   }, [keyedServices, modelsConfig, serviceModels, targetServices]);
 
-  const isLoading = models.length === 0 && targetServices.some((service) => !serviceModels?.[service]);
   const selectedId = form.service && form.model ? `${form.service}::${form.model}` : null;
   const temperature = resolveTemperature(form.creativity, form.temperatureParam);
 
-  /** Providers that actually have models to show, keyed ones first. */
-  const providerTabs = useMemo(() => {
-    const seen = new Map();
-    models.forEach((model) => {
-      if (!seen.has(model.service)) {
-        seen.set(model.service, { service: model.service, keyed: model.keyed, count: 0 });
-      }
-      seen.get(model.service).count += 1;
-    });
-    return [...seen.values()];
-  }, [models]);
+  /** One tab per provider, whether or not its catalogue has loaded yet. */
+  const providerTabs = useMemo(
+    () => targetServices.map((service) => ({ service, keyed: keyedServices.has(service) })),
+    [keyedServices, targetServices]
+  );
 
   const [activeService, setActiveService] = useState(null);
   // Follows the catalogue until the user picks a tab: whichever provider the
@@ -114,10 +113,32 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
     [effectiveService, models]
   );
 
+  /**
+   * Only the provider on screen is fetched — asking for all thirteen up front
+   * would be thirteen requests to render one list. Declared after
+   * `effectiveService` so switching tabs actually triggers the fetch.
+   */
+  useEffect(() => {
+    [effectiveService, form.service].filter(Boolean).forEach((service) => {
+      const hasResponse = Object.prototype.hasOwnProperty.call(serviceModels, service);
+      if (hasResponse || requestedRef.current.has(service)) return;
+      requestedRef.current.add(service);
+      dispatch(getModelAction({ service }));
+    });
+  }, [dispatch, effectiveService, form.service, serviceModels]);
+
+  // Loading is per-provider: the rest of the catalogue is deliberately unfetched,
+  // so "any service missing" would leave this stuck on true forever.
+  const isLoading = Boolean(effectiveService) && !serviceModels?.[effectiveService];
+
   return (
     <div data-testid="onboarding-pane-model" id="onboarding-pane-model">
+      {/* Discrete chips rather than a segmented track: with thirteen providers a
+          shared sunken bar ran them together into one unreadable wall. Each chip
+          carries its own border and gap, and a keyed provider gets a dot rather
+          than a second word competing with the name. */}
       {providerTabs.length > 1 && (
-        <div className="flex flex-wrap items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]">
+        <div className="flex flex-wrap items-center gap-2">
           {providerTabs.map((tab) => {
             const isActive = tab.service === effectiveService;
             return (
@@ -126,15 +147,21 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
                 type="button"
                 data-testid={`onboarding-model-service-${tab.service}`}
                 aria-pressed={isActive}
+                title={tab.keyed ? "You have a key for this provider" : undefined}
                 onClick={() => setActiveService(tab.service)}
-                className={`flex items-center gap-1.5 rounded-lg px-[11px] py-[6px] text-[12.5px] font-semibold transition-colors ${
-                  isActive ? "bg-card text-ink shadow-sm" : "text-soft hover:text-ink"
+                className={`flex shrink-0 items-center gap-[7px] rounded-[9px] border px-[11px] py-[6px] text-[12.5px] font-semibold transition-colors ${
+                  isActive
+                    ? "border-acc-line bg-acc-soft text-acc-deep"
+                    : "border-line bg-card text-soft hover:text-ink"
                 }`}
               >
                 {getIconOfService(tab.service, 14, 14)}
                 <span>{serviceLabel[tab.service] || tab.service}</span>
                 {tab.keyed && (
-                  <span className="rounded bg-acc-soft px-1 text-[9px] font-bold uppercase text-acc-deep">keyed</span>
+                  <span
+                    aria-hidden="true"
+                    className={`h-1.5 w-1.5 flex-none rounded-full ${isActive ? "bg-acc-deep" : "bg-acc"}`}
+                  />
                 )}
               </button>
             );
@@ -142,7 +169,7 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
         </div>
       )}
 
-      <div className="mt-3 flex max-h-[340px] flex-col gap-2 overflow-y-auto">
+      <div className="mt-4 flex max-h-[340px] flex-col gap-2 overflow-y-auto">
         {isLoading &&
           [0, 1, 2].map((row) => <div key={row} className="h-[58px] animate-pulse rounded-[12px] bg-paper-sunken" />)}
 

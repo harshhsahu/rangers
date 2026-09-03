@@ -447,10 +447,23 @@ const TelegramPhone = () => {
                 flex: "none",
               }}
             >
-              <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5 }}>
-                <span style={{ width: 7, height: 11, borderRadius: 999, background: "#4C5C49", display: "block" }} />
-                <span style={{ width: 11, height: 1.8, borderRadius: 999, background: "#4C5C49", display: "block" }} />
-              </span>
+              {/* A real mic, matching the design file — this was two stacked
+                  rounded divs, which read as a pill above a dash, not a mic. */}
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#4C5C49"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="9" y="2.5" width="6" height="10.5" rx="3" />
+                <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+                <path d="M12 17.5V21" />
+              </svg>
             </span>
           </div>
 
