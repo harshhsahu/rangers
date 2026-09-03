@@ -231,6 +231,12 @@ function OnboardingPage({ params }) {
         goToSquad();
         return;
       }
+      // A channel whose setup call was rejected keeps nothing behind: the
+      // selection and its token are dropped so a bad credential is not left
+      // sitting in the field looking saved.
+      if (result.warnings.some((warning) => warning.failed && warning.key === form.channel)) {
+        update({ channel: "", token: "" });
+      }
       setDeployWarnings(result.warnings);
       return;
     }
@@ -335,7 +341,7 @@ function OnboardingPage({ params }) {
             id="onboarding-next-button"
             disabled={!isDeployed && (!canContinue || isDeploying)}
             onClick={isDeployed ? goToSquad : handleNext}
-            className="inline-flex items-center gap-[7px] rounded-[10px] bg-acc px-[18px] py-[10px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)] disabled:cursor-default disabled:bg-paper-sunken disabled:text-soft disabled:shadow-none"
+            className="inline-flex items-center gap-[7px] rounded-[10px] bg-acc px-[18px] py-[10px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_var(--shadow-tint)] disabled:cursor-default disabled:bg-paper-sunken disabled:text-soft disabled:shadow-none"
           >
             {isDeploying && <span className="loading loading-spinner loading-xs" />}
             {isDeployed

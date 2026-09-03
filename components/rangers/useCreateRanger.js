@@ -330,7 +330,14 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           });
           const data = await res.json();
           if (!res.ok || !data?.success) {
-            warnings.push({ channel: channel.label, message: data?.error || "Failed to connect." });
+            // `failed` separates a rejected setup from the soft warnings below,
+            // so callers know which channel's stored token to throw away.
+            warnings.push({
+              channel: channel.label,
+              key: channel.key,
+              message: data?.error || "Failed to connect.",
+              failed: true,
+            });
             continue;
           }
           connectedChannelsRef.current[channel.key] = true;
@@ -342,7 +349,12 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
             warnings.push({ channel: channel.label, message: data.gateway.message });
           }
         } catch (err) {
-          warnings.push({ channel: channel.label, message: err?.message || "Failed to connect." });
+          warnings.push({
+            channel: channel.label,
+            key: channel.key,
+            message: err?.message || "Failed to connect.",
+            failed: true,
+          });
         }
       }
       return warnings;

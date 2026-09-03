@@ -65,6 +65,21 @@ const ChannelsPanel = () => {
     setErrors((prev) => ({ ...prev, [key]: "" }));
   }, []);
 
+  /**
+   * Drops everything we were holding for a channel: the typed token and any
+   * connected flag. Used on both sides of a setup call — a rejected token is
+   * not worth keeping in the field, and a failed setup never leaves the
+   * channel looking connected.
+   */
+  const clearChannelState = useCallback((key) => {
+    setChannels((prev) => ({ ...prev, [key]: { ...prev[key], credentials: {} } }));
+    setConnectedChannels((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
   const toggleReveal = useCallback((key) => {
     setRevealed((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
@@ -99,7 +114,9 @@ const ChannelsPanel = () => {
         const data = await res.json();
         if (!res.ok || !data?.success) {
           const message = data?.error || `Failed to connect ${channel.label}.`;
+          clearChannelState(channelKey);
           setErrors((prev) => ({ ...prev, [channelKey]: message }));
+          toast.error(message);
           return { success: false, message };
         }
 
@@ -118,11 +135,13 @@ const ChannelsPanel = () => {
         return { success: true };
       } catch (err) {
         const message = err?.message || `Failed to connect ${channel.label}.`;
+        clearChannelState(channelKey);
         setErrors((prev) => ({ ...prev, [channelKey]: message }));
+        toast.error(message);
         return { success: false, message };
       }
     },
-    [params?.id, params?.org_id, setChannel, versionId]
+    [clearChannelState, params?.id, params?.org_id, setChannel, versionId]
   );
 
   const disconnectChannel = useCallback(
