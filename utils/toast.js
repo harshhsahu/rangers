@@ -84,7 +84,7 @@ const show = (kind, content, options) => {
     default:
       id = hotToast(content, mapped);
   }
-  markActive(id, mapped.duration ?? 4000);
+  markActive(id, mapped.duration ?? 8000);
   return id;
 };
 

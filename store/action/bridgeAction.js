@@ -779,7 +779,7 @@ export const updateBridgeVersionAction =
 
         dispatch(setSavingStatus({ status: "saved" }));
         dispatch(updateBridgeVersionReducer({ bridges: mergedVersion }));
-        toast.success(`${updateLabel} updated`, { toastId: updateToastId, autoClose: 2000 });
+        toast.success(`${updateLabel} updated`, { toastId: updateToastId, autoClose: 4000 });
 
         // Clear the status after 3 seconds
         return { success: true };

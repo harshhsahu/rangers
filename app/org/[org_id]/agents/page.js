@@ -24,10 +24,9 @@ import useTutorialVideos from "@/hooks/useTutorialVideos";
 import { getIconOfService, openModal, formatRelativeTime, formatDate } from "@/utils/utility";
 import ResourcePage from "@/components/folders/ResourcePage";
 import FolderTabs from "@/components/folders/FolderTabs";
-import MoveToFolderMenu from "@/components/folders/MoveToFolderMenu";
 import useFolders from "@/hooks/useFolders";
 import { useFolderContext } from "@/components/folders/FolderContext";
-import { Folder, Funnel, Undo2, Infinity, Trash2, Plus, Search } from "lucide-react";
+import { Funnel, Undo2, Infinity, Trash2, Plus, Search } from "lucide-react";
 
 import { ClockIcon, EllipsisIcon } from "@/components/Icons";
 import { useRouter } from "next/navigation";
@@ -1209,9 +1208,6 @@ function Home({ params, searchParams, isEmbedUser }) {
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const isNearBottom = rect.bottom + 550 > window.innerHeight;
-
     const dropdownContent = (
       <div className="bg-base-100 rounded-box w-52 shadow-2xl p-1 border-2 border-stroke">
         <AgentMenuItems
@@ -1235,32 +1231,6 @@ function Home({ params, searchParams, isEmbedUser }) {
             setTimeout(() => openModal(MODAL_TYPE.DELETE_MODAL), 10);
           }}
         />
-        <div className="divider my-1"></div>
-        <div className={`dropdown dropdown-hover dropdown-left ${isNearBottom ? "dropdown-top" : ""} w-full`}>
-          <label
-            tabIndex={0}
-            data-testid="agent-move-to-folder-dropdown"
-            className="w-full px-4 py-2 text-left text-sm hover:bg-base-200 flex items-center justify-between cursor-pointer"
-          >
-            <div className="flex items-center gap-2 text-base-content">
-              <Folder size={14} className="text-base-content/70" />
-              <span>Move to Folder</span>
-            </div>
-          </label>
-          <div
-            tabIndex={0}
-            className={`dropdown-content z-[100] ${isNearBottom ? "bottom-0 top-auto pb-2" : "top-0 bottom-auto pt-2"} right-full pr-2`}
-          >
-            <MoveToFolderMenu
-              folders={folders}
-              currentFolderId={row.folder_id}
-              onMove={(folderId) => {
-                moveResource(row._id, folderId);
-                handlePortalCloseImmediate();
-              }}
-            />
-          </div>
-        </div>
       </div>
     );
 

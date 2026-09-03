@@ -61,7 +61,7 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
 
       toast.success("Telegram bot connected");
       if (data?.webhook?.message && !data?.webhook?.registered) {
-        toast.info(data.webhook.message, { autoClose: 6000 });
+        toast.info(data.webhook.message, { autoClose: 12000 });
       }
       setBotToken("");
       closeModal(MODAL_TYPE.TELEGRAM_CONNECT_MODAL);

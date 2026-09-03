@@ -1115,12 +1115,33 @@ const VariableCollectionSlider = ({ params, versionId, isEmbedUser }) => {
   const variableCount = draftVariables.length;
 
   return (
-    <aside
+    /* A <dialog> rather than a plain <aside>: this slider has to sit above the
+       prompt modal, which opens with showModal() and so lives in the browser's
+       top layer. Nothing in normal flow paints over the top layer at any
+       z-index, and a popover would paint above but be inert. Opening this as a
+       modal dialog makes it the topmost one, so it is both visible and usable.
+       `left-auto bottom-auto m-0 max-w-none max-h-none` undo the UA dialog
+       styles that would otherwise re-anchor and shrink it. */
+    <dialog
       id={SLIDER_ID}
       data-testid="variable-collection-slider"
-      className="sidebar-container fixed z-very-high flex flex-col top-0 right-0 p-6 w-full md:w-[50%] lg:w-[50%] opacity-100 h-screen bg-base-200 transition-all duration-300 border-l-2 border-stroke overflow-y-auto translate-x-full"
+      className="sidebar-container fixed z-very-high flex flex-col top-0 right-0 bottom-auto left-auto m-0 max-h-none max-w-none p-6 w-full md:w-[50%] lg:w-[50%] opacity-100 h-screen bg-base-200 transition-all duration-300 border-l-2 border-stroke overflow-y-auto translate-x-full"
       aria-label="Variable collection slider"
-      onClick={(event) => event.stopPropagation()}
+      onCancel={(event) => {
+        // Esc closes a dialog natively, which would bypass the unsaved-changes
+        // guard in closeSlider.
+        event.preventDefault();
+        closeSlider();
+      }}
+      onClick={(event) => {
+        // A click on the dialog itself is a click on its backdrop — the content
+        // is all in child elements — so it means "outside", same as before.
+        if (event.target === event.currentTarget) {
+          closeSlider();
+          return;
+        }
+        event.stopPropagation();
+      }}
       onMouseDown={(event) => event.stopPropagation()}
     >
       <div className="flex flex-col gap-6 h-full w-full">
@@ -1479,7 +1500,7 @@ Option 2 - JSON object:
           </div>
         )}
       </div>
-    </aside>
+    </dialog>
   );
 };
 

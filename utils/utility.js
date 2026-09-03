@@ -165,6 +165,34 @@ export const collapseMainSlider = () => {
   }
 };
 
+/** Matches the slider's `duration-300` transition, so the slide-out is visible
+ *  before a dialog-based slider is actually closed and hidden. */
+const SLIDER_TRANSITION_MS = 300;
+
+/**
+ * A slider rendered as a <dialog> has to be opened with `showModal()`, not just
+ * un-translated: that is what puts it in the browser's top layer, which is the
+ * only way it can appear above a modal opened by another `showModal()` call.
+ * Plain-element sliders are untouched.
+ */
+const setSliderDialogState = (sidebarEl, shouldOpen) => {
+  if (!sidebarEl || sidebarEl.tagName !== "DIALOG" || typeof sidebarEl.showModal !== "function") return;
+  try {
+    if (shouldOpen) {
+      if (!sidebarEl.open) sidebarEl.showModal();
+    } else if (sidebarEl.open) {
+      // Let the slide-out run, then close — closing sets display:none at once.
+      setTimeout(() => {
+        if (sidebarEl.classList.contains("translate-x-full") || sidebarEl.classList.contains("-translate-x-full")) {
+          sidebarEl.close();
+        }
+      }, SLIDER_TRANSITION_MS);
+    }
+  } catch {
+    /* already open or closed; nothing to do */
+  }
+};
+
 export const toggleSidebar = (sidebarId, direction = "left") => {
   const sidebar = document.getElementById(sidebarId);
   if (!sidebar) return;
@@ -186,6 +214,7 @@ export const toggleSidebar = (sidebarId, direction = "left") => {
     if (!sidebarEl) return;
 
     sidebarEl.classList.add(translateClass);
+    setSliderDialogState(sidebarEl, false);
     cleanupListeners();
     sidebarEl._clickHandler = null;
     sidebarEl._keyHandler = null;
@@ -243,7 +272,9 @@ export const toggleSidebar = (sidebarId, direction = "left") => {
   sidebar._clickHandler = handleOutsideClick;
   sidebar._keyHandler = handleEscKey;
 
-  // Toggle sidebar visibility
+  // Toggle sidebar visibility. A dialog-based slider is promoted to the top
+  // layer first, so it is laid out there when the slide-in starts.
+  if (!isSliderVisible(sidebar)) setSliderDialogState(sidebar, true);
   sidebar.classList.toggle(translateClass);
 
   // Add or remove listeners based on visibility
@@ -251,6 +282,7 @@ export const toggleSidebar = (sidebarId, direction = "left") => {
     document.addEventListener("click", handleOutsideClick, true);
     document.addEventListener("keyup", handleEscKey, true);
   } else {
+    setSliderDialogState(sidebar, false);
     cleanupListeners();
   }
 };

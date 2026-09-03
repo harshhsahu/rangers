@@ -218,7 +218,6 @@ function Page({ params, searchParams }) {
   const [filterInterval, setFilterInterval] = useState(resolvedSearchParams?.interval || "1h");
   const [filterFeedback, setFilterFeedback] = useState(resolvedSearchParams?.feedback || "all");
   const [filterError, setFilterError] = useState(resolvedSearchParams?.error === "true");
-  const [filterReviewFailed, setFilterReviewFailed] = useState(resolvedSearchParams?.review_failed === "true");
   const parseArrayParam = (v) =>
     v
       ? String(v)
@@ -245,7 +244,6 @@ function Page({ params, searchParams }) {
     (filterInterval && filterInterval !== "1h") ||
     filterFeedback !== "all" ||
     filterError ||
-    filterReviewFailed ||
     filterTool.length ||
     filterModel.length ||
     filterKnowledgeBase.length ||
@@ -659,7 +657,6 @@ function Page({ params, searchParams }) {
     const newInterval = updates.interval !== undefined ? updates.interval : filterInterval;
     const newFeedback = updates.feedback !== undefined ? updates.feedback : filterFeedback;
     const newError = updates.error !== undefined ? updates.error : filterError;
-    const newReviewFailed = updates.review_failed !== undefined ? updates.review_failed : filterReviewFailed;
     const newTool = updates.tool_id !== undefined ? updates.tool_id : filterTool;
     const newModel = updates.model !== undefined ? updates.model : filterModel;
     const newKnowledgeBase = updates.knowledgebase_id !== undefined ? updates.knowledgebase_id : filterKnowledgeBase;
@@ -674,7 +671,6 @@ function Page({ params, searchParams }) {
           interval: newInterval || null,
           feedback: newFeedback && newFeedback !== "all" ? newFeedback : null,
           error: newError ? "true" : null,
-          review_failed: newReviewFailed ? "true" : null,
           tool_id: newTool?.length ? newTool.join(",") : null,
           model: newModel?.length ? newModel.join(",") : null,
           knowledgebase_id: newKnowledgeBase?.length ? newKnowledgeBase.join(",") : null,
@@ -946,24 +942,6 @@ function Page({ params, searchParams }) {
                     </button>
                   ))}
                 </div>
-
-                {/* Reviewer Failures Toggle */}
-                <label
-                  className={`flex items-center gap-2 cursor-pointer shrink-0 px-3 py-1.5 rounded-full transition-colors ${filterReviewFailed ? "bg-[#FD9900] text-white border-2 border-[#FD9900]" : "border-2 border-stroke"}`}
-                >
-                  <input
-                    type="checkbox"
-                    className={`toggle toggle-sm scale-75 origin-center ${filterReviewFailed ? "toggle-warning" : ""}`}
-                    checked={filterReviewFailed}
-                    onChange={(e) => {
-                      setFilterReviewFailed(e.target.checked);
-                      applyFilters({ review_failed: e.target.checked });
-                    }}
-                  />
-                  <span className={`text-xs font-medium ${filterReviewFailed ? "text-white" : "text-base-content/70"}`}>
-                    Reviewer Failures
-                  </span>
-                </label>
 
                 {/* Error Toggle */}
                 <label

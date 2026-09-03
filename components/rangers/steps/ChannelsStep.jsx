@@ -114,45 +114,51 @@ const ChannelsStep = ({
 
               {isOn && (
                 <div className="border-t-2 border-line px-3 pb-3 pt-3">
-                  {channel.credentialFields.map((field) => {
-                    const isRevealed = revealed[`${channel.key}:${field.key}`];
-                    return (
-                      <div key={field.key} className="form-control">
-                        <label className="label" htmlFor={`cred-${channel.key}-${field.key}`}>
-                          <span className="label-text">{field.label}</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            autoComplete="off"
-                            id={`cred-${channel.key}-${field.key}`}
-                            data-testid={`ranger-cred-${channel.key}-${field.key}`}
-                            type={field.secret && !isRevealed ? "password" : "text"}
-                            placeholder={field.placeholder}
-                            className={`input input-bordered input-sm w-full ${field.secret ? "pr-9" : ""} ${
-                              error ? "border-error" : ""
-                            }`}
-                            value={state.credentials?.[field.key] || ""}
-                            onChange={(event) =>
-                              setChannel(channel.key, {
-                                credentials: { ...(state.credentials || {}), [field.key]: event.target.value },
-                              })
-                            }
-                          />
-                          {field.secret && (
-                            <button
-                              type="button"
-                              aria-label={isRevealed ? "Hide token" : "Show token"}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-primary"
-                              onClick={() => toggleReveal(`${channel.key}:${field.key}`)}
-                            >
-                              {isRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
-                            </button>
-                          )}
+                  {isConnected ? (
+                    <p className="text-[11.5px] leading-relaxed text-soft">
+                      {channel.label} is connected and its token is stored. Disconnect to replace it.
+                    </p>
+                  ) : (
+                    channel.credentialFields.map((field) => {
+                      const isRevealed = revealed[`${channel.key}:${field.key}`];
+                      return (
+                        <div key={field.key} className="form-control">
+                          <label className="label" htmlFor={`cred-${channel.key}-${field.key}`}>
+                            <span className="label-text">{field.label}</span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              autoComplete="off"
+                              id={`cred-${channel.key}-${field.key}`}
+                              data-testid={`ranger-cred-${channel.key}-${field.key}`}
+                              type={field.secret && !isRevealed ? "password" : "text"}
+                              placeholder={field.placeholder}
+                              className={`input input-bordered input-sm w-full ${field.secret ? "pr-9" : ""} ${
+                                error ? "border-error" : ""
+                              }`}
+                              value={state.credentials?.[field.key] || ""}
+                              onChange={(event) =>
+                                setChannel(channel.key, {
+                                  credentials: { ...(state.credentials || {}), [field.key]: event.target.value },
+                                })
+                              }
+                            />
+                            {field.secret && (
+                              <button
+                                type="button"
+                                aria-label={isRevealed ? "Hide token" : "Show token"}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-primary"
+                                onClick={() => toggleReveal(`${channel.key}:${field.key}`)}
+                              >
+                                {isRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
+                              </button>
+                            )}
+                          </div>
+                          {field.hint && <p className="mt-1 text-[11px] leading-relaxed text-soft">{field.hint}</p>}
                         </div>
-                        {field.hint && <p className="mt-1 text-[11px] leading-relaxed text-soft">{field.hint}</p>}
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
 
                   {error && <p className="mt-2 text-[11px] text-error">{error}</p>}
 
@@ -176,24 +182,24 @@ const ChannelsStep = ({
                           )}
                         </button>
                       )}
-                      <button
-                        type="button"
-                        data-testid={`ranger-channel-continue-${channel.key}`}
-                        className={`btn btn-sm ${isConnected ? "btn-ghost" : "btn-primary"}`}
-                        disabled={!hasToken || isConnecting || isConnected || !onConnectChannel}
-                        onClick={() => handleConnect(channel.key, state.credentials || {})}
-                      >
-                        {isConnecting ? (
-                          <>
-                            <span className="loading loading-spinner loading-xs" />
-                            Connecting...
-                          </>
-                        ) : isConnected ? (
-                          "Connected"
-                        ) : (
-                          `Continue ${channel.label} setup`
-                        )}
-                      </button>
+                      {!isConnected && (
+                        <button
+                          type="button"
+                          data-testid={`ranger-channel-continue-${channel.key}`}
+                          className="btn btn-primary btn-sm"
+                          disabled={!hasToken || isConnecting || !onConnectChannel}
+                          onClick={() => handleConnect(channel.key, state.credentials || {})}
+                        >
+                          {isConnecting ? (
+                            <>
+                              <span className="loading loading-spinner loading-xs" />
+                              Connecting...
+                            </>
+                          ) : (
+                            `Continue ${channel.label} setup`
+                          )}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
