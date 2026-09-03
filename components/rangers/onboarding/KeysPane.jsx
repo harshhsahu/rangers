@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { deleteApikeyAction, saveApiKeysAction } from "@/store/action/apiKeyAction";
+import { shortUniqueId } from "@/utils/utility";
 import { getIconOfService } from "@/utils/utility";
 
 /**
@@ -19,7 +20,11 @@ import { getIconOfService } from "@/utils/utility";
  * matches on name (store/action/apiKeyAction.js) one deterministic name per
  * service keeps a save/remove round-trip unambiguous.
  */
-export const onboardingKeyName = (service) => service;
+/**
+ * API key names have to be unique for the lifetime of the org — using the bare
+ * service name meant every key for a provider collided with the last one.
+ */
+export const onboardingKeyName = (service) => `${service}_${shortUniqueId()}`;
 
 const KeysPane = ({ orgId }) => {
   const dispatch = useDispatch();

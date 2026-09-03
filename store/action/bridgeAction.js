@@ -19,7 +19,6 @@ import {
   getBridgeVersionApi,
   getPrebuiltToolsApi,
   getSingleBridge,
-  getTestcasesScrore,
   integration,
   publishBridgeVersionApi,
   publishBulkVersionApi,
@@ -967,15 +966,6 @@ export const genrateSummaryAction =
       console.error("Failed to update summary: ", error);
     }
   };
-
-export const getTestcasesScroreAction = (version_id) => async (dispatch) => {
-  try {
-    const reponse = await getTestcasesScrore(version_id);
-    return reponse;
-  } catch {
-    toast.error("Failed to genrate testcase score");
-  }
-};
 
 export const deleteFunctionAction =
   ({ script_id, functionId, orgId }) =>

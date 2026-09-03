@@ -24,6 +24,21 @@ import ConfirmationModal from "@/components/UI/ConfirmationModal";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import { linter, lintGutter } from "@codemirror/lint";
 
+/**
+ * Paints the filled part of a range track. The percentage is read off the input
+ * itself — min/max/value are already on the node, so this cannot drift from
+ * whatever the component thinks the bounds are. Doubles as a ref callback, so
+ * it also runs whenever the input mounts or is re-keyed.
+ */
+const paintRangeFill = (el) => {
+  if (!el) return;
+  const lo = Number(el.min === "" ? 0 : el.min);
+  const hi = Number(el.max === "" ? 100 : el.max);
+  const value = Number(el.value);
+  const pct = Number.isFinite(value) && hi > lo ? ((value - lo) / (hi - lo)) * 100 : 0;
+  el.style.setProperty("--range-pct", `${Math.min(Math.max(pct, 0), 100)}%`);
+};
+
 const AdvancedParameters = ({
   params,
   searchParams,
@@ -457,8 +472,6 @@ const AdvancedParameters = ({
     const hasDefaultValue = modelInfoData?.[key]?.default !== undefined;
     const inputSizeClass = "input-sm h-8";
     const selectSizeClass = "select-sm h-8";
-    const buttonSizeClass = "btn-sm h-8";
-    const rangeSizeClass = "range-xs";
     const labelTextClass = "text-sm font-medium text-base-content/70";
     const sliderValueId = `sliderValue-${key} h-2`;
 
@@ -489,7 +502,7 @@ const AdvancedParameters = ({
       <div
         key={key}
         id={`advanced-param-field-${key}`}
-        className={`group w-full max-w-md ${isLevel2 ? "space-y-1" : "space-y-2"}`}
+        className={`group w-full ${isLevel2 ? "space-y-1" : "space-y-2"}`}
       >
         <div className="flex items-center justify-between gap-2 mb-1 min-h-[32px]">
           <div className="flex items-center gap-2">
@@ -955,26 +968,10 @@ const AdvancedParameters = ({
                 )}
               </div>
             )}
-            {/* Slider input */}
+            {/* Slider input — label/value row above a full-width track. */}
             {field === "slider" && (
-              <div className="flex items-center gap-2 w-full">
-                <button
-                  data-testid={`advanced-param-slider-min-btn-${key}`}
-                  id={`advanced-param-slider-min-btn-${key}`}
-                  type="button"
-                  className={`btn ${buttonSizeClass} btn-ghost border-2 border-stroke`}
-                  disabled={isReadOnly}
-                  onClick={() => {
-                    if (isDefaultValue) {
-                      setSliderValue(min || 0, key, isDeafaultObject);
-                    } else {
-                      setSliderValue("min", key);
-                    }
-                  }}
-                >
-                  Min
-                </button>
-                {sliderValueNode}
+              <div className="w-full">
+                {sliderValueNode && <div className="flex justify-end pb-1.5">{sliderValueNode}</div>}
                 <input
                   autoComplete="off"
                   data-testid={`advanced-param-slider-${key}`}
@@ -985,6 +982,7 @@ const AdvancedParameters = ({
                   step={step || 1}
                   key={`${key}-${configuration?.[key]}-${service}-${model}`}
                   defaultValue={isDefaultValue ? "default" : (sliderDisplayValue ?? "")}
+                  ref={paintRangeFill}
                   onChange={(e) => {
                     // Only update the display value and local state, don't trigger API call
                     const numValue = String(e.target.value)?.includes(".")
@@ -996,6 +994,7 @@ const AdvancedParameters = ({
                     }));
                     const el = document.getElementById(sliderValueId);
                     if (el) el.innerText = e.target.value;
+                    paintRangeFill(e.target);
                   }}
                   onMouseUp={(e) => {
                     // Trigger API call when user releases mouse
@@ -1005,26 +1004,10 @@ const AdvancedParameters = ({
                     // Trigger API call when user releases touch
                     debouncedInputChange(e, key, true);
                   }}
-                  className={`range range-accent h-2 rounded-full ${rangeSizeClass} flex-1`}
+                  className="gtwy-range w-full"
                   name={key}
                   disabled={isReadOnly}
                 />
-                <button
-                  data-testid={`advanced-param-slider-max-btn-${key}`}
-                  id={`advanced-param-slider-max-btn-${key}`}
-                  type="button"
-                  className={`btn ${buttonSizeClass} btn-ghost border-2 border-stroke text-sm`}
-                  disabled={isReadOnly}
-                  onClick={() => {
-                    if (isDefaultValue) {
-                      setSliderValue(max || 100, key, isDeafaultObject);
-                    } else {
-                      setSliderValue("max", key);
-                    }
-                  }}
-                >
-                  Max
-                </button>
               </div>
             )}
 

@@ -53,11 +53,7 @@ const KeyboardShortcutsModal = () => {
     },
     {
       title: "Agent Navigation",
-      shortcuts: [
-        { keys: ["G", "C"], description: "Go to Agent Config" },
-        { keys: ["G", "T"], description: "Go to Test Cases" },
-        { keys: ["G", "H"], description: "Go to History" },
-      ],
+      shortcuts: [{ keys: ["G", "C"], description: "Go to Agent Config" }],
     },
   ];
 

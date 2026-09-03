@@ -16,6 +16,7 @@ const PromptHelper = ({
   thread_id,
   onResetThreadId,
   showCloseButton = false,
+  showHeader = true,
   autoCloseOnBlur,
   setNewContent,
   savePrompt,
@@ -323,23 +324,25 @@ const PromptHelper = ({
       tabIndex={-1}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b-2 border-stroke bg-base-50">
-        <div className="flex items-center gap-2">
-          <h3 className="text-base font-semibold text-base-content">Prompt Helper</h3>
-        </div>
+      {showHeader && (
+        <div className="flex items-center justify-between p-3 border-b-2 border-stroke bg-base-50">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold text-base-content">Prompt Helper</h3>
+          </div>
 
-        {showCloseButton && (
-          <button
-            data-testid="prompt-helper-close-button"
-            id="prompt-helper-close-button"
-            onClick={onClose}
-            className="btn btn-xs btn-error"
-            title="Close Prompt Helper"
-          >
-            Close Helper
-          </button>
-        )}
-      </div>
+          {showCloseButton && (
+            <button
+              data-testid="prompt-helper-close-button"
+              id="prompt-helper-close-button"
+              onClick={onClose}
+              className="btn btn-xs btn-error"
+              title="Close Prompt Helper"
+            >
+              Close Helper
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Content Area - Prompt Builder Only */}
       <div className="w-full h-full">

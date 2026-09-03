@@ -86,6 +86,13 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
   const mountedRef = useRef(true);
   // In-flight createFromIdentity promise, so a second call reattaches instead of creating a duplicate agent.
   const creatingPromiseRef = useRef(null);
+  /**
+   * Bumped by reset(). An async run started before a reset finishes long after
+   * the user has abandoned it; without this it would write its agent id back
+   * into createdRef and repopulate `created`, so the next Deploy would publish
+   * the discarded agent.
+   */
+  const runIdRef = useRef(0);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -98,7 +105,11 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     if (mountedRef.current) setter(value);
   }, []);
 
+  /** True while the run that captured `runId` is still the current one. */
+  const isCurrentRun = useCallback((runId) => mountedRef.current && runIdRef.current === runId, []);
+
   const reset = useCallback(() => {
+    runIdRef.current += 1;
     createdRef.current = null;
     connectedChannelsRef.current = {};
     connectedToolsRef.current = {};
@@ -186,6 +197,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       safeSet(setIdentityError, "");
       safeSet(setIdentityPhase, DEPLOY_PHASES.CREATING);
 
+      const runId = runIdRef.current;
       const promise = (async () => {
         try {
           const { agent, prompt, promptParts } = await runCreate(form);
@@ -204,6 +216,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           // Creating with a `purpose` lets the backend name the agent itself,
           // which throws away the name the user typed. Put theirs back.
           await restoreName(agent, form.name);
+          if (!isCurrentRun(runId)) return { success: false, message: "Cancelled." };
           createdRef.current = createdAgent;
           safeSet(setCreated, { agentId: agent._id, versionId, name: form.name.trim() });
 
@@ -223,11 +236,13 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
           await promoteToTrigger(agent._id);
 
+          if (!isCurrentRun(runId)) return { success: false, message: "Cancelled." };
           safeSet(setIdentityPhase, DEPLOY_PHASES.IDLE);
           return { success: true, ...createdAgent, prompt, promptParts };
         } catch (err) {
           console.error("Ranger identity creation failed", err);
           const message = err?.response?.data?.message || err?.message || "Something went wrong while creating.";
+          if (!isCurrentRun(runId)) return { success: false, message: "Cancelled." };
           safeSet(setIdentityPhase, DEPLOY_PHASES.FAILED);
           safeSet(setIdentityError, message);
           return { success: false, message };
@@ -241,7 +256,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         creatingPromiseRef.current = null;
       }
     },
-    [dispatch, promoteToTrigger, restoreName, runCreate, safeSet]
+    [dispatch, isCurrentRun, promoteToTrigger, restoreName, runCreate, safeSet]
   );
 
   /** Phase 4 — one consolidated version update, never three concurrent ones. */
@@ -532,13 +547,21 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
   const deploy = useCallback(
     async (form) => {
-      safeSet(setError, "");
-      safeSet(setChannelWarnings, []);
+      // Everything below writes state across many awaits. If the wizard is
+      // reset mid-deploy, those writes must not land on the fresh form — and
+      // onDeployed must not fire for a run the user walked away from.
+      const runId = runIdRef.current;
+      const set = (setter, value) => {
+        if (isCurrentRun(runId)) safeSet(setter, value);
+      };
+
+      set(setError, "");
+      set(setChannelWarnings, []);
 
       try {
         // Wait for Identity's background create to finish instead of racing it into a second agent.
         if (creatingPromiseRef.current) {
-          safeSet(setPhase, DEPLOY_PHASES.CREATING);
+          set(setPhase, DEPLOY_PHASES.CREATING);
           await creatingPromiseRef.current;
         }
 
@@ -550,7 +573,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
         // ---- create (skipped on retry) ----
         if (!agentId) {
-          safeSet(setPhase, DEPLOY_PHASES.CREATING);
+          set(setPhase, DEPLOY_PHASES.CREATING);
           const { agent, prompt, promptParts } = await runCreate(form);
           if (!agent?._id) throw new Error("Agent creation did not return an agent.");
           agentId = agent._id;
@@ -558,7 +581,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           createdService = agent.service;
           if (!versionId) throw new Error("Agent was created without a version.");
           createdRef.current = { agentId, versionId, service: createdService, meta: agent?.meta };
-          safeSet(setCreated, { agentId, versionId, name: form.name.trim() });
+          set(setCreated, { agentId, versionId, name: form.name.trim() });
 
           await restoreName(agent, form.name);
 
@@ -589,7 +612,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         // getBridgeVersionAction swallows its own errors and returns undefined,
         // so assert here rather than letting the next phase blow up two levels
         // deep inside a reducer.
-        safeSet(setPhase, DEPLOY_PHASES.HYDRATING);
+        set(setPhase, DEPLOY_PHASES.HYDRATING);
         const hydrated = await dispatch(getBridgeVersionAction({ versionId }));
         if (!hydrated?._id) {
           throw new Error("Could not load the new ranger's version. It was created but is not configured yet.");
@@ -598,24 +621,24 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
         // ---- configure ----
         // Runs for AI mode too: the form (or the fallback above) is final, not the create response.
-        safeSet(setPhase, DEPLOY_PHASES.CONFIGURING);
+        set(setPhase, DEPLOY_PHASES.CONFIGURING);
         await runConfigure(effectiveForm, { agentId, versionId, createdService });
 
         // ---- tools (non-fatal) ----
         // Shares the configure phase rather than adding one of its own, so the
         // modal's phase list stays a fixed five steps.
         const toolIssues = await runTools(effectiveForm, { agentId, versionId });
-        safeSet(setToolWarnings, toolIssues);
+        set(setToolWarnings, toolIssues);
         toolIssues.forEach((warning) => toast.warning(`Tool: ${warning.message}`));
 
         // ---- channels (non-fatal) ----
-        safeSet(setPhase, DEPLOY_PHASES.CHANNELS);
+        set(setPhase, DEPLOY_PHASES.CHANNELS);
         const warnings = await runChannels(effectiveForm, { agentId, versionId });
-        safeSet(setChannelWarnings, warnings);
+        set(setChannelWarnings, warnings);
         warnings.forEach((warning) => toast.warning(`${warning.channel}: ${warning.message}`));
 
         // ---- publish ----
-        safeSet(setPhase, DEPLOY_PHASES.PUBLISHING);
+        set(setPhase, DEPLOY_PHASES.PUBLISHING);
         const result = await dispatch(
           publishBridgeVersionAction({ bridgeId: agentId, versionId, orgId, generate_summary: true })
         );
@@ -626,19 +649,21 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         }
 
         await dispatch(getAllBridgesAction());
-        safeSet(setPhase, DEPLOY_PHASES.DONE);
+        if (!isCurrentRun(runId)) return { success: false };
+        set(setPhase, DEPLOY_PHASES.DONE);
         toast.success(`${form.name.trim()} deployed and published.`);
         onDeployed?.({ agentId, versionId });
         return { success: true, agentId, versionId, warnings: [...warnings, ...toolIssues] };
       } catch (err) {
         console.error("Ranger deploy failed", err);
-        safeSet(setPhase, DEPLOY_PHASES.FAILED);
-        safeSet(setError, err?.response?.data?.message || err?.message || "Something went wrong while deploying.");
+        set(setPhase, DEPLOY_PHASES.FAILED);
+        set(setError, err?.response?.data?.message || err?.message || "Something went wrong while deploying.");
         return { success: false };
       }
     },
     [
       dispatch,
+      isCurrentRun,
       onDeployed,
       orgId,
       promoteToTrigger,

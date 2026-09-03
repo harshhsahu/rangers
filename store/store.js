@@ -12,7 +12,6 @@ import modelSliceReducer from "./reducer/modelReducer";
 import orgSliceReducer from "./reducer/orgReducer";
 import responseTypeSliceReducer from "./reducer/responseTypeReducer";
 import userDetailsSliceReducer from "./reducer/userDetailsReducer";
-import testCasesSliceReducer from "./reducer/testCasesReducer";
 import serviceSliceReducer from "./reducer/serviceReducer";
 import flowDataSliceReducer from "./reducer/flowDataReducer";
 import integrationSliceReducer from "./reducer/integrationReducer";
@@ -26,7 +25,6 @@ import chatSliceReducer from "./reducer/chatReducer";
 import appInfoSliceReducer from "./reducer/appInfoReducer";
 import richUiTemplateSliceReducer from "./reducer/richUiTemplateReducer";
 import folderSliceReducer from "./reducer/folderReducer";
-import testCaseConfigSliceReducer from "./reducer/testCaseConfigReducer";
 import analyticsSliceReducer from "./reducer/analyticsReducer";
 const createNoopStorage = () => {
   return {
@@ -63,7 +61,6 @@ const persistConfig = {
     "variableReducer",
     "orchestralFlowReducer",
     "appInfoReducer",
-    "testCaseConfigReducer",
     // Add/remove more slice keys as needed
   ],
 };
@@ -79,7 +76,6 @@ const rootReducer = combineReducers({
   responseTypeReducer: responseTypeSliceReducer,
   ChatBot: chatBotSliceReducer,
   knowledgeBaseReducer: knowledgeBaseSliceReducer,
-  testCasesReducer: testCasesSliceReducer,
   serviceReducer: serviceSliceReducer,
   gtwyAgentReducer: gtwyAgentSliceReducer,
   flowDataReducer: flowDataSliceReducer,
@@ -93,7 +89,6 @@ const rootReducer = combineReducers({
   appInfoReducer: appInfoSliceReducer,
   richUiTemplateReducer: richUiTemplateSliceReducer,
   folderReducer: folderSliceReducer,
-  testCaseConfigReducer: testCaseConfigSliceReducer,
   analyticsReducer: analyticsSliceReducer,
 });
 

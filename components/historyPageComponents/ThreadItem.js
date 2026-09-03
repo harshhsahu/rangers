@@ -2,7 +2,6 @@ import {
   CircleAlertIcon,
   FileClockIcon,
   PencilIcon,
-  AddIcon,
   SquareFunctionIcon,
   BotMessageIcon,
   FileTextIcon,
@@ -384,7 +383,7 @@ const ThreadItem = ({
   searchMessageId,
   setSearchMessageId,
   keepSearchMessageIdAfterHighlight = false,
-  handleAddTestCase,
+  getAiConfig,
   setModalInput,
 }) => {
   const dispatch = useDispatch();
@@ -982,7 +981,7 @@ const ThreadItem = ({
   };
 
   const handleAskAi = async (item) => {
-    const aiconfig = handleAddTestCase(item, index, true);
+    const aiconfig = getAiConfig(index);
     let variables = { aiconfig, response: item?.chatbot_message ? item?.chatbot_message : item?.llm_message };
     try {
       const systemPromptResponse = item.prompt;
@@ -1406,17 +1405,6 @@ const ThreadItem = ({
         >
           Copy
         </ThreadActionPill>
-        {!isError && !item?.llm_urls?.length && (
-          <ThreadActionPill
-            id="thread-item-add-test-case-button"
-            testId="thread-item-add-test-case-button"
-            icon={AddIcon}
-            trailing={ChevronRight}
-            onClick={() => handleAddTestCase(item, index)}
-          >
-            Test Case
-          </ThreadActionPill>
-        )}
         <ThreadActionPill
           id="thread-item-debug-agent-button"
           testId="thread-item-debug-agent-button"

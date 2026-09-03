@@ -1,4 +1,4 @@
-import { BookIcon, BotIcon, KeyIcon, SettingsIcon, TestTubeDiagonalIcon, WrenchIcon } from "@/components/Icons";
+import { BookIcon, BotIcon, KeyIcon, SettingsIcon, WrenchIcon } from "@/components/Icons";
 import { DollarSign, Star, Gauge, Activity, CheckCircle2, Timer, X, Cpu, ThumbsUp, ThumbsDown } from "lucide-react";
 export const PAUTH_KEY_COLUMNS = ["name", "authkey", "created_at"];
 export const API_KEY_COLUMNS = ["name", "apikey", "apikey_usage", "last_used", "last_used_status"];
@@ -46,11 +46,7 @@ export const MODAL_TYPE = {
   BUTTON_SCHEMA_BUILDER: "BUTTON_SCHEMA_BUILDER",
   KNOWLEDGE_BASE_MODAL: "KNOWLEDGE_BASE_MODAL",
   PROMPT_SUMMARY: "PROMPT_SUMMARY",
-  TESTCASE_MODAL: "TESTCASE_MODAL",
-  TESTCASE_SCORES_MODAL: "TESTCASE_SCORES_MODAL",
   DEMO_MODAL: "DEMO_MODAL",
-  ADD_TEST_CASE_MODAL: "ADD_TEST_CASE_MODAL",
-  TEST_CASE_VARIABLES_MODAL: "TEST_CASE_VARIABLES_MODAL",
   HISTORY_PAGE_PROMPT_UPDATE_MODAL: "HISTORY_PAGE_PROMPT_UPDATE_MODAL",
   AGENT_DESCRIPTION_MODAL: "AGENT_DESCRIPTION_MODAL",
   AGENT_VARIABLE_MODAL: "AGENT_VARIABLE_MODAL",
@@ -60,9 +56,6 @@ export const MODAL_TYPE = {
   INTEGRATION_GUIDE_MODAL: "INTEGRATION_GUIDE_MODAL",
   AUTH_DATA_MODAL: "AUTH_DATA_MODAL",
   DELETE_MODAL: "DELETE_MODAL",
-  DELETE_TESTCASE_BULK_MODAL: "DELETE_TESTCASE_BULK_MODAL",
-  RUN_ALL_TESTCASE_CONFIRM_MODAL: "RUN_ALL_TESTCASE_CONFIRM_MODAL",
-  DELETE_ALL_TESTCASES_MODAL: "DELETE_ALL_TESTCASES_MODAL",
   DELETE_PREBUILT_TOOL_MODAL: "DELETE_PREBUILT_TOOL_MODAL",
   DELETE_TOOL_MODAL: "DELETE_TOOL_MODAL",
   DELETE_AGENT_MODAL: "DELETE_AGENT_MODAL",
@@ -303,12 +296,6 @@ export const TUTORIALS = [
     description: "Set up and update advanced parameters for your workflow",
     videoUrl: null, // Will be populated dynamically from Redux
     icon: BookIcon,
-  },
-  {
-    title: "TestCases Creation",
-    description: "Set up TestCase",
-    videoUrl: "https://app.supademo.com/embed/cmav1ocfu4thnho3rijvpzlrq?embed_v=2",
-    icon: TestTubeDiagonalIcon,
   },
 ];
 export const HISTORY_FILTER_BY_FIELDS = {

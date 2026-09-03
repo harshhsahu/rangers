@@ -1,12 +1,11 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { ArchiveRestore, MoreVertical, Pause, Play, Settings2, Trash2, Globe } from "lucide-react";
+import { ArchiveRestore, MoreVertical, Pause, Play, Settings2, Trash2 } from "lucide-react";
 import { archiveBridgeAction, updateBridgeAction } from "@/store/action/bridgeAction";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import { toast } from "react-toastify";
-import ConfigureEnvironmentModal from "../modals/ConfigureEnvironmentModal";
 
 const BRIDGE_STATUS = {
   ACTIVE: 1,
@@ -63,28 +62,8 @@ export const AgentMenuItems = ({
     }
   }, [dispatch, bridge, isArchived, onClose]);
 
-  const handleConfigureEnvironment = useCallback(() => {
-    onClose?.();
-    if (onSetSelectedAgent) onSetSelectedAgent(bridge);
-    setTimeout(() => openModal(MODAL_TYPE.CONFIGURE_ENVIRONMENT_MODAL), 10);
-  }, [bridge, onClose, onSetSelectedAgent]);
-
   return (
     <>
-      {!isEmbedUser && !isTableListPage && (
-        <button
-          data-testid="agent-action-configure-environment"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleConfigureEnvironment();
-          }}
-          className="w-full px-4 py-2 text-left text-sm hover:bg-base-200 flex items-center gap-2 cursor-pointer"
-        >
-          <Globe size={14} />
-          Environment
-        </button>
-      )}
       {isEmbedUser ? (
         <>
           {showDeleteAgentOption && (
@@ -205,7 +184,6 @@ const AgentActionMenu = (props) => {
           <AgentMenuItems {...props} onClose={() => setShowMenu(false)} />
         </div>
       )}
-      <ConfigureEnvironmentModal bridgeId={props.bridgeId} orgId={props.orgId} bridgeData={props.bridgeData} />
     </div>
   );
 };

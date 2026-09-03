@@ -5,7 +5,6 @@ import RangerTabs, { RANGER_TAB_KEYS } from "@/components/rangers/RangerTabs";
 import CommandCenterTab from "@/components/rangers/CommandCenterTab";
 import useChannelDetails from "@/components/rangers/useChannelDetails";
 import RangerGrid from "@/components/rangers/RangerGrid";
-import CustomTable from "@/components/customTable/CustomTable";
 import MainLayout from "@/components/layoutComponents/MainLayout";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import OnBoarding from "@/components/OnBoarding";
@@ -28,7 +27,7 @@ import FolderTabs from "@/components/folders/FolderTabs";
 import MoveToFolderMenu from "@/components/folders/MoveToFolderMenu";
 import useFolders from "@/hooks/useFolders";
 import { useFolderContext } from "@/components/folders/FolderContext";
-import { Folder, Funnel, Undo2, Infinity, Trash2, LayoutGrid, Rows3, Plus, Search } from "lucide-react";
+import { Folder, Funnel, Undo2, Infinity, Trash2, Plus, Search } from "lucide-react";
 
 import { ClockIcon, EllipsisIcon } from "@/components/Icons";
 import { useRouter } from "next/navigation";
@@ -386,9 +385,17 @@ function Home({ params, searchParams, isEmbedUser }) {
     router.replace(`/org/${resolvedParams.org_id}/onboarding`);
   }, [allBridges.length, bridgesLoaded, isEmbedUser, isLoading, resolvedParams.org_id, router]);
 
+  /**
+   * True while it is not yet known whether this org has any agents, and while
+   * the redirect above is in flight. The squad page renders nothing in either
+   * case: a new user should land in onboarding, not watch an empty roster
+   * appear and then get pulled away from it.
+   */
+  const isResolvingFirstRun = !isEmbedUser && (!bridgesLoaded || (bridgesLoaded && !isLoading && !allBridges.length));
+
   const pageHeaderContent = useMemo(() => {
     return {
-      title: "Rangers",
+      title: "Your squad",
       description:
         descriptions?.Agents || "Build and manage AI agents for workflows, automations, chatbots, and integrations.",
     };
@@ -402,19 +409,6 @@ function Home({ params, searchParams, isEmbedUser }) {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setParam("tab", tab === RANGER_TAB_KEYS.SQUAD ? null : tab, { replace: true });
-  };
-
-  // Cards are the default face of the squad; the table stays available because
-  // it is the only place cost/token/limit columns can be sorted.
-  const [viewMode, setViewMode] = useState("grid");
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = sessionStorage.getItem("rangerViewMode");
-    if (saved === "grid" || saved === "list") setViewMode(saved);
-  }, []);
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    if (typeof window !== "undefined") sessionStorage.setItem("rangerViewMode", mode);
   };
 
   useEffect(() => {
@@ -1177,6 +1171,40 @@ function Home({ params, searchParams, isEmbedUser }) {
    * Row action menu. Shared by the table's ellipsis button and the card grid's
    * kebab so both surfaces offer identical actions.
    */
+  /**
+   * Trash rows keep a menu of their own — the live agent menu (pause, delete,
+   * move to folder) makes no sense for something already deleted, so restore is
+   * the only action offered.
+   */
+  const openDeletedRowMenu = (e, row) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const dropdownContent = (
+      <div className="w-52 rounded-box border border-line bg-base-100 p-1 shadow-2xl">
+        <button
+          type="button"
+          data-testid="deleted-agent-restore"
+          className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm hover:bg-base-200"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handlePortalCloseImmediate();
+            restoreBridge(row._id);
+          }}
+        >
+          <Undo2 size={14} />
+          Restore agent
+        </button>
+        {row?.daysRemaining !== undefined && (
+          <div className="px-4 pb-2 pt-1 text-xs text-error">{row.daysRemaining} days left</div>
+        )}
+      </div>
+    );
+
+    handlePortalOpen(e.currentTarget, dropdownContent);
+  };
+
   const openRowMenu = (e, row) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1239,68 +1267,6 @@ function Home({ params, searchParams, isEmbedUser }) {
     handlePortalOpen(e.currentTarget, dropdownContent);
   };
 
-  const EndComponent = ({ row }) => {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="flex items-center mr-4 text-sm">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {!isEmbedUser || (isEmbedUser && showHistory) ? (
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
-                  className="btn btn-outline btn-ghost btn-sm"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    router.push(
-                      `/org/${resolvedParams.org_id}/agents/history/${row._id}?version=${row?.versionId}&type=${row?.bridgeType || "chatbot"}`
-                    );
-                  }}
-                >
-                  History
-                </button>
-              </div>
-            ) : null}
-          </div>
-          <div className="bg-transparent">
-            <div
-              role="button"
-              data-testid={`agent-action-dropdown-btn-${row._id}`}
-              className="hover:bg-base-200 rounded-lg p-3 cursor-pointer"
-              onClick={(e) => openRowMenu(e, row)}
-            >
-              <EllipsisIcon className="rotate-90" size={16} />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const DeletedEndComponent = ({ row }) => {
-    return (
-      <div className="flex items-center justify-center gap-2">
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button
-            className="btn btn-outline btn-ghost btn-sm whitespace-nowrap flex items-center gap-1"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              restoreBridge(row._id);
-            }}
-          >
-            <span className="flex items-center gap-1">
-              <div className="flex text-xs items-center gap-1">
-                <Undo2 size={12} />
-              </div>
-              <div className="text-sm">Undo</div>
-            </span>
-          </button>
-        </div>
-        <div className="text-error font-sm mt-2 text-sm whitespace-nowrap">{row.daysRemaining} days left</div>
-      </div>
-    );
-  };
-
   const deleteBridge = async (item, name) => {
     await executeDelete(async () => {
       const bridgeId = item._id;
@@ -1320,8 +1286,18 @@ function Home({ params, searchParams, isEmbedUser }) {
     }
   };
 
+  if (isResolvingFirstRun) {
+    return (
+      <div data-testid="agents-first-run-gate" className="flex min-h-screen w-full items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex w-full min-h-screen">
+    // Squad canvas colour from the design file — the cards sit a shade lighter
+    // on top of it, which is what separates them from the page.
+    <div className="flex min-h-screen w-full bg-[#F4EFE7]">
       <div className="w-full overflow-x-hidden flex flex-col min-h-screen flex-1">
         <div className="w-full max-w-full flex-1">
           {tutorialState?.showSuggestion && (
@@ -1349,8 +1325,8 @@ function Home({ params, searchParams, isEmbedUser }) {
           <div className="drawer-content flex flex-col items-start justify-start">
             <div className="flex w-full justify-start gap-4 lg:gap-16 items-start">
               <div className="w-full">
-                <div className="flex flex-col px-4 lg:mx-0">
-                  <div className="pt-4">
+                <div className="flex flex-col px-[30px] lg:mx-0">
+                  <div className="pt-[30px] pb-[22px]">
                     <MainLayout withPadding={false}>
                       <div className="flex w-full flex-wrap items-end justify-between gap-[22px]">
                         <div className="min-w-0 flex-[1_1_420px]">
@@ -1361,7 +1337,7 @@ function Home({ params, searchParams, isEmbedUser }) {
                             isEmbedUser={isEmbedUser}
                           />
                         </div>
-                        <div className="flex flex-[0_1_auto] flex-wrap gap-[10px] pb-6">
+                        <div className="flex flex-[0_1_auto] flex-wrap gap-[10px]">
                           <SquadStatTile
                             data-testid="squad-stat-count"
                             value={formatUsageNumber(squadSummary.count, 0)}
@@ -1382,9 +1358,12 @@ function Home({ params, searchParams, isEmbedUser }) {
                     </MainLayout>
                   </div>
 
+                  {/* Canvas: sticky, #F4F0E7 on a 1px hairline, 12px/30px padding.
+                      The -mx offset matches the header's 30px gutter so the rule
+                      still runs the full width of the pane. */}
                   <div
                     data-testid="rangers-toolbar"
-                    className="sticky top-0 z-20 -mx-4 border-b border-line bg-paper px-4 py-3"
+                    className="sticky top-0 z-20 -mx-[30px] border-b border-line bg-paper-raised px-[30px] py-3"
                   >
                     <div className="flex flex-wrap items-center gap-[10px]">
                       <RangerTabs activeTab={activeTab} onChange={handleTabChange} />
@@ -1406,37 +1385,6 @@ function Home({ params, searchParams, isEmbedUser }) {
                               inputContainerClass="relative"
                               style="w-full !rounded-[10px] !border !border-line !bg-card py-[7px] pl-9 pr-16 text-[13.5px] text-ink outline-none placeholder:text-soft"
                             />
-                          </div>
-
-                          <div className="flex flex-none items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]">
-                            <button
-                              type="button"
-                              aria-label="Card view"
-                              aria-pressed={viewMode === "grid"}
-                              data-testid="ranger-view-grid"
-                              onClick={() => handleViewModeChange("grid")}
-                              className={`grid place-items-center rounded-[8px] px-[9px] py-[6px] ${
-                                viewMode === "grid"
-                                  ? "bg-card text-ink shadow-[0_1px_1px_rgba(20,17,13,.1)]"
-                                  : "text-soft"
-                              }`}
-                            >
-                              <LayoutGrid size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              aria-label="Table view"
-                              aria-pressed={viewMode === "list"}
-                              data-testid="ranger-view-list"
-                              onClick={() => handleViewModeChange("list")}
-                              className={`grid place-items-center rounded-[8px] px-[9px] py-[6px] ${
-                                viewMode === "list"
-                                  ? "bg-card text-ink shadow-[0_1px_1px_rgba(20,17,13,.1)]"
-                                  : "text-soft"
-                              }`}
-                            >
-                              <Rows3 size={14} />
-                            </button>
                           </div>
 
                           <button
@@ -1490,102 +1438,36 @@ function Home({ params, searchParams, isEmbedUser }) {
                           onDeleteFolder={deleteFolder}
                           onMoveResource={moveResource}
                           showTrashTab={true}
+                          showFolders={false}
                           deletedCount={DeletedBridges?.length || 0}
                           folderCounts={folderCounts}
                         />
                       )}
 
-                      {activeFolderId !== "trash" &&
-                        (viewMode === "grid" ? (
-                          <RangerGrid
-                            rows={displayedUnArchivedBridges}
-                            rawById={rawBridgeById}
-                            channelsByAgentId={channelsByAgentId}
-                            loadingAgentId={loadingAgentId}
-                            isReadOnly={isEmbedUser}
-                            onOpen={(row) => onClickConfigure(row?._id, row?.versionId, row?.bridgeType)}
-                            onHover={handleRowHover}
-                            onMenuClick={openRowMenu}
-                            onCreate={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
-                          />
-                        ) : (
-                          <div className="w-full overflow-visible">
-                            <CustomTable
-                              data={displayedUnArchivedBridges}
-                              // draggableRows={true}
-                              // onDragStart={(row) => setDraggedResourceId(row._id)}
-                              onDragEnd={() => setDraggedResourceId(null)}
-                              columnsToShow={[
-                                "name",
-                                "promptDetails",
-                                "cost",
-                                "totalTokens",
-                                "agent_limit",
-                                "last_used",
-                                "created_by",
-                                "updated_by",
-                              ]}
-                              sorting
-                              sortingColumns={[
-                                "name",
-                                "cost",
-                                "totalTokens",
-                                "agent_limit",
-                                "last_used",
-                                "created_by",
-                                "updated_by",
-                              ]}
-                              handleRowClick={(props) =>
-                                onClickConfigure(props?._id, props?.versionId, props?.bridgeType)
-                              }
-                              handleRowHover={handleRowHover}
-                              keysToExtractOnRowClick={["_id", "versionId"]}
-                              keysToWrap={["name", "model"]}
-                              endComponent={EndComponent}
-                              onUsageFilterClick={handleUsageFilterIconClick}
-                              isUsageFilterActive={isUsageFilterActive}
-                              usageFilterLabel={usageFilterLabel}
-                              usageFilterIsLoading={isUsageFilterSubmitting}
-                              customGetColumnLabel={getColumnLabel}
-                              customCellRenderers={customCellRenderers}
-                            />
-                          </div>
-                        ))}
+                      {activeFolderId !== "trash" && (
+                        <RangerGrid
+                          rows={displayedUnArchivedBridges}
+                          rawById={rawBridgeById}
+                          channelsByAgentId={channelsByAgentId}
+                          loadingAgentId={loadingAgentId}
+                          isReadOnly={isEmbedUser}
+                          onOpen={(row) => onClickConfigure(row?._id, row?.versionId, row?.bridgeType)}
+                          onHover={handleRowHover}
+                          onMenuClick={openRowMenu}
+                          onCreate={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
+                        />
+                      )}
 
                       {displayedDeletedBridges?.length > 0 && (
-                        <div className="">
-                          <div className="opacity-60 overflow-visible">
-                            <CustomTable
-                              data={displayedDeletedBridges}
-                              columnsToShow={[
-                                "name",
-                                "promptDetails",
-                                "cost",
-                                "totalTokens",
-                                "agent_limit",
-                                "last_used",
-                                "created_by",
-                                "updated_by",
-                              ]}
-                              sorting
-                              sortingColumns={[
-                                "name",
-                                "cost",
-                                "totalTokens",
-                                "agent_limit",
-                                "last_used",
-                                "created_by",
-                                "updated_by",
-                                "created_at",
-                                "updated_at",
-                              ]}
-                              keysToWrap={["name", "model"]}
-                              endComponent={DeletedEndComponent}
-                              isUsageFilterActive={isUsageFilterActive}
-                              customGetColumnLabel={getColumnLabel}
-                              customCellRenderers={customCellRenderers}
-                            />
-                          </div>
+                        <div className="opacity-70">
+                          <RangerGrid
+                            rows={displayedDeletedBridges}
+                            rawById={rawBridgeById}
+                            channelsByAgentId={channelsByAgentId}
+                            isReadOnly
+                            onOpen={() => {}}
+                            onMenuClick={openDeletedRowMenu}
+                          />
                         </div>
                       )}
                     </>

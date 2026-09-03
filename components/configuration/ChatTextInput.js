@@ -9,8 +9,6 @@ import {
   setChatUploadedImages,
   sendMessageWithRtLayer,
   sendMessageWithApiStreaming,
-  setChatTestCaseIdAction,
-  clearTestCaseConversationAction,
 } from "@/store/action/chatAction";
 import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -42,15 +40,11 @@ function ChatTextInput({
   isOrchestralModel,
   inputRef,
   searchParams,
-  setTestCaseId,
-  testCaseId,
-  selectedStrategy,
   handleSendMessageRef,
-  showTestCases,
   draftPrompt,
   uploadRef,
 }) {
-  // Reset textarea height when test cases are toggled or when the component mounts
+  // Reset textarea height when the component mounts
   useEffect(() => {
     if (inputRef.current) {
       // Use requestAnimationFrame to ensure the DOM is ready
@@ -65,7 +59,7 @@ function ChatTextInput({
         }
       });
     }
-  }, [showTestCases, inputRef]);
+  }, [inputRef]);
   const [uploading, setUploading] = useState(false);
   const [mediaUrls, setMediaUrls] = useState(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
@@ -115,12 +109,11 @@ function ChatTextInput({
   });
 
   // Redux selectors for chat state
-  const { threadId, loading, uploadedFiles, uploadedImages, testCaseConversation } = useCustomSelector((state) => ({
+  const { threadId, loading, uploadedFiles, uploadedImages } = useCustomSelector((state) => ({
     threadId: state?.chatReducer?.threadIdByChannel?.[channelIdentifier] || null,
     loading: state?.chatReducer?.loadingByChannel?.[channelIdentifier] || false,
     uploadedFiles: state?.chatReducer?.uploadedFilesByChannel?.[channelIdentifier] || [],
     uploadedImages: state?.chatReducer?.uploadedImagesByChannel?.[channelIdentifier] || [],
-    testCaseConversation: state?.chatReducer?.testCaseConversationByChannel?.[channelIdentifier] || null,
   }));
   const dataToSend = useMemo(
     () => ({
@@ -316,7 +309,6 @@ function ChatTextInput({
               ...(isPublished ? {} : { version_id: versionId }),
               configuration: {
                 type: modelType,
-                ...(testCaseConversation ? { conversation: testCaseConversation } : {}),
               },
               thread_id: threadId,
               user: data.content,
@@ -360,7 +352,6 @@ function ChatTextInput({
               ...(isPublished ? {} : { version_id: versionId }),
               configuration: {
                 type: modelType,
-                ...(testCaseConversation ? { conversation: testCaseConversation } : {}),
               },
               thread_id: threadId,
               text: newMessage,
@@ -394,7 +385,6 @@ function ChatTextInput({
               ...(isPublished ? {} : { version_id: versionId }),
               configuration: {
                 ...localDataToSend.configuration,
-                ...(testCaseConversation ? { conversation: testCaseConversation } : {}),
               },
               input: bridge?.inputConfig?.input?.input,
               is_playground: true,
@@ -417,17 +407,6 @@ function ChatTextInput({
           dispatch(setChatError(channelIdentifier, "Failed to get response"));
           return;
         }
-      }
-      if (responseData?.response?.testcase_id) {
-        dispatch(setChatTestCaseIdAction(channelIdentifier, responseData?.response?.testcase_id));
-        if (setTestCaseId) {
-          setTestCaseId(responseData?.response?.testcase_id);
-        }
-      }
-      // After a successful API call with a loaded test case conversation, clear it
-      // so subsequent user messages don't re-send the same conversation context.
-      if (testCaseConversation) {
-        dispatch(clearTestCaseConversationAction(channelIdentifier));
       }
     } catch {
       dispatch(setChatError(channelIdentifier, "Something went wrong. Please try again."));
@@ -910,70 +889,28 @@ function ChatTextInput({
       )}
 
       {/* Input Group */}
-      <div className="input-group flex justify-end items-end gap-2 w-full relative">
-        {modelType !== "completion" && (
-          <textarea
-            data-testid="chat-message-textarea"
-            id="chat-message-textarea"
-            ref={inputRef}
-            placeholder="Type here"
-            className={`textarea textarea-bordered w-full max-h-[200px] resize-none overflow-y-auto h-auto rounded-[10px] bg-card text-[13.5px] ${validationError || attachmentError ? "border-error focus:border-error" : "focus:border-acc"}`}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            rows={1}
-            onInput={(e) => {
-              e.target.style.height = "auto"; // Reset height
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`; // Set to scroll height, max 200px
-            }}
-          />
-        )}
-        <input
-          autoComplete="off"
-          data-testid="chat-file-input"
-          id="chat-file-input"
-          ref={(el) => setFileInput(el)} // Use callback ref to set the state
-          type="file"
-          accept={
-            isVision && isFileSupported && isVideoSupported
-              ? `image/*,${DOC_ACCEPT},video/*`
-              : isVision && isVideoSupported
-                ? "image/*,video/*"
-                : isVision && isFileSupported
-                  ? `image/*,${DOC_ACCEPT}`
-                  : isVision
-                    ? "image/*"
-                    : isFileSupported
-                      ? DOC_ACCEPT
-                      : `image/*,${DOC_ACCEPT},video/*`
-          }
-          multiple={isVision || isFileSupported || isVideoSupported}
-          onChange={handleFileChange}
-          className="hidden"
-          data-max-size="35MB"
-        />
-        {/* DaisyUI Dropdown for Attachments */}
+      <div className="input-group relative flex w-full items-end gap-[9px]">
+        {/* Attachments. The paperclip is the leftmost control in the composer, so
+            `dropdown-end` right-aligned this menu to it and threw its 240px out to
+            the left, over the config pane. Left-aligned, it opens into the chat panel. */}
         {(isVision || isFileSupported || isVideoSupported) && (
-          <div
-            data-testid="chat-attachment-dropdown"
-            id="chat-attachment-dropdown"
-            className="dropdown dropdown-top dropdown-end"
-          >
+          <div data-testid="chat-attachment-dropdown" id="chat-attachment-dropdown" className="dropdown dropdown-top">
             <div className="tooltip tooltip-top" data-tip="Attach files">
               <label
                 data-testid="chat-attachment-button"
                 id="chat-attachment-button"
                 tabIndex={0}
-                className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full border-2 border-stroke transition-all duration-200 ${loading || uploading ? "bg-line text-soft" : "bg-card text-ink hover:bg-paper"}`}
+                className={`rg-chat-square transition-colors duration-200 ${loading || uploading ? "opacity-60" : "hover:bg-paper"}`}
                 disabled={loading || uploading}
               >
-                {uploading ? <span className="loading loading-spinner loading-sm"></span> : <Paperclip size={18} />}
+                {uploading ? <span className="rg-spinner" /> : <Paperclip size={15} />}
               </label>
             </div>
 
             {/* DaisyUI Dropdown Content */}
             <ul
               tabIndex={0}
-              className="dropdown-content z-[1] menu p-2 shadow-2xl bg-base-100 rounded-box w-60 border-2 border-stroke"
+              className="dropdown-content menu z-very-high w-60 rounded-box border-2 border-stroke bg-base-100 p-2 shadow-2xl"
             >
               <li className="menu-title">
                 <span className="text-xs font-semibold text-base-content/60">Attach files</span>
@@ -1063,24 +1000,68 @@ function ChatTextInput({
             </ul>
           </div>
         )}
+        <input
+          autoComplete="off"
+          data-testid="chat-file-input"
+          id="chat-file-input"
+          ref={(el) => setFileInput(el)} // Use callback ref to set the state
+          type="file"
+          accept={
+            isVision && isFileSupported && isVideoSupported
+              ? `image/*,${DOC_ACCEPT},video/*`
+              : isVision && isVideoSupported
+                ? "image/*,video/*"
+                : isVision && isFileSupported
+                  ? `image/*,${DOC_ACCEPT}`
+                  : isVision
+                    ? "image/*"
+                    : isFileSupported
+                      ? DOC_ACCEPT
+                      : `image/*,${DOC_ACCEPT},video/*`
+          }
+          multiple={isVision || isFileSupported || isVideoSupported}
+          onChange={handleFileChange}
+          className="hidden"
+          data-max-size="35MB"
+        />
+        {modelType !== "completion" && (
+          <textarea
+            data-testid="chat-message-textarea"
+            id="chat-message-textarea"
+            ref={inputRef}
+            placeholder="Type here"
+            className={`rg-chat-input max-h-[200px] w-full overflow-y-auto ${validationError || attachmentError ? "!border-error" : ""}`}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            rows={1}
+            onInput={(e) => {
+              e.target.style.height = "auto"; // Reset height
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`; // Set to scroll height, max 200px
+            }}
+          />
+        )}
         {/* Enhanced Send Button */}
         <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
           <button
             id="chat-send-button"
-            className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full border-2 border-stroke transition-all duration-200 ${loading || uploading ? "bg-line text-soft cursor-not-allowed" : "bg-acc text-acc-ink hover:translate-x-[1px] hover:translate-y-[1px]"}`}
+            className={`rg-chat-send transition-opacity duration-200 ${loading || uploading ? "cursor-not-allowed" : "hover:opacity-90"}`}
             onClick={() => {
               handleSendMessage();
             }}
             disabled={loading || uploading}
           >
-            {loading || uploading ? (
-              <span className="loading loading-dots loading-md"></span>
-            ) : (
-              <SendHorizontalIcon size={18} />
-            )}
+            {loading || uploading ? <span className="rg-spinner" /> : <SendHorizontalIcon size={15} />}
           </button>
         </div>
       </div>
+
+      {/* Only worth saying when the run would use something other than what is
+          saved — on the saved version there is nothing to warn about. */}
+      {hasUnsavedPrompt && (
+        <div className="rg-chat-note rg-chat-note-indent" data-testid="chat-composer-note">
+          Running against your unsaved prompt.
+        </div>
+      )}
     </div>
   );
 }

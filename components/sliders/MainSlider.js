@@ -354,17 +354,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const settingsMenuItems = useMemo(
     () => [
       {
-        id: "workspace",
-        label: "Workspace",
-        icon: ITEM_ICONS.workspace,
-        onClick: () => {
-          setIsOrgDropdownExpanded(false);
-          setIsOrgDropdownOpen(false);
-          if (isMobile) setIsMobileVisible(false);
-          guardedNavigate(`/org/${orgId}/workspaceSetting`);
-        },
-      },
-      {
         id: "apikeys",
         label: "API Keys",
         icon: ITEM_ICONS.apikeys,

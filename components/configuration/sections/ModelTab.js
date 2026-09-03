@@ -105,12 +105,12 @@ const ModelTab = () => {
           <div
             data-testid="model-tab-parameters-section"
             id="model-tab-parameters-section"
-            className="border-t-2 border-stroke pt-6"
+            className="border-t border-line pt-6"
           >
             <div className="mb-4">
               <h2 className="text-base-content text-md font-medium">Parameters</h2>
             </div>
-            <div className="max-w-2xl">
+            <div className="w-full">
               <AdvancedParameters
                 params={params}
                 searchParams={searchParams}

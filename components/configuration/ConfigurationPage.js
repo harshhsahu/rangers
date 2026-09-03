@@ -74,48 +74,6 @@ const ConfigurationPage = ({
     }
   }, [currentView, viewOverride]);
 
-  const renderHelpSection = useMemo(
-    () => () => {
-      return (
-        <div className="mt-4 mb-4 border-t-2 border-stroke border-b-0 ">
-          <div className="flex flex-row gap-6 mt-4 items-center">
-            {/* Speak to us */}
-            {!isEmbedUser && (
-              <>
-                <button
-                  data-testid="speak-to-us-button"
-                  data-cal-namespace="30min"
-                  data-cal-link="human-gtwy-ai/book-a-demo-with-gtwy"
-                  data-cal-origin="https://cal.id"
-                  data-cal-config='{"layout":"month_view"}'
-                  className="flex items-center text-sm text-base-content/50 hover:text-base-content font-bold transition-colors cursor-pointer"
-                >
-                  <span>Speak to us</span>
-                </button>
-
-                <span className="text-sm text-base-content/30 select-none">|</span>
-
-                {/* Help Docs */}
-
-                <a
-                  data-testid="help-docs-link"
-                  id="help-docs-link"
-                  href="https://gtwy.ai/resources"
-                  className="flex items-center text-sm text-base-content/50 hover:text-base-content font-bold transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span>Help Docs</span>
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-      );
-    },
-    [isEmbedUser]
-  );
-
   // Detect if viewing published content (read-only mode)
   const isPublished = useMemo(() => {
     if (searchParams?.get) {
@@ -244,7 +202,6 @@ const ConfigurationPage = ({
         <div className="flex-1">
           <SetupView />
         </div>
-        <div className="mt-auto">{renderHelpSection()}</div>
       </div>
     </ConfigurationProvider>
   );

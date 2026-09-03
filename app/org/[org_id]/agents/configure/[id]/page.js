@@ -13,7 +13,6 @@ import { MODAL_TYPE } from "@/utils/enums";
 import ConfirmationModal from "@/components/UI/ConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useQueryParams } from "@/customHooks/useQueryParams";
-import AgentSetupGuide from "@/components/AgentSetupGuide";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { RefreshIcon } from "@/components/Icons";
 import { CircleAlert } from "lucide-react";
@@ -22,6 +21,7 @@ const ConfigurationPage = dynamic(() => import("@/components/configuration/Confi
 const Chat = dynamic(() => import("@/components/configuration/Chat"), { loading: () => null });
 const PromptHelper = dynamic(() => import("@/components/PromptHelper"), { ssr: false });
 const NotesPanel = dynamic(() => import("@/components/NotesPanel"), { ssr: false });
+const ChatPanelTabs = dynamic(() => import("@/components/configuration/ChatPanelTabs"), { ssr: false });
 const ConfigurationSkeleton = dynamic(() => import("@/components/skeletons/ConfigurationSkeleton"), { ssr: false });
 
 export const runtime = "edge";
@@ -142,7 +142,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
     isNotesCollapsed: false,
   }));
 
-  const [isGuideVisible, setIsGuideVisible] = useState(false);
   const [apiKeyError, setApiKeyError] = useState(false);
 
   // Ref for the main container to calculate percentage-based width
@@ -358,18 +357,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
       return "notes"; // Show in Notes panel
     }
   }, [uiState.isConfigCollapsed, uiState.isPromptHelperCollapsed, uiState.isPromptHelperOpen]);
-
-  const handleSwitchToModelTab = useCallback(() => {
-    setParam("tab", "model");
-  }, [setParam]);
-
-  const handleSwitchToPromptTab = useCallback(() => {
-    setParam("tab", "prompt");
-  }, [setParam]);
-
-  const handleSwitchToConnectorsTab = useCallback(() => {
-    setParam("tab", "connectors");
-  }, [setParam]);
 
   const [isAgentFlowView, setIsAgentFlowView] = useState(() => resolvedSearchParams?.view === "agent-flow");
   useEffect(() => {
@@ -602,6 +589,63 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
     }
   }, [bridgeType]);
 
+  /**
+   * Shared PromptHelper wiring. The helper renders in two places now — as the
+   * "Update the ranger" tab beside the playground, and as its own panel in
+   * prompt-focus mode — so the callbacks live here instead of being duplicated.
+   */
+  const promptHelperProps = useMemo(
+    () => ({
+      params: resolvedParams,
+      searchParams: resolvedSearchParams,
+      savePrompt,
+      isEmbedUser,
+      messages: promptState.messages,
+      thread_id: promptState.thread_id,
+      setPrompt: (value) => {
+        setPromptState((prev) => ({ ...prev, newContent: value }));
+
+        // Sync the contentEditable prompt editor DOM with the new value
+        const container = promptTextAreaRef.current;
+        if (container) {
+          const editor = container.querySelector('[contenteditable="true"]');
+          if (editor) {
+            editor.value = value || "";
+          }
+        }
+      },
+      setMessages: (value) => {
+        if (typeof value === "function") {
+          setPromptState((prev) => ({ ...prev, messages: value(prev.messages) }));
+        } else {
+          setPromptState((prev) => ({ ...prev, messages: value }));
+        }
+      },
+      setNewContent: (value) => setPromptState((prev) => ({ ...prev, newContent: value })),
+      onResetThreadId: () => {
+        const newId = generateRandomID();
+        setPromptState((prev) => ({ ...prev, thread_id: newId }));
+        setThreadIdForVersionReducer &&
+          dispatch(
+            setThreadIdForVersionReducer({
+              bridgeId: resolvedParams?.id,
+              versionId: resolvedSearchParams?.version,
+              thread_id: newId,
+            })
+          );
+      },
+    }),
+    [
+      resolvedParams,
+      resolvedSearchParams,
+      savePrompt,
+      isEmbedUser,
+      promptState.messages,
+      promptState.thread_id,
+      dispatch,
+    ]
+  );
+
   // Show skeleton loading state only for initial load (when no data exists)
   if (isLoading && !hasData && !hasError) {
     return (
@@ -638,7 +682,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
     <div
       id="configure-page-container"
       ref={containerRef}
-      className={`w-full bg-base-300 h-full transition-all duration-300 ease-in-out overflow-hidden ${!isFocus ? "max-h-[calc(100vh-2rem)]" : "overflow-y-hidden"} ${uiState.isDesktop ? "flex flex-row" : "overflow-y-auto"}`}
+      className={`w-full bg-[#F4EFE7] h-full transition-all duration-300 ease-in-out overflow-hidden ${!isFocus ? "max-h-[calc(100vh-2rem)]" : "overflow-y-hidden"} ${uiState.isDesktop ? "flex flex-row" : "overflow-y-auto"}`}
     >
       {/* Unsaved prompt — refresh guard modal */}
       <ConfirmationModal
@@ -693,7 +737,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               defaultSize={panelSizes.config}
               minSize={3}
               maxSize={100}
-              className="bg-base-200 rounded-none"
+              className="bg-[#F4EFE7] rounded-none"
               collapsible={false}
               onResize={(size) => {
                 const isCollapsed = size <= 5;
@@ -765,7 +809,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   ref={chatPanelRef}
                   defaultSize={panelSizes.chat}
                   minSize={3}
-                  className="bg-base-200 rounded-none"
+                  className="bg-[#F4EFE7] rounded-none"
                   collapsible={false}
                   onResize={(size) => {
                     const isCollapsed = size <= 5;
@@ -778,48 +822,25 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     <ChatBundle onClick={handleExpandChat} />
                   ) : (
                     <div id="parentChatbot" className="h-full flex flex-col">
-                      <div
-                        className={`flex-1 overflow-x-hidden ${isGuideVisible ? "overflow-y-hidden" : "overflow-y-auto"}`}
-                      >
-                        <div id="chat-container" className="h-full flex flex-col">
-                          <AgentSetupGuide
-                            id="agent-setup-guide"
-                            promptTextAreaRef={promptTextAreaRef}
-                            apiKeySectionRef={apiKeySectionRef}
-                            params={resolvedParams}
-                            searchParams={resolvedSearchParams}
-                            draftPrompt={promptState.newContent}
-                            onVisibilityChange={setIsGuideVisible}
-                            onSwitchToModelTab={handleSwitchToModelTab}
-                            onSwitchToPromptTab={handleSwitchToPromptTab}
-                            onSwitchToConnectorsTab={handleSwitchToConnectorsTab}
-                            setApiKeyError={setApiKeyError}
-                          />
-                          {!isGuideVisible && (
-                            <>
-                              {!sessionStorage.getItem("orchestralUser") ? (
-                                <div id="chat-content-container" className="flex-1 min-h-0">
-                                  <Chat
-                                    id="chat-component"
-                                    params={resolvedParams}
-                                    searchParams={resolvedSearchParams}
-                                    draftPrompt={draftPromptForPlayground}
-                                  />
-                                </div>
-                              ) : (
-                                <div id="alternative-chat-container" className="flex-1 min-h-0">
-                                  <Chat
-                                    id="alternative-chat-component"
-                                    params={resolvedParams}
-                                    searchParams={resolvedSearchParams}
-                                    draftPrompt={draftPromptForPlayground}
-                                  />
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      <ChatPanelTabs
+                        idPrefix="chat"
+                        helperComingSoon
+                        testPanel={
+                          <div id="chat-content-container" className="flex-1 min-h-0">
+                            <Chat
+                              id="chat-component"
+                              params={resolvedParams}
+                              searchParams={resolvedSearchParams}
+                              draftPrompt={draftPromptForPlayground}
+                            />
+                          </div>
+                        }
+                        helperPanel={
+                          <div id="chat-prompt-helper-container" className="flex-1 min-h-0">
+                            <PromptHelper id="chat-prompt-helper" isVisible showHeader={false} {...promptHelperProps} />
+                          </div>
+                        }
+                      />
                     </div>
                   )}
                 </Panel>
@@ -834,7 +855,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   defaultSize={panelSizes.promptHelper}
                   minSize={3}
                   maxSize={100}
-                  className="bg-base-200 rounded-none"
+                  className="bg-[#F4EFE7] rounded-none"
                   collapsible={false}
                   onResize={(size) => {
                     // Don't update state if we're manually keeping it collapsed
@@ -852,51 +873,13 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     <PromptHelper
                       id="prompt-helper"
                       isVisible={uiState.isPromptHelperOpen && !isMobileView}
-                      params={resolvedParams}
-                      searchParams={resolvedSearchParams}
                       onClose={handleCloseTextAreaFocus}
-                      savePrompt={savePrompt}
-                      isEmbedUser={isEmbedUser}
                       variable_key={promptState.activeHelperField || null}
-                      setPrompt={(value) => {
-                        // Update prompt state for diff/summary
-                        setPromptState((prev) => ({ ...prev, newContent: value }));
-
-                        // Sync the contentEditable prompt editor DOM with the new value
-                        const container = promptTextAreaRef.current;
-                        if (container) {
-                          const editor = container.querySelector('[contenteditable="true"]');
-                          if (editor) {
-                            editor.value = value || "";
-                          }
-                        }
-                      }}
                       showCloseButton={
                         closeHelperButtonLocation === "promptHelper" ||
                         (isEmbedUser && closeHelperButtonLocation === "config")
                       }
-                      messages={promptState.messages}
-                      setMessages={(value) => {
-                        if (typeof value === "function") {
-                          setPromptState((prev) => ({ ...prev, messages: value(prev.messages) }));
-                        } else {
-                          setPromptState((prev) => ({ ...prev, messages: value }));
-                        }
-                      }}
-                      thread_id={promptState.thread_id}
-                      onResetThreadId={() => {
-                        const newId = generateRandomID();
-                        setPromptState((prev) => ({ ...prev, thread_id: newId }));
-                        setThreadIdForVersionReducer &&
-                          dispatch(
-                            setThreadIdForVersionReducer({
-                              bridgeId: resolvedParams?.id,
-                              versionId: resolvedSearchParams?.version,
-                              thread_id: newId,
-                            })
-                          );
-                      }}
-                      setNewContent={(value) => setPromptState((prev) => ({ ...prev, newContent: value }))}
+                      {...promptHelperProps}
                     />
                   )}
                 </Panel>
@@ -924,7 +907,7 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     defaultSize={panelSizes.notes}
                     minSize={3}
                     maxSize={100}
-                    className="bg-base-200 rounded-none"
+                    className="bg-[#F4EFE7] rounded-none"
                     collapsible={false}
                     onResize={(size) => {
                       const isCollapsed = size <= 5;
@@ -1009,42 +992,30 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
           {(!isEmbedUser || (isEmbedUser && showPlayground)) && (
             <div id="parentChatbot" className="min-h-screen">
               <div id="mobile-chat-container" className="h-full flex flex-col">
-                <AgentSetupGuide
-                  id="mobile-agent-setup-guide"
-                  promptTextAreaRef={promptTextAreaRef}
-                  apiKeySectionRef={apiKeySectionRef}
-                  params={resolvedParams}
-                  searchParams={resolvedSearchParams}
-                  draftPrompt={promptState.newContent}
-                  onSwitchToModelTab={handleSwitchToModelTab}
-                  onSwitchToPromptTab={handleSwitchToPromptTab}
-                  onSwitchToConnectorsTab={handleSwitchToConnectorsTab}
-                  setApiKeyError={setApiKeyError}
+                <ChatPanelTabs
+                  idPrefix="mobile-chat"
+                  helperComingSoon
+                  testPanel={
+                    <div id="mobile-chat-content-container" className="flex-1 min-h-0">
+                      <Chat
+                        id="mobile-chat-component"
+                        params={resolvedParams}
+                        searchParams={resolvedSearchParams}
+                        draftPrompt={draftPromptForPlayground}
+                      />
+                    </div>
+                  }
+                  helperPanel={
+                    <div id="mobile-chat-prompt-helper-container" className="flex-1 min-h-0">
+                      <PromptHelper
+                        id="mobile-chat-prompt-helper"
+                        isVisible
+                        showHeader={false}
+                        {...promptHelperProps}
+                      />
+                    </div>
+                  }
                 />
-
-                {!isGuideVisible && (
-                  <>
-                    {!sessionStorage.getItem("orchestralUser") ? (
-                      <div id="mobile-chat-content-container" className="flex-1 min-h-0">
-                        <Chat
-                          id="mobile-chat-component"
-                          params={resolvedParams}
-                          searchParams={resolvedSearchParams}
-                          draftPrompt={draftPromptForPlayground}
-                        />
-                      </div>
-                    ) : (
-                      <div id="mobile-alternative-chat-container" className="flex-1 min-h-0">
-                        <Chat
-                          id="mobile-alternative-chat-component"
-                          params={resolvedParams}
-                          searchParams={resolvedSearchParams}
-                          draftPrompt={draftPromptForPlayground}
-                        />
-                      </div>
-                    )}
-                  </>
-                )}
               </div>
             </div>
           )}

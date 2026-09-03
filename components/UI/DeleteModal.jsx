@@ -60,7 +60,7 @@ const DeleteModal = ({
         <div
           data-testid="delete-modal-content"
           id="delete-modal-content"
-          className="w-full max-w-lg bg-base-100 border-2 border-stroke rounded-lg p-6 mx-4 "
+          className="mx-4 w-full max-w-lg rounded-[18px] border border-line bg-base-100 p-6 shadow-[0_20px_48px_rgba(30,26,22,0.24)]"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col space-y-2 text-center sm:text-left">

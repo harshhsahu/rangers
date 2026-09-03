@@ -161,10 +161,9 @@ const Sidebar = memo(
           if (firstSubThreadId) {
             const thread_id = encodeURIComponent(searchParams?.thread_id?.replace(/&/g, "%26"));
             const firstSubThreadIdEncoded = encodeURIComponent(subThreads[0]?.sub_thread_id?.replace(/&/g, "%26"));
-            router.push(
+            router.replace(
               `${pathName}?version=${searchParams?.version}&thread_id=${thread_id}&subThread_id=${firstSubThreadIdEncoded}${searchParams?.message_id ? `&message_id=${searchParams.message_id}` : ""}&type=${searchParams?.type || ""}`,
-              undefined,
-              { shallow: true }
+              { scroll: false }
             );
           }
         }
@@ -246,7 +245,7 @@ const Sidebar = memo(
         const firstSubThreadId = subThreads[0]?.sub_thread_id;
         if (firstSubThreadId) {
           const url = `${pathName}?version=${liveVersion}&thread_id=${liveThreadId}&subThread_id=${firstSubThreadId}&start=${p.get("start") || ""}&end=${p.get("end") || ""}${p.get("message_id") ? `&message_id=${p.get("message_id")}` : ""}&type=${p.get("type") || ""}`;
-          router.push(url, undefined, { shallow: true });
+          router.replace(url, { scroll: false });
         }
       }
     }, [subThreads, subThreadsParentId, selectedVersion, expandedThreads, pathName, router]);
@@ -370,11 +369,11 @@ const Sidebar = memo(
           finalUrl.searchParams.set("subThread_id", rawSubThreadId);
           dispatch(clearThreadData());
 
-          router.push(finalUrl.pathname + finalUrl.search, undefined, { shallow: true });
+          router.replace(finalUrl.pathname + finalUrl.search, { scroll: false });
         } else {
           finalUrl.searchParams.delete("thread_id");
           finalUrl.searchParams.delete("subThread_id");
-          router.push(finalUrl.pathname + finalUrl.search, undefined, { shallow: true });
+          router.replace(finalUrl.pathname + finalUrl.search, { scroll: false });
           dispatch(clearThreadData());
         }
       } catch (error) {
@@ -433,7 +432,7 @@ const Sidebar = memo(
         clearUrl.searchParams.delete("message_id");
         if (searchParams?.type) clearUrl.searchParams.set("type", searchParams.type);
 
-        router.push(clearUrl.pathname + clearUrl.search, undefined, { shallow: true });
+        router.replace(clearUrl.pathname + clearUrl.search, { scroll: false });
 
         setHasMore(true);
       } catch (error) {
@@ -493,10 +492,9 @@ const Sidebar = memo(
 
       const start = searchParams?.start;
       const end = searchParams?.end;
-      router.push(
+      router.replace(
         `${pathName}?version=${searchParams?.version}&thread_id=${encodeURIComponent(threadId ? threadId : searchParams?.thread_id.replace(/&/g, "%26"))}&subThread_id=${encodeURIComponent(subThreadId.replace(/&/g, "%26"))}&start=${start}&end=${end}${searchParams?.message_id ? `&message_id=${searchParams.message_id}` : ""}&type=${searchParams?.type || ""}`,
-        undefined,
-        { shallow: true }
+        { scroll: false }
       );
     };
 

@@ -1,27 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
-import {
-  MessageCircleMore,
-  ClipboardX,
-  CloudCheck,
-  Clock,
-  Home,
-  HistoryIcon,
-  Edit2,
-  BotIcon,
-  BarChart3,
-  ArrowLeft,
-} from "lucide-react";
+import { ClipboardX, CloudCheck, Clock, Home, Edit2, BotIcon, BarChart3, ArrowLeft } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateBridgeAction, deleteBridgeAction } from "@/store/action/bridgeAction";
 import { MODAL_TYPE } from "@/utils/enums";
-import { openModal, closeModal, toggleSidebar, sendDataToParent } from "@/utils/utility";
+import { openModal, closeModal, sendDataToParent } from "@/utils/utility";
 import { toast } from "react-toastify";
 const ChatBotSlider = dynamic(() => import("./sliders/ChatBotSlider"), { ssr: false });
-const ConfigHistorySlider = dynamic(() => import("./sliders/ConfigHistorySlider"), { ssr: false });
 import Protected from "./Protected";
 const DeleteModal = dynamic(() => import("./UI/DeleteModal"), { ssr: false });
 import useDeleteOperation from "@/customHooks/useDeleteOperation";
@@ -113,14 +101,8 @@ const Navbar = ({ isEmbedUser, params }) => {
         shortcut: "G C",
       },
     ];
+    // User history inside an agent is gone; analytics is the surviving report.
     if (!isEmbedUser || (isEmbedUser && showHistory)) {
-      baseTabs.push({
-        id: "history",
-        label: "History",
-        icon: MessageCircleMore,
-        shortLabel: "History",
-        shortcut: "G H",
-      });
       baseTabs.push({
         id: "analytics",
         label: "Analytics",
@@ -161,7 +143,7 @@ const Navbar = ({ isEmbedUser, params }) => {
   const shouldShowNavbar = useCallback(() => {
     const depth = pathParts.length;
     if (depth === 3) return false;
-    return ["configure", "history", "testcase", "analytics"].some((seg) => pathname.includes(seg));
+    return ["configure", "history", "analytics"].some((seg) => pathname.includes(seg));
   }, [pathParts.length, pathname]);
 
   // Scroll detection
@@ -268,7 +250,9 @@ const Navbar = ({ isEmbedUser, params }) => {
           : "";
 
         if (tabId === "analytics") {
-          router.push(base + `?type=${typeValue}${parentQueryPart}`);
+          router.push(
+            base + (versionId ? `?version=${versionId}${typeQueryPart}` : `?type=${typeValue}`) + parentQueryPart
+          );
         } else {
           router.push(
             base +
@@ -290,7 +274,6 @@ const Navbar = ({ isEmbedUser, params }) => {
     [router, orgId, bridgeId, versionId, bridgeType, parentAgentId, parentVersionId]
   );
 
-  const toggleConfigHistorySidebar = useCallback(() => toggleSidebar("default-config-history-slider", "right"), []);
   const handleHomeClick = useCallback(() => {
     if (unsavedPromptGuard.hasUnsavedChanges) {
       pendingNavRef.current = () => router.push(`/org/${orgId}/agents`);
@@ -314,10 +297,10 @@ const Navbar = ({ isEmbedUser, params }) => {
     );
   }, [router, orgId, parentAgentId, parentVersionId, isEmbedUser]);
 
-  // Keyboard shortcuts for navigation - only enabled on testcases, configuration, or history pages
+  // Keyboard shortcuts for navigation - only enabled on configuration or history pages
   useEffect(() => {
-    // Only enable shortcuts on allowed pages (testcases, configuration, or history)
-    const isAllowedPage = ["configure", "history", "testcase"].some((seg) => pathname.includes(seg));
+    // Only enable shortcuts on allowed pages (configuration or history)
+    const isAllowedPage = ["configure", "history"].some((seg) => pathname.includes(seg));
     if (!isAllowedPage) return;
 
     let gPressed = false;
@@ -339,11 +322,6 @@ const Navbar = ({ isEmbedUser, params }) => {
         if (e.key === "c" || e.key === "C") {
           e.preventDefault();
           handleTabChange("configure");
-          gPressed = false;
-          if (timeoutId) clearTimeout(timeoutId);
-        } else if (e.key === "h" || e.key === "H") {
-          e.preventDefault();
-          handleTabChange("history");
           gPressed = false;
           if (timeoutId) clearTimeout(timeoutId);
         } else if (e.key === "a" || e.key === "A") {
@@ -522,10 +500,15 @@ const Navbar = ({ isEmbedUser, params }) => {
             {/* Navigation Tabs - Fixed Position with Sliding Animation */}
             <div className="flex items-center gap-1 flex-shrink-0">
               {TABS.length > 1 ? (
-                <div className="relative flex items-center" style={{ width: `${TAB_WIDTH * TABS.length}px` }}>
+                // Segmented control on a recessed track, with the active tab
+                // filled in the accent so it reads as selected at a glance.
+                <div
+                  className="relative flex items-center rounded-[10px] bg-base-300 p-[3px]"
+                  style={{ width: `${TAB_WIDTH * TABS.length + 6}px` }}
+                >
                   {/* Sliding background indicator */}
                   <span
-                    className="absolute top-0 left-0 h-full rounded-lg bg-primary shadow-sm transition-transform duration-300 ease-in-out"
+                    className="absolute top-[3px] left-[3px] h-[calc(100%-6px)] rounded-lg bg-acc shadow-sm transition-transform duration-300 ease-in-out"
                     style={{
                       width: `${TAB_WIDTH}px`,
                       transform: `translateX(${activeTabIndex * TAB_WIDTH}px)`,
@@ -541,14 +524,11 @@ const Navbar = ({ isEmbedUser, params }) => {
                           data-testid={`navbar-tab-${tab.id}`}
                           id={`navbar-tab-${tab.id}`}
                           onClick={() => handleTabChange(tab.id)}
-                          className={`relative z-10 h-8 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${isActive ? "text-primary-content" : "text-base-content/70 hover:text-base-content"}`}
+                          className={`relative z-10 flex h-7 items-center justify-center gap-1.5 text-xs font-semibold transition-colors ${isActive ? "text-acc-ink" : "text-soft hover:text-base-content"}`}
                           style={{ width: `${TAB_WIDTH}px` }} // 🔒 lock tab width
                         >
-                          <tab.icon
-                            size={14}
-                            className={`w-3.5 h-3.5 transition-opacity ${isActive ? "opacity-100" : "opacity-60"}`}
-                          />
-                          <span className="truncate text-xs">{isMobile ? tab.shortLabel : tab.label}</span>
+                          <tab.icon size={14} className={`h-3.5 w-3.5 ${isActive ? "opacity-100" : "opacity-60"}`} />
+                          <span className="truncate">{isMobile ? tab.shortLabel : tab.label}</span>
                         </button>
                       </div>
                     );
@@ -565,21 +545,6 @@ const Navbar = ({ isEmbedUser, params }) => {
 
             {/* Desktop view - show buttons for both users with fixed positioning */}
             <div className="hidden md:flex items-center gap-1 lg:gap-2 flex-shrink-0">
-              {/* Updates History button */}
-              <div className="flex items-center">
-                {!isEmbedUser && (
-                  <div className="tooltip tooltip-bottom" data-tip="Updates History">
-                    <button
-                      data-testid="navbar-history-button"
-                      id="navbar-history-button"
-                      className="p-1 bg-base-300 rounded-md hover:bg-base-200 transition-colors"
-                      onClick={toggleConfigHistorySidebar}
-                    >
-                      <HistoryIcon size={16} />
-                    </button>
-                  </div>
-                )}
-              </div>
               {/* Ellipsis menu - Fixed Position */}
               <div className="flex items-center">{!isEmbedUser && <EllipsisMenu />}</div>
             </div>
@@ -639,27 +604,10 @@ const Navbar = ({ isEmbedUser, params }) => {
         </div>
       </div>
 
-      {/* Mobile action buttons - Updates History only */}
-      {isMobile && activeTab === "configure" && !isEmbedUser && (
-        <div className="p-2">
-          <div className="flex gap-1 sm:gap-2">
-            <button
-              id="navbar-mobile-history-button"
-              className="tooltip tooltip-left px-2"
-              data-tip="Updates History"
-              onClick={toggleConfigHistorySidebar}
-            >
-              <HistoryIcon size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Sliders - only for non-embed users */}
       {!isEmbedUser && (
         <>
           <ChatBotSlider />
-          <ConfigHistorySlider versionId={versionId} />
         </>
       )}
 

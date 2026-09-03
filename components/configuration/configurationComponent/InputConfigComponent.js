@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePromptSelector } from "@/customHooks/useOptimizedSelector";
 import { MODAL_TYPE, PROMPT_SECTION_CONFIG } from "@/utils/enums";
-import { openModal } from "@/utils/utility";
+import { openModal, closeModal } from "@/utils/utility";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import PromptSummaryModal from "../../modals/PromptSummaryModal";
 import Diff_Modal from "@/components/modals/DiffModal";
@@ -274,8 +274,14 @@ const InputConfigComponent = memo(
       openModal(MODAL_TYPE?.DIFF_PROMPT);
     }, [setPromptState, isStructuredPrompt, structuredFields]);
 
+    /**
+     * The helper opens in the side panel, which the Prompt modal covers — so the
+     * modal has to get out of the way, otherwise the click looked like it did
+     * nothing at all.
+     */
     const handleOpenPromptHelper = useCallback(() => {
       if (!uiState.isPromptHelperOpen && window.innerWidth > 710) {
+        closeModal(MODAL_TYPE.RANGER_PROMPT_MODAL);
         updateUiState({ isPromptHelperOpen: true });
       }
     }, [uiState.isPromptHelperOpen, updateUiState]);
@@ -284,6 +290,7 @@ const InputConfigComponent = memo(
       (fieldName) => {
         setPromptState((prev) => ({ ...prev, activeHelperField: fieldName }));
         if (window.innerWidth > 710) {
+          closeModal(MODAL_TYPE.RANGER_PROMPT_MODAL);
           updateUiState({ isPromptHelperOpen: true });
         }
       },
