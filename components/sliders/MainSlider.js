@@ -1,18 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import {
-  ChevronDown,
-  LogOut,
-  ChevronRight,
-  ChevronLeft,
-  User,
-  AlignJustify,
-  ArrowLeft,
-  Keyboard,
-  Plus,
-  Users,
-} from "lucide-react";
+import { ChevronDown, LogOut, ChevronRight, ChevronLeft, User, AlignJustify, Plus, Users } from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutUserFromMsg91 } from "@/config/index";
@@ -69,7 +58,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const isSideBySideMode = pathParts.length === 4;
 
   /* ------------------------------- UI state ------------------------------- */
-  const [isOpen, setIsOpen] = useState(isSideBySideMode); // Default open for side-by-side
+  const [isOpen, setIsOpen] = useState(false); // Collapsed by default
   const [hovered, setHovered] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [isMobile, setIsMobile] = useState(false);
@@ -77,8 +66,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const [orgDropdownTimeout, setOrgDropdownTimeout] = useState(null);
   const [isOrgDropdownExpanded, setIsOrgDropdownExpanded] = useState(false);
   const [isMobileVisible, setIsMobileVisible] = useState(false); // New state for mobile visibility
-  const [showContent, setShowContent] = useState(isSideBySideMode); // Control content visibility with delay
-  const [isAdminMode, setIsAdminMode] = useState(false); // New state for admin settings mode
+  const [showContent, setShowContent] = useState(false); // Control content visibility with delay
   const pendingNavRef = useRef(null);
   // Theme detection placeholder (not actively used)
 
@@ -310,11 +298,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     }
   };
 
-  // Admin settings toggle handler
-  const handleAdminToggle = useCallback(() => {
-    setIsAdminMode((prev) => !prev);
-  }, []);
-
   /** Live agents in this org — the count badge on the Rangers nav row. */
   const agentCount = useMemo(
     () =>
@@ -324,12 +307,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     [allBridges]
   );
 
-  /** ⌘K on Apple keyboards, Ctrl+K everywhere else. */
-  const shortcutHint = useMemo(() => {
-    if (typeof navigator === "undefined") return "Ctrl+K";
-    return /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent) ? "\u2318K" : "Ctrl+K";
-  }, []);
-
   const buildNavUrlForOrg = useCallback((key) => buildNavUrl(key, orgId), [orgId]);
 
   // Guard navigation when there are unsaved prompt changes
@@ -338,7 +315,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     [router]
   );
 
-  // Get settings menu items for sidebar
   /** Create-ranger action. The Create Ranger modal is only mounted on the
    *  agents page, so open it directly when we are already there and otherwise
    *  navigate with ?create=1 for that page to pick up. */
@@ -350,23 +326,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
     }
     if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/agents?create=1`);
   }, [isMobile, pathname, targetOrgId]);
-
-  const settingsMenuItems = useMemo(
-    () => [
-      {
-        id: "apikeys",
-        label: "API Keys",
-        icon: ITEM_ICONS.apikeys,
-        onClick: () => {
-          setIsOrgDropdownExpanded(false);
-          setIsOrgDropdownOpen(false);
-          if (isMobile) setIsMobileVisible(false);
-          guardedNavigate(`/org/${orgId}/apikeys`);
-        },
-      },
-    ],
-    [guardedNavigate, orgId, isMobile]
-  );
 
   // Mobile menu toggle handler
   const handleMobileMenuToggle = useCallback((e) => {
@@ -531,17 +490,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             opacity: 1;
           }
         }
-
-        @keyframes slideInRight {
-          0% {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          100% {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
       `}</style>
 
       {/* Mobile backdrop */}
@@ -626,7 +574,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                   onMouseEnter={(e) => onItemEnter("create-agent", e)}
                   onMouseLeave={onItemLeave}
                   aria-label="Create new Ranger"
-                  className={`w-full flex flex-none items-center justify-center overflow-hidden whitespace-nowrap rounded-[10px] bg-acc text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:opacity-90 ${
+                  className={`w-full flex flex-none items-center justify-center overflow-hidden whitespace-nowrap rounded-[10px] bg-acc text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_var(--shadow-tint)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:opacity-90 ${
                     railExpanded ? "h-[38px] gap-[7px] px-3" : "h-[34px] gap-0 px-0"
                   }`}
                 >
@@ -645,136 +593,62 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
             {/* Main navigation - scrollable */}
             <div className={`flex-1 scrollbar-hide overflow-x-hidden scroll-smooth pt-5`}>
               <div className="">
-                {/* Main Menu Button - Show only in Admin Mode */}
-                {isAdminMode && (
-                  <div className="mb-4">
-                    <button
-                      id="main-slider-back-to-main-menu-button"
-                      onClick={handleAdminToggle}
-                      onMouseEnter={(e) => onItemEnter("main-menu", e)}
-                      onMouseLeave={onItemLeave}
-                      className={`w-full flex items-center gap-3 py-2 px-3 rounded-lg transition-all duration-200 hover:bg-base-200 text-base-content ${!showSidebarContent ? "justify-center" : ""}`}
-                    >
-                      <div className="shrink-0">
-                        <ArrowLeft size={16} />
+                {/* Normal navigation, sliding in from the left. */}
+                <div
+                  key="main-nav"
+                  style={{
+                    animation: "slideInLeft 0.3s ease-out both",
+                  }}
+                >
+                  {NAV_SECTIONS.map(({ title, items }, idx) => (
+                    <div key={idx} className="">
+                      {showSidebarContent && title && (
+                        <h3 className="px-2 pb-1.5 text-[10.5px] font-bold uppercase tracking-[.1em] text-soft">
+                          {title}
+                        </h3>
+                      )}
+                      <div className="flex flex-col gap-0.5">
+                        {items.map((key) => (
+                          <button
+                            id={`main-slider-nav-${key}`}
+                            key={key}
+                            onClick={() => {
+                              guardedNavigate(buildNavUrlForOrg(key));
+                              if (isMobile) setIsMobileVisible(false);
+                            }}
+                            onMouseEnter={(e) => onItemEnter(key, e)}
+                            onMouseLeave={onItemLeave}
+                            className={
+                              showSidebarContent
+                                ? `w-full flex items-center gap-[10px] rounded-[9px] border px-[10px] py-2 text-[13.5px] font-semibold transition-colors ${activeKey === key ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
+                                : `${COLLAPSED_TILE} ${activeKey === key ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
+                            }
+                          >
+                            <div className="shrink-0 opacity-85">{ITEM_ICONS[key]}</div>
+                            {showSidebarContent && (
+                              <>
+                                <span className="truncate capitalize">{DISPLAY_NAMES(key)}</span>
+                                {(key === "orchestratal_model" || key === "widgets") && <BetaBadge />}
+                                {key === "agents" && agentCount > 0 && (
+                                  <span className="ml-auto rounded-[6px] bg-card px-1.5 py-px font-mono text-[10.5px]">
+                                    {agentCount}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </button>
+                        ))}
                       </div>
-                      {showSidebarContent && <span className="text-sm truncate">Main Menu</span>}
-                    </button>
-                  </div>
-                )}
-
-                {!isAdminMode ? (
-                  // Normal Navigation with slide from left animation
-                  <div
-                    key="main-nav"
-                    style={{
-                      animation: "slideInLeft 0.3s ease-out both",
-                    }}
-                  >
-                    {NAV_SECTIONS.map(({ title, items }, idx) => (
-                      <div key={idx} className="">
-                        {showSidebarContent && title && (
-                          <h3 className="px-2 pb-1.5 text-[10.5px] font-bold uppercase tracking-[.1em] text-soft">
-                            {title}
-                          </h3>
-                        )}
-                        <div className="flex flex-col gap-0.5">
-                          {items.map((key) => (
-                            <button
-                              id={`main-slider-nav-${key}`}
-                              key={key}
-                              onClick={() => {
-                                guardedNavigate(buildNavUrlForOrg(key));
-                                if (isMobile) setIsMobileVisible(false);
-                              }}
-                              onMouseEnter={(e) => onItemEnter(key, e)}
-                              onMouseLeave={onItemLeave}
-                              className={
-                                showSidebarContent
-                                  ? `w-full flex items-center gap-[10px] rounded-[9px] border px-[10px] py-2 text-[13.5px] font-semibold transition-colors ${activeKey === key ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
-                                  : `${COLLAPSED_TILE} ${activeKey === key ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
-                              }
-                            >
-                              <div className="shrink-0 opacity-85">{ITEM_ICONS[key]}</div>
-                              {showSidebarContent && (
-                                <>
-                                  <span className="truncate capitalize">{DISPLAY_NAMES(key)}</span>
-                                  {(key === "orchestratal_model" || key === "widgets") && <BetaBadge />}
-                                  {key === "agents" && agentCount > 0 && (
-                                    <span className="ml-auto rounded-[6px] bg-card px-1.5 py-px font-mono text-[10.5px]">
-                                      {agentCount}
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                        {!showSidebarContent && idx !== NAV_SECTIONS.length - 1 && <HRCollapsed />}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  // Admin Settings Navigation with slide from right animation
-                  <div
-                    key="admin-nav"
-                    style={{
-                      animation: "slideInRight 0.3s ease-out both",
-                    }}
-                  >
-                    {showSidebarContent && (
-                      <h3 className="px-2 pb-1.5 text-[10.5px] font-bold uppercase tracking-[.1em] text-soft">
-                        Admin Settings
-                      </h3>
-                    )}
-                    <div className="space-y-1">
-                      {settingsMenuItems.map((item) => (
-                        <button
-                          id={`main-slider-admin-${item.id}`}
-                          key={item.id}
-                          onClick={() => {
-                            item.onClick();
-                            if (isMobile) setIsMobileVisible(false);
-                          }}
-                          onMouseEnter={(e) => onItemEnter(item.id, e)}
-                          onMouseLeave={onItemLeave}
-                          className={
-                            showSidebarContent
-                              ? "w-full flex items-center gap-[10px] rounded-[9px] border border-line bg-card px-[10px] py-2 text-[13.5px] font-semibold text-soft transition-colors hover:bg-paper hover:text-ink"
-                              : `${COLLAPSED_TILE} border-line bg-card text-soft hover:bg-paper hover:text-ink`
-                          }
-                        >
-                          <div className="shrink-0 opacity-85">{item.icon}</div>
-                          {showSidebarContent && <span className="truncate">{item.label}</span>}
-                        </button>
-                      ))}
+                      {!showSidebarContent && idx !== NAV_SECTIONS.length - 1 && <HRCollapsed />}
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Footer Actions Section — canvas order: nav-ish rows, the
                 lifetime chip, the theme switcher, then the account row. */}
             <div className="flex flex-col gap-0.5 border-t border-line pt-[10px]">
-              {/* Admin settings */}
-              <button
-                id="main-slider-admin-settings-toggle"
-                onClick={handleAdminToggle}
-                onMouseEnter={(e) => onItemEnter("admin-toggle", e)}
-                onMouseLeave={onItemLeave}
-                className={
-                  showSidebarContent
-                    ? `w-full flex items-center gap-[10px] rounded-[9px] border px-[10px] py-2 text-[13px] font-medium transition-colors ${isAdminMode ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
-                    : `${COLLAPSED_TILE} ${isAdminMode ? "border-transparent bg-acc-tint text-acc-deep" : "border-line bg-card text-soft hover:bg-paper hover:text-ink"}`
-                }
-              >
-                <span className="shrink-0 opacity-60">{ITEM_ICONS.adminSettings}</span>
-                {showSidebarContent && (
-                  <span className="truncate">{isAdminMode ? "Back to Main" : "Admin Settings"}</span>
-                )}
-              </button>
-
               {/* Refer & Earn */}
               <button
                 id="main-slider-refer-earn-button"
@@ -793,33 +667,6 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
               >
                 <Users size={16} className="shrink-0 opacity-60" />
                 {showSidebarContent && <span className="truncate">Refer &amp; Earn</span>}
-              </button>
-
-              {/* Keyboard shortcuts */}
-              <button
-                id="main-slider-keyboard-shortcuts-button"
-                onClick={() => {
-                  openModal(MODAL_TYPE.KEYBOARD_SHORTCUTS_MODAL);
-                  if (isMobile) setIsMobileVisible(false);
-                }}
-                onMouseEnter={(e) => onItemEnter("keyboard-shortcuts", e)}
-                onMouseLeave={onItemLeave}
-                aria-label="Keyboard shortcuts"
-                className={
-                  showSidebarContent
-                    ? "w-full flex items-center gap-[10px] rounded-[9px] border border-line bg-card px-[10px] py-2 text-[13px] font-medium text-soft transition-colors hover:bg-paper hover:text-ink"
-                    : `${COLLAPSED_TILE} border-line bg-card text-soft hover:bg-paper hover:text-ink`
-                }
-              >
-                <Keyboard size={16} className="shrink-0 opacity-60" />
-                {showSidebarContent && (
-                  <>
-                    <span className="truncate">Shortcuts</span>
-                    <span className="ml-auto rounded-[5px] border border-line px-[5px] py-px font-mono text-[10px] text-soft">
-                      {shortcutHint}
-                    </span>
-                  </>
-                )}
               </button>
 
               {/* Free lifetime access */}

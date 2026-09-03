@@ -41,7 +41,6 @@ export const ITEM_ICONS = {
   RAG_embed: <Blocks size={15} />,
   integration: <Blocks size={15} />,
   // Admin section icons
-  adminSettings: <Settings2 size={15} />,
   tutorial: <MonitorPlayIcon size={15} />,
   lifetimeAccess: <GiftIcon size={15} />,
   speakToUs: <MessageCircleMoreIcon size={15} />,
@@ -91,16 +90,10 @@ export const DISPLAY_NAMES = (key) => {
       return "API Keys";
     case "widgets":
       return "Widgets";
-    case "keyboard-shortcuts":
-      return "Keyboard Shortcuts";
     case "refer-earn":
       return "Refer & Earn";
     case "create-agent":
       return "Create new Ranger";
-    case "admin-toggle":
-      return "Admin Settings";
-    case "main-menu":
-      return "Main Menu";
     case "model-garden":
       return "Model Garden";
     case "tools":
