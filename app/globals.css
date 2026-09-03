@@ -1515,3 +1515,9 @@ summary:focus-visible {
 .gtwy-toast-host:popover-open {
   display: block;
 }
+
+/* A slider rendered as a <dialog> dims what is behind it — including a modal it
+   was opened on top of. The UA default backdrop is nearly invisible. */
+dialog.sidebar-container::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
