@@ -796,11 +796,17 @@ const Sidebar = memo(
                     }
                     return;
                   }
-                  let pf;
-                  try {
-                    pf = JSON.parse(filterByText);
-                  } catch {}
-                  handleSearchInternal(e, searchRef?.current?.value || "", pf);
+                  // Submitting the form used to read a `filterByText` that does
+                  // not exist, throwing before the search ever ran. The filters
+                  // are already an object — build them the way the debounced
+                  // search path does.
+                  const filterBy = { ...filterByFields };
+                  if (variableKey.trim() && variableValue.trim()) {
+                    filterBy.variables = { [variableKey.trim()]: variableValue.trim() };
+                  } else {
+                    delete filterBy.variables;
+                  }
+                  handleSearchInternal(e, searchRef?.current?.value || "", filterBy);
                 }}
                 className="relative"
               >

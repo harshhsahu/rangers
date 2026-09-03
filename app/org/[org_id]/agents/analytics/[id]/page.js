@@ -413,7 +413,6 @@ function Page({ params, searchParams }) {
     setFilterInterval("1h");
     setFilterFeedback("all");
     setFilterError(false);
-    setFilterReviewFailed(false);
     setFilterTool([]);
     setFilterModel([]);
     setFilterKnowledgeBase([]);
@@ -693,7 +692,6 @@ function Page({ params, searchParams }) {
     setFilterInterval("1h");
     setFilterFeedback("all");
     setFilterError(false);
-    setFilterReviewFailed(false);
     setFilterTool([]);
     setFilterModel([]);
     setFilterKnowledgeBase([]);
