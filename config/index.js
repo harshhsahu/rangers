@@ -7,7 +7,6 @@ export * from "./organizationApi";
 export * from "./modelApi";
 export * from "./chatbotApi";
 export * from "./knowledgeBaseApi";
-export * from "./testCaseApi";
 export * from "./metricsApi";
 export * from "./utilityApi";
 export * from "./historyApi";

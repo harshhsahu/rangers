@@ -27,19 +27,19 @@ const MARQUEE_FADE = "linear-gradient(90deg, transparent, #000 26%, #000 74%, tr
 const MARQUEE_SECONDS = 104;
 
 const SERVICES = [
-  ["openai", "Openai", "openai", "cool"],
-  ["anthropic", "Anthropic", "anthropic", "acc"],
-  ["gemini", "Gemini", "gemini", "cool"],
-  ["groq", "Groq", "groq", "plain"],
-  ["mistral", "Mistral", "mistral", "plain"],
-  ["grok", "Grok", "grok", "plain"],
-  ["moonshot", "Moonshot", "moonshot", "plain"],
-  ["deepseek", "Deepseek", "deepseek", "plain"],
-  ["deepgram", "Deepgram", "deepgram", "plain"],
-  ["open_router", "Open Router", "open_router", "plain"],
-  ["google", "Google", "google", "plain"],
-  ["ai_ml", "AI / ML", "ai_ml", "plain"],
-  ["minimax", "MiniMax", "minimax", "plain"],
+  ["openai", "Openai", "openai"],
+  ["anthropic", "Anthropic", "anthropic"],
+  ["gemini", "Gemini", "gemini"],
+  ["groq", "Groq", "groq"],
+  ["mistral", "Mistral", "mistral"],
+  ["grok", "Grok", "grok"],
+  ["moonshot", "Moonshot", "moonshot"],
+  ["deepseek", "Deepseek", "deepseek"],
+  ["deepgram", "Deepgram", "deepgram"],
+  ["open_router", "Open Router", "open_router"],
+  ["google", "Google", "google"],
+  ["ai_ml", "AI / ML", "ai_ml"],
+  ["minimax", "MiniMax", "minimax"],
 ];
 
 const HOW = [
@@ -64,8 +64,6 @@ const CAPABILITIES = [
   { t: "MCP servers", b: "Point at any MCP endpoint. Its tools show up in the agent immediately." },
 ];
 
-const TINTS = { cool: "bg-cool", acc: "bg-acc", plain: "bg-card" };
-
 const Page = () => {
   const router = useRouter();
   const toConsole = () => router.push("/login");
@@ -73,7 +71,7 @@ const Page = () => {
   return (
     <main className="min-h-screen bg-paper text-ink font-sans">
       {/* ------------------------------- Header ------------------------------ */}
-      <header className="sticky top-0 z-40 flex items-center justify-between gap-6 border-b-2 border-stroke bg-paper px-6 py-4 md:px-9">
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-6 border-b border-line-strong bg-paper px-6 py-4 md:px-9">
         <div className="flex items-center gap-3">
           <div className="grid h-[30px] w-[30px] place-items-center rounded-[9px] border-2 border-stroke bg-acc font-mono text-[15px] font-bold text-acc-ink">
             R
@@ -181,11 +179,8 @@ const Page = () => {
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {HOW.map((s) => (
-            <div
-              key={s.n}
-              className="flex flex-col gap-3 rounded-[18px] border-2 border-stroke bg-card p-[22px] shadow-sm"
-            >
-              <div className="grid h-[34px] w-[34px] place-items-center rounded-full border-2 border-stroke bg-acc font-mono text-[14px] font-bold text-acc-ink">
+            <div key={s.n} className="flex flex-col gap-3 rounded-[18px] border border-line bg-card p-[22px] shadow-sm">
+              <div className="grid h-[34px] w-[34px] place-items-center rounded-full bg-acc font-mono text-[14px] font-bold text-acc-ink">
                 {s.n}
               </div>
               <div className="text-[22px] font-bold tracking-[-0.025em]">{s.t}</div>
@@ -196,7 +191,7 @@ const Page = () => {
       </section>
 
       {/* ------------------------------- Models ------------------------------ */}
-      <section id="models" className="border-t-2 border-stroke bg-card">
+      <section id="models" className="border-t border-line-strong bg-card">
         <div className="mx-auto max-w-[1240px] px-6 py-20 md:px-9">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
             <h2 className="max-w-[18ch] text-[36px] font-extrabold tracking-[-0.04em] md:text-[48px]">
@@ -205,13 +200,12 @@ const Page = () => {
             <span className="font-mono text-[13px] text-soft">switch provider without touching your prompt</span>
           </div>
           <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICES.map(([slug, label, value, tint]) => (
-              <div key={value} className="flex items-center gap-3 rounded-[16px] border-2 border-stroke bg-paper p-4">
-                <div
-                  className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-[9px] border-2 border-ink ${TINTS[tint]}`}
-                >
-                  {getIconOfService(slug, 16, 16)}
-                </div>
+            {SERVICES.map(([slug, label, value]) => (
+              <div key={value} className="flex items-center gap-3 rounded-[16px] border border-line bg-paper p-4">
+                {/* The provider mark stands on its own — no chip, no border. */}
+                <span className="grid h-[30px] w-[30px] flex-none place-items-center">
+                  {getIconOfService(slug, 22, 22)}
+                </span>
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-[15px] font-bold">{label}</span>
                   <span className="font-mono text-[10px] text-soft">{value}</span>
@@ -232,7 +226,7 @@ const Page = () => {
         </p>
         <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {CAPABILITIES.map((c) => (
-            <div key={c.t} className="flex flex-col gap-2.5 rounded-[16px] border-2 border-stroke bg-card p-5">
+            <div key={c.t} className="flex flex-col gap-2.5 rounded-[16px] border border-line bg-card p-5">
               <span className="text-[18px] font-extrabold tracking-[-0.02em]">{c.t}</span>
               <span className="text-[14px] leading-[1.55] text-soft">{c.b}</span>
             </div>
@@ -241,7 +235,7 @@ const Page = () => {
       </section>
 
       {/* -------------------------------- Ship ------------------------------- */}
-      <section id="ship" className="border-t-2 border-stroke">
+      <section id="ship" className="border-t border-line-strong">
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-10 px-6 py-20 md:px-9">
           <div>
             <div className="max-w-[17ch] text-[40px] font-extrabold leading-none tracking-[-0.045em] md:text-[50px]">
@@ -258,7 +252,7 @@ const Page = () => {
             Start building
           </button>
         </div>
-        <div className="flex flex-wrap justify-between gap-5 border-t-2 border-stroke px-6 py-5 font-mono text-[11.5px] text-soft md:px-9">
+        <div className="flex flex-wrap justify-between gap-5 border-t border-line-strong px-6 py-5 font-mono text-[11.5px] text-soft md:px-9">
           <span>rangers — agents, models and MCP in one place</span>
           <span>docs · status · privacy · © 2026</span>
         </div>

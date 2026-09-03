@@ -702,6 +702,42 @@ export const renderedOrganizations = (organizations, formState, handleSelectOrg)
   ));
 };
 
+/**
+ * Short, collision-free id for names that must stay unique forever (API keys).
+ *
+ * Three parts, each closing a gap the others leave open:
+ *   - a base36 timestamp, strictly increasing, so two ids minted in different
+ *     milliseconds can never collide;
+ *   - a per-session counter, so ids minted inside the SAME millisecond by this
+ *     tab cannot collide either (a purely random suffix can, and does: 4 random
+ *     base36 chars collide within ~200k same-millisecond draws);
+ *   - CSPRNG characters, which separate concurrent sessions and other clients.
+ *
+ * Math.random is only the fallback where webcrypto is absent; uniqueness never
+ * rests on it alone.
+ */
+let shortIdCounter = 0;
+
+export function shortUniqueId(randomChars = 4) {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const timePart = Date.now().toString(36);
+  const counterPart = (shortIdCounter++ % 1296).toString(36);
+  const cryptoObj = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
+
+  let randomPart = "";
+  if (cryptoObj?.getRandomValues) {
+    const bytes = new Uint8Array(randomChars);
+    cryptoObj.getRandomValues(bytes);
+    randomPart = Array.from(bytes, (byte) => chars.charAt(byte % chars.length)).join("");
+  } else {
+    for (let i = 0; i < randomChars; i += 1) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  }
+
+  return `${timePart}${counterPart}${randomPart}`;
+}
+
 export function generateRandomID(length = 10) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
@@ -894,34 +930,6 @@ export function didCurrentTabInitiateUpdate(agentId) {
     return false;
   }
 }
-export const createConversationForTestCase = (conversationData) => {
-  let conversation = [];
-  let expected_response = null;
-
-  const conversationMessages = conversationData.slice(0, conversationData.length - 1);
-
-  conversation = conversationMessages.map((message) => ({
-    role: message.sender === "assistant" ? "assistant" : "user",
-    content:
-      (message.sender === "assistant" || message.role === "assistant") &&
-      typeof message.content === "object" &&
-      message.content !== null
-        ? JSON.stringify(message.content)
-        : message.content,
-  }));
-
-  const lastMessage = conversationData[conversationData.length - 1];
-  expected_response = {
-    response:
-      (lastMessage.sender === "assistant" || lastMessage.role === "assistant") &&
-      typeof lastMessage.content === "object" &&
-      lastMessage.content !== null
-        ? JSON.stringify(lastMessage.content)
-        : lastMessage.content,
-  };
-
-  return { conversation, expected: expected_response };
-};
 
 export const generateKeyValuePairs = (obj) => {
   const result = {};

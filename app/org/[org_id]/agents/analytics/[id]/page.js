@@ -109,13 +109,24 @@ function Page({ params, searchParams }) {
   const pathName = usePathname();
   const dispatch = useDispatch();
 
-  const { thread, analyticsData, selectedVersion, knowledgeBaseData, analyticsLoading } = useCustomSelector((state) => {
+  const {
+    thread,
+    analyticsData,
+    selectedVersion,
+    knowledgeBaseData,
+    analyticsLoading,
+    agentVersions,
+    publishedVersionId,
+  } = useCustomSelector((state) => {
+    const bridge = state?.bridgeReducer?.allBridgesMap?.[resolvedParams?.id];
     return {
       thread: state?.historyReducer?.thread || [],
       analyticsData: state?.analyticsReducer?.analyticsData?.[resolvedParams.id] || {},
       selectedVersion: state?.historyReducer?.selectedVersion || "all",
       knowledgeBaseData: state?.knowledgeBaseReducer?.knowledgeBaseData?.[resolvedParams?.org_id] || [],
       analyticsLoading: state?.analyticsReducer?.loading || false,
+      agentVersions: bridge?.versions || [],
+      publishedVersionId: bridge?.published_version_id || null,
     };
   });
 
@@ -310,6 +321,29 @@ function Page({ params, searchParams }) {
     }
   }, [resolvedParams?.id, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * A version is always selected. Landing here without one in the URL (a deep
+   * link, or a bookmark from before the navbar carried it) fell back to "all",
+   * which reports across every version and leaves the picker blank. Settle on
+   * the published version, or the newest one, and put it in the URL so the
+   * report is reproducible from the address bar.
+   */
+  useEffect(() => {
+    if (search.get("version")) return;
+    if (!agentVersions.length) return;
+
+    const fallback = String(
+      publishedVersionId && agentVersions.some((v) => String(v) === String(publishedVersionId))
+        ? publishedVersionId
+        : agentVersions[agentVersions.length - 1]
+    );
+
+    dispatch(setSelectedVersion(fallback));
+    const url = new URL(window.location.href);
+    url.searchParams.set("version", fallback);
+    router.replace(url.pathname + url.search);
+  }, [search, agentVersions, publishedVersionId, dispatch, router]);
+
   useEffect(() => {
     const keyword = search.get("keyword") || "";
     setSearchQuery(keyword);
@@ -338,14 +372,14 @@ function Page({ params, searchParams }) {
       }
     });
 
-    // Clear all filter keys
+    // Clear all filter keys. `version` is deliberately absent: it says which
+    // version the report is for, so it has to survive a load or refresh.
     const filterKeys = [
       "start",
       "end",
       "range",
       "interval",
       "feedback",
-      "version",
       "tool_id",
       "model",
       "knowledgebase_id",
@@ -535,7 +569,7 @@ function Page({ params, searchParams }) {
         })
       );
 
-      router.push(
+      router.replace(
         buildUrl(
           {
             thread_id: encodeURIComponent(String(thread_id).replace(/&/g, "%26")),
@@ -552,7 +586,7 @@ function Page({ params, searchParams }) {
 
   const handleAnalyticsMessageNavigate = useCallback(
     (messageId) => {
-      router.push(buildUrl({ message_id: messageId || null }, pathName));
+      router.replace(buildUrl({ message_id: messageId || null }, pathName));
     },
     [pathName, router, buildUrl]
   );
@@ -582,7 +616,7 @@ function Page({ params, searchParams }) {
         })
       );
 
-      router.push(
+      router.replace(
         buildUrl(
           {
             thread_id: encodeURIComponent(String(threadId).replace(/&/g, "%26")),
@@ -603,7 +637,7 @@ function Page({ params, searchParams }) {
     setSelectedBatchMessageId(null);
     setSearchMessageId(null);
     setIsSliderOpen(false);
-    router.push(buildUrl({ thread_id: null, subThread_id: null, message_id: null, batch_id: null }, pathName));
+    router.replace(buildUrl({ thread_id: null, subThread_id: null, message_id: null, batch_id: null }, pathName));
   }, [pathName, router, buildUrl]);
 
   const handleSelectBatch = useCallback((messageId) => {
@@ -631,7 +665,7 @@ function Page({ params, searchParams }) {
     const newKnowledgeBase = updates.knowledgebase_id !== undefined ? updates.knowledgebase_id : filterKnowledgeBase;
     const newAgent = updates.agent_id !== undefined ? updates.agent_id : filterAgent;
 
-    router.push(
+    router.replace(
       buildUrl(
         {
           start: newStart || null,
@@ -679,7 +713,7 @@ function Page({ params, searchParams }) {
     };
     setAppliedAdvancedFilters(emptyAdvancedFilters);
 
-    router.push(
+    router.replace(
       buildUrl(
         {
           start: null,
@@ -709,7 +743,7 @@ function Page({ params, searchParams }) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-40px)] w-full overflow-hidden bg-base-200/50">
+    <div data-analytics-page className="flex h-[calc(100vh-40px)] w-full overflow-hidden bg-base-200/50">
       {/* Main Dashboard Area */}
       <div className="flex-1 relative flex flex-row max-w-full overflow-hidden">
         <div className="flex-1 overflow-y-auto">

@@ -5,18 +5,10 @@ import { setFallbackData } from "@/store/reducer/chatReducer";
 import {
   handleRtLayerMessage,
   handleRtLayerStreamChunk,
-  setChatTestCaseIdAction,
   addChatErrorMessage,
   handleRtLayerFunctionCall,
 } from "@/store/action/chatAction";
 import { updateApiKeyStatusReducer } from "@/store/reducer/apiKeysReducer";
-import {
-  testRunStartedReducer,
-  testRunResultReducer,
-  testRunCompletedReducer,
-  testRunFailedReducer,
-  directTestResultReducer,
-} from "@/store/reducer/testCasesReducer";
 import { updateAnalyticsFromRtLayer, addAnalyticsThread } from "@/store/reducer/analyticsReducer";
 
 import { usePathname } from "next/navigation";
@@ -170,60 +162,6 @@ function useRtLayerEventHandler(channelIdentifier = "") {
           const channelId = channelIdentifier;
           if (channelId) {
             dispatch(handleRtLayerFunctionCall(channelId, response));
-          }
-          return;
-        }
-
-        // ---------- Testcase run events (RTLayer-driven) ----------
-        // Channel name from backend is `${org_id}_${bridge_id}`. We trust the
-        // bridge_id present in the payload, falling back to the parsed path.
-        if (
-          event === "run_started" ||
-          event === "testcase_result" ||
-          event === "run_completed" ||
-          event === "run_failed"
-        ) {
-          const runBridgeId = parsedData.bridge_id || bridgeId;
-          if (!runBridgeId) return;
-          if (event === "run_started") {
-            // Don't overwrite testcaseId if it's already set in the run state
-            // This preserves the original testcase ID sent from the UI
-            dispatch(
-              testRunStartedReducer({
-                bridgeId: runBridgeId,
-                total: parsedData.total_testcases,
-                versionIds: parsedData.version_ids,
-                testcaseId: parsedData.testcase_id || null,
-                preserveTestcaseId: true, // Flag to preserve existing testcaseId
-              })
-            );
-          } else if (event === "testcase_result") {
-            dispatch(
-              testRunResultReducer({
-                bridgeId: runBridgeId,
-                versionId: parsedData.version_id,
-                result: parsedData.result,
-                model: parsedData.model,
-                service: parsedData.service || parsedData.service_name,
-                isOverridden: parsedData.is_overridden,
-              })
-            );
-            // Also store in direct test results for testcases that don't exist in database
-            dispatch(
-              directTestResultReducer({
-                bridgeId: runBridgeId,
-                versionId: parsedData.version_id,
-                result: parsedData.result,
-              })
-            );
-          } else if (event === "run_completed") {
-            dispatch(testRunCompletedReducer({ bridgeId: runBridgeId, payload: parsedData }));
-            toast.success("Test run completed");
-          } else if (event === "run_failed") {
-            const errMsg =
-              typeof parsedData.error === "string" ? parsedData.error : parsedData.error?.message || "Test run failed";
-            dispatch(testRunFailedReducer({ bridgeId: runBridgeId, error: errMsg }));
-            toast.error(errMsg);
           }
           return;
         }
@@ -408,8 +346,6 @@ function useRtLayerEventHandler(channelIdentifier = "") {
               id: response.data.id || response.data.message_id || parsedData.message_id,
               // Preserve the backend message_id (UUID) separately from the
               // upstream provider id (which may be an OpenAI `resp_...` id).
-              // Needed for creating testcases (backend resolves ai_config
-              // via historyService.findHistoryByMessageId).
               message_id: parsedData.message_id || response.data.message_id || response.data.id,
               content: response.data.content,
               role: response.data.role || "assistant",
@@ -441,14 +377,6 @@ function useRtLayerEventHandler(channelIdentifier = "") {
             }
           }
           return;
-        }
-
-        // Handle testcase_id from RT layer response
-        if (response.testcase_id) {
-          const channelId = channelIdentifier;
-          if (channelId) {
-            dispatch(setChatTestCaseIdAction(channelId, response.testcase_id));
-          }
         }
 
         // Handle legacy history data format (existing functionality)

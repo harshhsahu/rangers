@@ -13,7 +13,6 @@ import { clearThreadData } from "@/store/reducer/historyReducer";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { closeModal, openModal } from "@/utils/utility";
 import { MODAL_TYPE } from "@/utils/enums";
-import AddTestCaseModal from "../modals/AddTestCaseModal";
 import HistoryPagePromptUpdateModal from "../modals/HistoryPagePromptUpdateModal";
 import { ChatLoadingSkeleton } from "./ChatLayoutLoader";
 import EditMessageModal from "../modals/EditMessageModal";
@@ -76,12 +75,15 @@ const ThreadContainer = ({
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [flexDirection, setFlexDirection] = useState("column");
   const [threadMessageState, setThreadMessageState] = useState();
-  const [testCaseConversation, setTestCaseConversation] = useState([]);
   const [loadingData, setLoadingData] = useState(false);
   const [promotToUpdate, setPromptToUpdate] = useState(null);
   const [modalInput, setModalInput] = useState(null);
   const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
   const [generatedPrompts, setGeneratedPrompts] = useState({}); // Store generated prompts by message ID
+
+  /** Debug Agent still needs a turn's AiConfig; this is all it used the
+   *  now-removed test-case helper for. */
+  const getAiConfig = useCallback((index) => thread[index]?.AiConfig || {}, [thread]);
 
   const formatDateAndTime = useCallback((created_at) => {
     const date = new Date(created_at);
@@ -95,34 +97,6 @@ const ThreadContainer = ({
     };
     return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleDateString("en-US", options);
   }, []);
-
-  const handleAddTestCase = useCallback(
-    (item, index, variables = false) => {
-      const conversation = [];
-      let AiConfigForVariable = {};
-      AiConfigForVariable = thread[index]?.AiConfig ? thread[index]?.AiConfig : {};
-
-      // Extract variables from the thread item
-      const threadItem = thread[index] || {};
-      const threadVariables =
-        threadItem.variables && typeof threadItem.variables === "object" && !Array.isArray(threadItem.variables)
-          ? { ...threadItem.variables }
-          : {};
-
-      const itemWithVariables = {
-        ...item,
-        // Backend fetches ai_config using message_id (see historyService.findHistoryByMessageId).
-        message_id: item?.message_id || threadItem?.message_id || item?.id || null,
-        AiConfig: AiConfigForVariable,
-        threadVariables: threadVariables,
-      };
-      conversation.push(itemWithVariables || {});
-      setTestCaseConversation(conversation);
-      if (variables) return AiConfigForVariable;
-      openModal(MODAL_TYPE.ADD_TEST_CASE_MODAL);
-    },
-    [thread]
-  );
 
   const handleSave = useCallback(() => {
     if (!modalInput?.content?.trim()) {
@@ -313,7 +287,9 @@ const ThreadContainer = ({
           if (error) params.set("error", String(error));
           if (search?.type) params.set("type", search.type);
           params.set("navigated", "true");
-          router.push(`${pathName}?${params.toString()}`, undefined, { scroll: false });
+          // Auto-selecting the first thread on load is not navigation; pushing it
+          // put a synthetic entry in front of the page the user came from.
+          router.replace(`${pathName}?${params.toString()}`, { scroll: false });
           return;
         }
       }
@@ -539,9 +515,9 @@ const ThreadContainer = ({
                       searchMessageId={searchMessageId}
                       setSearchMessageId={setSearchMessageId}
                       keepSearchMessageIdAfterHighlight={keepSearchMessageId}
-                      handleAddTestCase={handleAddTestCase}
                       setModalInput={setModalInput}
                       modalInput={modalInput}
+                      getAiConfig={getAiConfig}
                     />
                   ))}
               </div>
@@ -561,8 +537,6 @@ const ThreadContainer = ({
           </button>
         )}
       </div>
-
-      <AddTestCaseModal testCaseConversation={testCaseConversation} setTestCaseConversation={setTestCaseConversation} />
 
       <HistoryPagePromptUpdateModal
         searchParams={Object.fromEntries(searchParamsHook.entries())}

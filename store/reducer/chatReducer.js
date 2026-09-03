@@ -9,16 +9,10 @@ const initialState = {
   loadingByChannel: {},
   // Error states by channel
   errorsByChannel: {},
-  // Test case data by channel
-  testCasesByChannel: {},
   // Uploaded files by channel
   uploadedFilesByChannel: {},
   // Uploaded images by channel
   uploadedImagesByChannel: {},
-  // Test case IDs by channel (persisted until manual clear)
-  testCaseIdByChannel: {},
-  // Raw test case conversation [{role, content}] to send in configuration.conversation
-  testCaseConversationByChannel: {},
 };
 
 export const chatReducer = createSlice({
@@ -32,10 +26,8 @@ export const chatReducer = createSlice({
         state.messagesByChannel[channelId] = [];
         state.loadingByChannel[channelId] = false;
         state.errorsByChannel[channelId] = "";
-        state.testCasesByChannel[channelId] = {};
         state.uploadedFilesByChannel[channelId] = [];
         state.uploadedImagesByChannel[channelId] = [];
-        state.testCaseIdByChannel[channelId] = null;
         state.threadIdByChannel[channelId] = crypto.randomUUID();
       }
     },
@@ -113,26 +105,8 @@ export const chatReducer = createSlice({
       if (state.messagesByChannel[channelId]) {
         state.messagesByChannel[channelId] = [];
         state.errorsByChannel[channelId] = "";
-        state.testCasesByChannel[channelId] = {};
-        state.testCaseConversationByChannel[channelId] = null;
         state.threadIdByChannel[channelId] = crypto.randomUUID();
       }
-    },
-
-    // Load test case messages
-    loadTestCaseMessages: (state, action) => {
-      const { channelId, messages, testCaseId, rawConversation } = action.payload;
-      if (state.messagesByChannel[channelId]) {
-        state.messagesByChannel[channelId] = messages;
-        state.testCasesByChannel[channelId] = { testCaseId };
-        state.testCaseConversationByChannel[channelId] = rawConversation || null;
-      }
-    },
-
-    // Clear loaded test case conversation for channel
-    clearTestCaseConversation: (state, action) => {
-      const { channelId } = action.payload;
-      state.testCaseConversationByChannel[channelId] = null;
     },
 
     // Set uploaded files
@@ -156,7 +130,6 @@ export const chatReducer = createSlice({
         state.messagesByChannel[channelId] = [];
         state.loadingByChannel[channelId] = false;
         state.errorsByChannel[channelId] = "";
-        state.testCasesByChannel[channelId] = {};
         state.uploadedFilesByChannel[channelId] = [];
         state.uploadedImagesByChannel[channelId] = [];
       }
@@ -184,7 +157,6 @@ export const chatReducer = createSlice({
         state.messagesByChannel[channelId] = [];
         state.loadingByChannel[channelId] = false;
         state.errorsByChannel[channelId] = "";
-        state.testCasesByChannel[channelId] = {};
         state.uploadedFilesByChannel[channelId] = [];
         state.uploadedImagesByChannel[channelId] = [];
       }
@@ -404,34 +376,15 @@ export const chatReducer = createSlice({
       }
     },
 
-    // Set testcase_id for channel (persisted until manual clear)
-    setChatTestCaseId: (state, action) => {
-      const { channelId, testCaseId } = action.payload;
-      if (state.testCaseIdByChannel[channelId] !== undefined) {
-        state.testCaseIdByChannel[channelId] = testCaseId;
-      }
-    },
-
-    // Clear testcase_id for channel (manual clear only)
-    clearChatTestCaseId: (state, action) => {
-      const { channelId } = action.payload;
-      if (state.testCaseIdByChannel[channelId] !== undefined) {
-        state.testCaseIdByChannel[channelId] = null;
-      }
-    },
-
     // Clear all data for channel (when switching agents)
     clearChannelData: (state, action) => {
       const { channelId } = action.payload;
       delete state.messagesByChannel[channelId];
       delete state.loadingByChannel[channelId];
       delete state.errorsByChannel[channelId];
-      delete state.testCasesByChannel[channelId];
       delete state.uploadedFilesByChannel[channelId];
       delete state.uploadedImagesByChannel[channelId];
-      delete state.testCaseIdByChannel[channelId];
       delete state.threadIdByChannel[channelId];
-      delete state.testCaseConversationByChannel[channelId];
     },
 
     // Set fallback data for a message
@@ -466,16 +419,12 @@ export const {
   setChannelLoading,
   setChannelError,
   clearChannelMessages,
-  loadTestCaseMessages,
-  clearTestCaseConversation,
   setUploadedFiles,
   setUploadedImages,
   addRtLayerMessage,
   addErrorMessage,
   appendRtLayerMessageChunk,
   updateRtLayerMessage,
-  setChatTestCaseId,
-  clearChatTestCaseId,
   clearChannelData,
   addToolCallToMessage,
   appendToolCallDelta,

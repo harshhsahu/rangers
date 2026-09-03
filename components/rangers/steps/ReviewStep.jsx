@@ -177,17 +177,11 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
                     done
                       ? "bg-success text-success-content"
                       : active
-                        ? "bg-primary text-primary-content"
+                        ? "bg-acc-soft text-acc-deep ring-1 ring-inset ring-acc-line"
                         : "bg-base-300 text-base-content/50"
                   }`}
                 >
-                  {done ? (
-                    <Check size={11} />
-                  ) : active ? (
-                    <span className="loading loading-spinner loading-xs" />
-                  ) : (
-                    index + 1
-                  )}
+                  {done ? <Check size={11} /> : active ? <span className="rg-spinner" /> : index + 1}
                 </span>
                 <span className={done ? "text-success" : active ? "font-semibold text-base-content" : "text-soft"}>
                   {DEPLOY_PHASE_LABELS[phaseKey]}

@@ -2,10 +2,12 @@
 
 import React, { memo } from "react";
 import RangerSetupSections from "./sections/RangerSetupSections";
+import RangerUsageStats from "./sections/RangerUsageStats";
 
 /**
  * Agent setup. Every agent uses this single-page list of sections, whose options
- * open in modals.
+ * open in modals. The heading and setup progress live in RangerSetupSections so
+ * they stay next to the rows they count.
  *
  * This previously forked on `isRanger` (i.e. whether the agent document had a
  * `meta.ranger` key): rangers got this UI, and every agent created before the
@@ -15,13 +17,9 @@ import RangerSetupSections from "./sections/RangerSetupSections";
  */
 const NonImageModelConfig = memo(() => {
   return (
-    <div data-testid="ranger-single-page-config" className="space-y-4 pb-8">
-      <div className="sticky top-0 z-10 -mx-4 border-b-2 border-stroke bg-base-200/95 px-4 py-3 backdrop-blur">
-        <h2 className="text-base font-semibold text-base-content">Agent setup</h2>
-        <p className="mt-0.5 text-xs text-soft">Open a section to edit its options.</p>
-      </div>
-
+    <div data-testid="ranger-single-page-config" className="space-y-4 pt-5 pb-8">
       <RangerSetupSections />
+      <RangerUsageStats />
     </div>
   );
 });

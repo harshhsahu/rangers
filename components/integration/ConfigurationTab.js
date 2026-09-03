@@ -125,14 +125,6 @@ const CONFIG_SCHEMA = [
     section: "Interface Options",
   },
   {
-    key: "showTestcases",
-    type: "toggle",
-    label: "Show Test Cases",
-    description: "Display test cases tab in the embedded interface",
-    defaultValue: false,
-    section: "Interface Options",
-  },
-  {
     key: "slide",
     type: "select",
     label: "Slide Position",

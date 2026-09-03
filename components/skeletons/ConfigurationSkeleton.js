@@ -1,102 +1,99 @@
 import React from "react";
 
+/**
+ * Loading state for the agent config screen. Mirrors what actually renders now:
+ * a 50/50 split with the setup rows and usage tiles on the left, and the chat
+ * pane (tab bar, message column, composer) on the right. The old version drew
+ * the long-gone prompt/tools/knowledge-base stack, so the page visibly jumped
+ * shape once data arrived.
+ */
+const Bar = ({ className = "" }) => <div className={`animate-pulse rounded bg-paper ${className}`} />;
+
+const SetupRowSkeleton = () => (
+  <div className="flex items-center gap-3 rounded-[13px] border border-line bg-card px-4 py-3">
+    <div className="h-9 w-9 flex-none animate-pulse rounded-lg border border-line bg-paper" />
+    <div className="min-w-0 flex-1 space-y-2">
+      <Bar className="h-3 w-32" />
+      <Bar className="h-2.5 w-52" />
+    </div>
+    <Bar className="h-4 w-12 flex-none" />
+  </div>
+);
+
+const StatTileSkeleton = () => (
+  <div className="rounded-[13px] border border-line bg-card px-3.5 py-3">
+    <Bar className="h-5 w-20" />
+    <Bar className="mt-2 h-2.5 w-12" />
+  </div>
+);
+
 const ConfigurationSkeleton = () => {
   return (
-    <div className="h-screen w-full bg-base-300 text-base-content overflow-hidden">
-      {/* Main layout */}
-      <div className="h-[calc(100vh-3.5rem)] flex">
-        {/* Left panel */}
-        <div className="w-[44%] min-w-[420px] border-r-2 border-stroke p-4 space-y-4">
-          {/* Section header */}
-          <div className="flex items-center justify-between">
-            <div className="h-4 w-40 bg-base-200 rounded animate-pulse" />
-            <div className="h-8 w-36 bg-base-200 rounded animate-pulse" />
+    <div className="h-full w-full overflow-hidden bg-[#F4EFE7] text-base-content">
+      <div className="flex h-full">
+        {/* Left: agent setup */}
+        <div className="flex w-1/2 min-w-0 flex-col gap-4 overflow-hidden px-8 pt-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <Bar className="h-4 w-28" />
+            <Bar className="h-3 w-24" />
+          </div>
+          <div className="h-1 overflow-hidden rounded-full bg-paper-sunken">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-paper" />
           </div>
 
-          {/* Prompt area skeleton */}
-          <div className="rounded-xl border-2 border-stroke bg-base-300 p-4 min-h-[500px]">
-            <div className="h-3 w-24 bg-base-200 rounded animate-pulse mb-4" />
-            <div className="space-y-3 mb-6">
-              <div className="h-3 w-[90%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[82%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[60%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[75%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[40%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[85%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[70%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[55%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[65%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[45%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[85%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[65%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[95%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[45%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[65%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[75%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[85%] bg-base-100 rounded animate-pulse" />
-              <div className="h-3 w-[95%] bg-base-100 rounded animate-pulse" />
+          <div className="flex flex-col gap-2">
+            <SetupRowSkeleton />
+            <SetupRowSkeleton />
+            <SetupRowSkeleton />
+            <SetupRowSkeleton />
+          </div>
+
+          <div className="pt-3">
+            <div className="flex items-baseline justify-between pb-2.5">
+              <Bar className="h-3 w-24" />
+              <Bar className="h-3 w-20" />
             </div>
-
-            <div className="mt-auto flex items-center justify-between">
-              <div className="h-3 w-64 bg-base-100 rounded animate-pulse" />
-              <div className="h-8 w-36 bg-base-200 rounded animate-pulse" />
+            <div className="grid grid-cols-3 gap-2.5">
+              <StatTileSkeleton />
+              <StatTileSkeleton />
+              <StatTileSkeleton />
             </div>
-          </div>
-
-          {/* Tool button */}
-          <div className="h-10 w-28 bg-base-200 rounded-lg animate-pulse" />
-
-          {/* Agents */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="h-4 w-24 bg-base-200 rounded animate-pulse" />
-              <div className="h-8 w-20 bg-base-200 rounded animate-pulse" />
-            </div>
-            <div className="h-12 w-full bg-base-100 rounded-xl animate-pulse" />
-          </div>
-
-          {/* Knowledge Base */}
-          <div className="space-y-3 pt-2">
-            <div className="h-4 w-36 bg-base-200 rounded animate-pulse" />
-            <div className="h-10 w-40 bg-base-200 rounded-lg animate-pulse" />
-            <div className="h-9 w-32 bg-base-100 rounded animate-pulse" />
-          </div>
-
-          {/* Bottom issues pill */}
-          <div className="mt-auto pt-4">
-            <div className="h-9 w-44 bg-base-100 rounded-full animate-pulse" />
           </div>
         </div>
 
-        {/* Right panel */}
-        <div className="flex-1 p-4 flex flex-col">
-          {/* Title row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="h-4 w-28 bg-base-200 rounded animate-pulse" />
-            <div className="h-9 w-9 bg-base-100 rounded-lg animate-pulse" />
+        {/* Right: the chat pane */}
+        <div className="flex w-1/2 min-w-0 flex-col border-l border-line bg-card">
+          <div className="flex flex-none items-center gap-2 border-b border-line px-[18px] py-[11px]">
+            <div className="flex items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]">
+              <Bar className="h-[26px] w-[104px] rounded-lg" />
+              <Bar className="h-[26px] w-[112px] rounded-lg" />
+            </div>
           </div>
 
-          {/* Big empty canvas skeleton */}
-          <div className="flex-1 rounded-xl border-2 border-stroke bg-base-300 relative overflow-hidden">
-            {/* subtle shimmer overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-base-100/40 to-transparent animate-[shimmer_1.6s_infinite] -translate-x-full" />
+          <div className="flex flex-1 flex-col justify-end gap-[14px] p-[18px]">
+            <div className="flex flex-col items-end">
+              <Bar className="mb-1.5 h-2.5 w-16" />
+              <Bar className="h-10 w-[45%] rounded-[14px]" />
+            </div>
+            <div className="flex flex-col items-start">
+              <Bar className="mb-1.5 h-2.5 w-20" />
+              <Bar className="h-16 w-[70%] rounded-[14px]" />
+            </div>
+            <div className="flex flex-col items-end">
+              <Bar className="mb-1.5 h-2.5 w-16" />
+              <Bar className="h-10 w-[38%] rounded-[14px]" />
+            </div>
           </div>
 
-          {/* Bottom input bar */}
-          <div className="mt-4 flex items-center gap-3">
-            <div className="flex-1 h-12 bg-base-100 rounded-xl animate-pulse" />
-            <div className="h-12 w-12 bg-base-200 rounded-full animate-pulse" />
+          <div className="flex-none border-t border-line px-[18px] pb-4 pt-3">
+            <div className="flex items-end gap-[9px]">
+              <Bar className="h-[38px] w-[38px] flex-none rounded-[10px]" />
+              <Bar className="h-[38px] flex-1 rounded-[10px]" />
+              <Bar className="h-[38px] w-[38px] flex-none rounded-[10px]" />
+            </div>
           </div>
         </div>
       </div>
-
-      {/* shimmer keyframes */}
-      <style>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-120%); }
-          100% { transform: translateX(120%); }
-        }
-      `}</style>
     </div>
   );
 };

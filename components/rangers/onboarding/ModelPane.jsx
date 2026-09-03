@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getModelAction } from "@/store/action/modelAction";
@@ -88,23 +88,71 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
   const selectedId = form.service && form.model ? `${form.service}::${form.model}` : null;
   const temperature = resolveTemperature(form.creativity, form.temperatureParam);
 
+  /** Providers that actually have models to show, keyed ones first. */
+  const providerTabs = useMemo(() => {
+    const seen = new Map();
+    models.forEach((model) => {
+      if (!seen.has(model.service)) {
+        seen.set(model.service, { service: model.service, keyed: model.keyed, count: 0 });
+      }
+      seen.get(model.service).count += 1;
+    });
+    return [...seen.values()];
+  }, [models]);
+
+  const [activeService, setActiveService] = useState(null);
+  // Follows the catalogue until the user picks a tab: whichever provider the
+  // selected model belongs to, else the first one available.
+  const effectiveService = useMemo(() => {
+    if (activeService && providerTabs.some((tab) => tab.service === activeService)) return activeService;
+    if (form.service && providerTabs.some((tab) => tab.service === form.service)) return form.service;
+    return providerTabs[0]?.service ?? null;
+  }, [activeService, form.service, providerTabs]);
+
+  const visibleModels = useMemo(
+    () => (effectiveService ? models.filter((model) => model.service === effectiveService) : models),
+    [effectiveService, models]
+  );
+
   return (
     <div data-testid="onboarding-pane-model" id="onboarding-pane-model">
-      {keyedServices.size > 0 && (
-        <div className="pb-[9px] text-[11px] font-bold uppercase tracking-[.1em] text-soft">Your providers</div>
+      {providerTabs.length > 1 && (
+        <div className="flex flex-wrap items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]">
+          {providerTabs.map((tab) => {
+            const isActive = tab.service === effectiveService;
+            return (
+              <button
+                key={tab.service}
+                type="button"
+                data-testid={`onboarding-model-service-${tab.service}`}
+                aria-pressed={isActive}
+                onClick={() => setActiveService(tab.service)}
+                className={`flex items-center gap-1.5 rounded-lg px-[11px] py-[6px] text-[12.5px] font-semibold transition-colors ${
+                  isActive ? "bg-card text-ink shadow-sm" : "text-soft hover:text-ink"
+                }`}
+              >
+                {getIconOfService(tab.service, 14, 14)}
+                <span>{serviceLabel[tab.service] || tab.service}</span>
+                {tab.keyed && (
+                  <span className="rounded bg-acc-soft px-1 text-[9px] font-bold uppercase text-acc-deep">keyed</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       )}
 
-      <div className="flex max-h-[340px] flex-col gap-2 overflow-y-auto">
+      <div className="mt-3 flex max-h-[340px] flex-col gap-2 overflow-y-auto">
         {isLoading &&
           [0, 1, 2].map((row) => <div key={row} className="h-[58px] animate-pulse rounded-[12px] bg-paper-sunken" />)}
 
-        {!isLoading && models.length === 0 && (
+        {!isLoading && visibleModels.length === 0 && (
           <p className="rounded-[12px] border border-dashed border-line-strong p-5 text-center text-[12.5px] text-soft">
             No models available yet. Add a provider key and they will show up here.
           </p>
         )}
 
-        {models.map((model) => {
+        {visibleModels.map((model) => {
           const isActive = selectedId === model.id;
           return (
             <button

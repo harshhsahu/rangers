@@ -96,7 +96,7 @@ const ReviewPane = ({ form, orgId, mcpServers, toolCount, kbCount, phase, error,
 
       {isRunning && (
         <p className="m-0 flex items-center gap-2 pt-2 text-[12.5px] text-soft" data-testid="onboarding-deploy-phase">
-          <span className="loading loading-spinner loading-xs" />
+          <span className="rg-spinner rg-spinner-sm text-acc" />
           {DEPLOY_PHASE_LABELS[phase]}…
         </p>
       )}

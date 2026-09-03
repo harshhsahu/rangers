@@ -8,16 +8,12 @@ import {
   setChannelLoading,
   setChannelError,
   clearChannelMessages,
-  loadTestCaseMessages,
-  clearTestCaseConversation,
   setUploadedFiles,
   setUploadedImages,
   addRtLayerMessage,
   addErrorMessage,
   appendRtLayerMessageChunk,
   updateRtLayerMessage,
-  setChatTestCaseId,
-  clearChatTestCaseId,
   clearChannelData,
   addToolCallToMessage,
   appendToolCallDelta,
@@ -149,77 +145,6 @@ export const setChatError = (channelId, error) => (dispatch) => {
 // Clear chat messages
 export const clearChatMessages = (channelId) => (dispatch) => {
   dispatch(clearChannelMessages({ channelId }));
-};
-
-// Load test case into chat
-export const loadTestCaseIntoChat = (channelId, testCaseConversation, expected, testCaseId) => (dispatch) => {
-  const convertedMessages = [];
-  const baseTimestamp = Date.now();
-
-  testCaseConversation.forEach((msg, index) => {
-    // Skip messages with empty or null content
-    if (!msg.content || msg.content === "" || msg.content === null) {
-      return;
-    }
-
-    const chatMessage = {
-      id: `testcase_${msg.role}_${baseTimestamp}_${index}`,
-      sender: msg.role === "user" ? "user" : "assistant",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      content: typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content),
-    };
-    convertedMessages.push(chatMessage);
-  });
-
-  if (expected?.response) {
-    const expectedMessage = {
-      id: `testcase_expected_${baseTimestamp}`,
-      sender: "assistant",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      content: typeof expected.response === "object" ? JSON.stringify(expected.response) : expected.response,
-      isExpected: true,
-    };
-    convertedMessages.push(expectedMessage);
-  }
-
-  // Build the raw conversation in the [{role, content}] format expected by the
-  // completion API's configuration.conversation. Include the expected answer as
-  // the last assistant turn so that when the user continues the conversation the
-  // backend receives the full prior context (including the expected response).
-  const rawConversation = testCaseConversation
-    .filter((msg) => msg.content !== null && msg.content !== undefined && msg.content !== "")
-    .map((msg) => ({
-      role: msg.role,
-      content: typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content),
-    }));
-
-  // Append expected response as the last assistant message in the raw conversation
-  // so the API receives it as prior context when the user sends a follow-up.
-  if (expected?.response) {
-    const expectedContent =
-      typeof expected.response === "object" ? JSON.stringify(expected.response) : expected.response;
-    rawConversation.push({ role: "assistant", content: expectedContent });
-  }
-
-  dispatch(
-    loadTestCaseMessages({
-      channelId,
-      messages: convertedMessages,
-      testCaseId,
-      rawConversation,
-    })
-  );
-};
-
-// Clear the stored raw test case conversation for a channel
-export const clearTestCaseConversationAction = (channelId) => (dispatch) => {
-  dispatch(clearTestCaseConversation({ channelId }));
 };
 
 // Set uploaded files
@@ -485,7 +410,6 @@ export const sendMessageWithApiStreaming =
               dispatch(
                 handleRtLayerMessage(channelId, {
                   id: msgId,
-                  // Preserve backend message_id explicitly (used for testcase creation).
                   message_id: parsed.message_id || msgId,
                   content: "",
                   role: "assistant",
@@ -675,16 +599,6 @@ export const sendMessageWithApiStreaming =
       throw error;
     }
   };
-
-// Set testcase_id for channel (persisted until manual clear)
-export const setChatTestCaseIdAction = (channelId, testCaseId) => (dispatch) => {
-  dispatch(setChatTestCaseId({ channelId, testCaseId }));
-};
-
-// Clear testcase_id for channel (manual clear only)
-export const clearChatTestCaseIdAction = (channelId) => (dispatch) => {
-  dispatch(clearChatTestCaseId({ channelId }));
-};
 
 // Handle intermediate RT layer function call / status updates
 export const handleRtLayerFunctionCall = (channelId, response) => (dispatch, getState) => {

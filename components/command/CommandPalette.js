@@ -830,7 +830,8 @@ const CommandPalette = ({ isEmbedUser }) => {
       <div
         data-testid="command-palette-modal"
         id="command-palette-modal"
-        className="w-full max-w-2xl rounded-xl bg-base-100 shadow-xl"
+        data-modal-container
+        className="w-full max-w-2xl rounded-[18px] border border-line bg-base-100 shadow-[0_20px_48px_rgba(30,26,22,0.24)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="border-b-2 border-stroke">

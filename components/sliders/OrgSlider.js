@@ -15,7 +15,6 @@ import {
   LogoutIcon,
   MailIcon,
   CloseIcon,
-  SettingsIcon,
   SettingsAltIcon,
   BuildingIcon,
   ChevronDownIcon,
@@ -169,19 +168,6 @@ function OrgSlider() {
                   {" "}
                   <KeyRoundIcon className="h-4 w-4" />
                   Pauth key
-                </a>{" "}
-              </li>
-              <li>
-                {" "}
-                <a
-                  id="org-slider-workspace-setting-link"
-                  className={`py-2 px-2 rounded-md`}
-                  onClick={() => {
-                    router.push(`/org/${path[2]}/workspaceSetting`);
-                  }}
-                >
-                  {" "}
-                  <SettingsIcon className="h-4 w-4" /> Workspace Setting
                 </a>{" "}
               </li>
               <li onClick={logoutHandler}>

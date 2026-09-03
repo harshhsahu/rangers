@@ -11,7 +11,7 @@ import {
   getBridgeVersionAction,
 } from "@/store/action/bridgeAction";
 import { MODAL_TYPE } from "@/utils/enums";
-import { openModal, closeModal, sendDataToParent, closeSidebar } from "@/utils/utility";
+import { openModal, closeModal, sendDataToParent } from "@/utils/utility";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useCallback, useState, useMemo } from "react";
 
@@ -216,7 +216,6 @@ function BridgeVersionDropdown({
       if (currentVersion === version) return;
 
       const doChange = () => {
-        closeSidebar("default-config-history-slider", "right");
         router.push(`/org/${params.org_id}/agents/configure/${params.id}?version=${version}`);
         fetchVersionData(version);
 

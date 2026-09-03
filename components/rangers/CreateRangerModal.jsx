@@ -136,7 +136,6 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   ].includes(phase);
   // Kept separate from isDeploying so it only guards modal-close, never Back/Continue.
   const isCreatingIdentity = identityPhase === DEPLOY_PHASES.CREATING;
-  const blocksClose = isDeploying || isCreatingIdentity;
 
   const update = useCallback((patch) => setForm((prev) => ({ ...prev, ...patch })), []);
 
@@ -160,17 +159,22 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     reset();
   }, [reset]);
 
+  /**
+   * Always resets. Modal watches the dialog's `open` attribute and fires this
+   * whenever it closes, so bailing out early here did not keep the wizard open
+   * — it just left the created agent in state. Reopening then reused it, and
+   * the next deploy published the agent from the abandoned run instead of
+   * creating a new one. Guarding the close button is the footer's job.
+   */
   const handleClose = useCallback(() => {
-    if (blocksClose) return; // never abandon a half-finished create/deploy
     closeModal(MODAL_TYPE.CREATE_RANGER_MODAL);
     resetAll();
-  }, [blocksClose, resetAll]);
+  }, [resetAll]);
 
   /**
    * Done is only rendered once the deploy reached DONE, so there is nothing
    * left to protect — it closes unconditionally rather than going through
-   * handleClose, whose blocksClose guard would swallow the click if a phase
-   * flag were still set.
+   * handleClose — it is the same path, kept separate for readability.
    */
   const handleDone = useCallback(() => {
     closeModal(MODAL_TYPE.CREATE_RANGER_MODAL);
@@ -267,8 +271,15 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
           return;
         }
         // Autofill Prompt from the create response's prompt object when present.
-        if (result.promptParts) update({ prompt: result.prompt, promptParts: result.promptParts });
-        else if (result.prompt) update({ prompt: result.prompt });
+        // This lands after the user has already moved on, so it must never
+        // overwrite something they typed in the meantime — the check has to run
+        // against the latest state, not the value captured at click time.
+        setForm((prev) => {
+          if (prev.prompt?.trim()) return prev;
+          if (result.promptParts) return { ...prev, prompt: result.prompt, promptParts: result.promptParts };
+          if (result.prompt) return { ...prev, prompt: result.prompt };
+          return prev;
+        });
       });
       setStepIndex((prev) => Math.min(steps.length - 1, prev + 1));
       return;
@@ -293,6 +304,12 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
 
   const goBack = () => {
     if (stepIndex === 0) {
+      // Switching method starts the build over — the agent the previous method
+      // already created is abandoned, not carried across.
+      reset();
+      setAiThreadId(null);
+      setAiDraftConfig(buildInitialDraftConfig());
+      setChannelErrors({});
       update({ mode: null });
       return;
     }

@@ -162,15 +162,6 @@ export const publishBulkVersionApi = async (version_ids) => {
   }
 };
 
-export const getTestcasesScrore = async (version_id) => {
-  try {
-    const response = await axios.get(`${URL}/testcases/score/${version_id}`);
-    return response.data;
-  } catch (error) {
-    console.error("error while getting testcase score", error);
-  }
-};
-
 export const modelSuggestionApi = async ({ versionId }) => {
   try {
     const response = await axios.get(`${URL}/api/versions/suggest-model/${versionId}`);
