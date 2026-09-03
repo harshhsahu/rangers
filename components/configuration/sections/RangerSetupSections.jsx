@@ -17,7 +17,7 @@ const MODAL_WIDTH = "w-[min(1040px,95vw)]";
 /** These panels are tall, so the scrollbar has to be visible to hint at it. */
 const MODAL_BODY = "scrollbar-visible";
 
-const SetupRow = ({ icon: Icon, title, summary, modalId, testId, configured }) => (
+const SetupRow = ({ icon: Icon, title, summary, modalId, testId, configured, marks = [] }) => (
   <button
     type="button"
     data-testid={testId}
@@ -32,6 +32,15 @@ const SetupRow = ({ icon: Icon, title, summary, modalId, testId, configured }) =
       <span className="block text-sm font-semibold text-base-content">{title}</span>
       <span className="mt-0.5 block truncate text-xs text-soft">{summary}</span>
     </span>
+    {/* Brand marks for what this row has connected — the row icon is generic,
+        so the marks are what tell you *which* channel is live at a glance. */}
+    {marks.length > 0 && (
+      <span className="flex flex-none items-center gap-1.5">
+        {marks.map(({ key, label, icon: MarkIcon }) => (
+          <MarkIcon key={key} size={18} aria-label={`${label} connected`} />
+        ))}
+      </span>
+    )}
     <span
       className={`flex-none rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
         configured ? "bg-success/15 text-success" : "bg-base-300 text-soft"
@@ -64,7 +73,7 @@ const useConnectedChannels = (versionId) => {
         const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
         const data = await res.json();
         if (cancelled || !data?.success) return;
-        setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken).map((c) => c.label));
+        setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken));
       } catch (err) {
         console.error("Loading channel details failed", err);
       }
@@ -99,7 +108,7 @@ const RangerSetupSections = () => {
   }, [bridge_functions]);
 
   const channelSummary = connectedChannels.length
-    ? `${connectedChannels.join(" · ")} connected`
+    ? `${connectedChannels.map((channel) => channel.label).join(" · ")} connected`
     : "Telegram, Discord, and custom triggers.";
 
   const rows = useMemo(
@@ -135,6 +144,7 @@ const RangerSetupSections = () => {
         summary: channelSummary,
         modalId: MODAL_TYPE.RANGER_CHANNELS_MODAL,
         configured: connectedChannels.length > 0,
+        marks: connectedChannels,
       },
     ],
     [
@@ -177,6 +187,7 @@ const RangerSetupSections = () => {
           modalId={row.modalId}
           testId={`ranger-setup-row-${row.key}`}
           configured={row.configured}
+          marks={row.marks}
         />
       ))}
 

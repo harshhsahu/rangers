@@ -1494,3 +1494,24 @@ summary:focus-visible {
 .border-l-2 {
   border-left-width: 1px;
 }
+
+/* Toast host. Modals open with dialog.showModal(), which puts them in the
+   browser's top layer — no z-index in normal flow can paint over that. So the
+   toast host is a popover, which joins the top layer as well. It is a zero-size
+   anchor: react-hot-toast positions its own fixed container inside, so the host
+   must not paint, size, or capture anything itself. */
+.gtwy-toast-host {
+  position: fixed;
+  inset: auto;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+}
+.gtwy-toast-host:popover-open {
+  display: block;
+}

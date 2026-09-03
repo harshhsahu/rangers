@@ -61,10 +61,10 @@ const DiscordConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onDe
 
       toast.success("Discord bot connected");
       if (data?.gateway?.message && !data?.gateway?.connected) {
-        toast.info(data.gateway.message, { autoClose: 6000 });
+        toast.info(data.gateway.message, { autoClose: 12000 });
       }
       if (data?.commands?.message) {
-        toast.info(data.commands.message, { autoClose: 6000 });
+        toast.info(data.commands.message, { autoClose: 12000 });
       }
       setBotToken("");
       closeModal(MODAL_TYPE.DISCORD_CONNECT_MODAL);

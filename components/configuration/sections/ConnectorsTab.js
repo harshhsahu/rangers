@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link2, Maximize2, Minimize2, Plus, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { toast } from "@/utils/toast";
-import ToolsSection from "../ToolsSection";
+import KnowledgebaseList from "../configurationComponent/KnowledgebaseList";
 import McpServerList from "../configurationComponent/McpServerList";
 import { useConfigurationContext } from "../ConfigurationContext";
 import UnsupportedFeatureOverlay from "../UnsupportedFeatureOverlay";
@@ -282,9 +282,19 @@ const ConnectorsTab = ({ isPublished }) => {
           )}
         </div>
 
-        {(!isEmbedUser || showMcp) && (
-          <McpServerList params={params} searchParams={searchParams} isPublished={isPublished} isEditor={isEditor} />
-        )}
+        {/* MCP servers and the knowledge base are peers — two columns on a wide
+            screen, stacked below it. The tool list stays full width underneath. */}
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          {(!isEmbedUser || showMcp) && (
+            <McpServerList params={params} searchParams={searchParams} isPublished={isPublished} isEditor={isEditor} />
+          )}
+          <KnowledgebaseList
+            params={params}
+            searchParams={searchParams}
+            isPublished={isPublished}
+            isEditor={isEditor}
+          />
+        </div>
 
         <section>
           <div className="mb-3">
@@ -337,8 +347,6 @@ const ConnectorsTab = ({ isPublished }) => {
           )}
         </section>
       </div>
-
-      <ToolsSection isPublished={isPublished} />
     </div>
   );
 };

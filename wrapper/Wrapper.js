@@ -2,7 +2,7 @@
 import { persistor, store } from "@/store/store";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
-import { Toaster } from "react-hot-toast";
+import AppToaster from "@/components/UI/AppToaster";
 import { PersistGate } from "redux-persist/integration/react";
 import CommandPalette from "@/components/command/CommandPalette";
 import { usePathname } from "next/navigation";
@@ -70,21 +70,7 @@ const Wrapper = ({ children }) => {
               {/* Global Command Palette */}
               <CommandPalette />
               {/* Notification toast container */}
-              <Toaster
-                position="top-center"
-                containerStyle={{ zIndex: 2147483647 }}
-                toastOptions={{
-                  // Theme variables, not fixed hex values, so a toast follows
-                  // whichever theme the document is on. The z-index is pinned
-                  // above every modal and slider in the app.
-                  style: {
-                    background: "var(--card)",
-                    color: "var(--ink)",
-                    border: "1px solid var(--line)",
-                    zIndex: 2147483647,
-                  },
-                }}
-              />
+              <AppToaster />
             </div>
           </PostHogProvider>
         </PersistGate>

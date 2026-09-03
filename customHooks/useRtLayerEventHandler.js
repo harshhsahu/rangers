@@ -127,7 +127,6 @@ function useRtLayerEventHandler(channelIdentifier = "") {
           <RefreshButton />
         </div>,
         {
-          position: "top-right",
           autoClose: false,
           hideProgressBar: false,
           closeOnClick: false,
