@@ -62,6 +62,7 @@ import {
 } from "../reducer/bridgeReducer";
 import { getAllResponseTypeSuccess } from "../reducer/responseTypeReducer";
 import { markUpdateInitiatedByCurrentTab } from "@/utils/utility";
+import { describeVersionUpdate } from "@/utils/versionUpdateLabel";
 import { callViasocketCreateFullFlow } from "@/config/utilityApi";
 
 const AGENT_CREATE_RT_TIMEOUT_MS = 5 * 60 * 1000;
@@ -752,6 +753,12 @@ export const updateBridgeVersionAction =
 
       markUpdateInitiatedByCurrentTab(versionId);
 
+      // One toast id per version: autosave fires this action on nearly every
+      // edit, so a repeat save replaces the previous toast instead of stacking
+      // a column of them.
+      const updateLabel = describeVersionUpdate(dataToSend);
+      const updateToastId = `version-update-${versionId}`;
+
       // Step 5: Make the actual API call
       const data = await updateBridgeVersionApi({ versionId, dataToSend });
       const updatedVersion = data?.agent;
@@ -772,6 +779,7 @@ export const updateBridgeVersionAction =
 
         dispatch(setSavingStatus({ status: "saved" }));
         dispatch(updateBridgeVersionReducer({ bridges: mergedVersion }));
+        toast.success(`${updateLabel} updated`, { toastId: updateToastId, autoClose: 2000 });
 
         // Clear the status after 3 seconds
         return { success: true };
@@ -786,7 +794,15 @@ export const updateBridgeVersionAction =
         setTimeout(() => {
           dispatch(setSavingStatus({ status: null }));
         }, 3000);
-        return { success: false, error: data?.message || data?.error || "Failed to update version" };
+        const failureReason = data?.message || data?.error || "Failed to update version";
+        // The API said no. Name the field, the reason, and whether the edit
+        // survived — a rolled-back change looks like nothing happened
+        // otherwise.
+        toast.error(
+          `${updateLabel} not updated — ${failureReason}${skipRollback ? "." : ". Your change was reverted."}`,
+          { toastId: updateToastId }
+        );
+        return { success: false, error: failureReason };
       }
     } catch (error) {
       console.error(error);
@@ -803,10 +819,17 @@ export const updateBridgeVersionAction =
           }
         }
 
-        if (parentBridgeId && !skipRollback) {
+        const reverted = Boolean(parentBridgeId) && !skipRollback;
+        if (reverted) {
           dispatch(bridgeVersionRollBackReducer({ bridgeId: parentBridgeId, versionId }));
-          toast.error(error?.response?.data?.message || "Failed to update version. Changes have been reverted.");
         }
+        // Toasts on every throw, not just the rollback path: a request that
+        // died without reverting used to fail completely silently.
+        const reason = error?.response?.data?.message || error?.message || "the request failed";
+        toast.error(
+          `${describeVersionUpdate(dataToSend)} not updated — ${reason}${reverted ? ". Your change was reverted." : "."}`,
+          { toastId: `version-update-${versionId}` }
+        );
       }
 
       dispatch(isError());
