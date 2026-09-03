@@ -8,7 +8,7 @@ import {
   CircleMinusIcon,
 } from "@/components/Icons";
 import AIMLIcon from "@/icons/AIMLIcon";
-import { TOKEN_CATEGORIES } from "@/utils/enums";
+import { MODAL_TYPE, TOKEN_CATEGORIES } from "@/utils/enums";
 import AnthropicIcon from "@/icons/AnthropicIcon";
 import CsvIcon from "@/icons/CsvIcon";
 import DeepgramIcon from "@/icons/DeepgramIcon";
