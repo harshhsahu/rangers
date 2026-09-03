@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { PersistGate } from "redux-persist/integration/react";
 import CommandPalette from "@/components/command/CommandPalette";
 import { usePathname } from "next/navigation";
-import { useThemeManager } from "@/customHooks/useThemeManager";
+import { getStoredTheme, useThemeManager } from "@/customHooks/useThemeManager";
 import PostHogProvider from "@/components/PostHogProvider";
 
 /**
@@ -19,6 +19,24 @@ const Wrapper = ({ children }) => {
   // Applies the persisted theme to the document; the toaster reads its colors
   // from the theme variables it sets, so no light/dark branching is needed here.
   useThemeManager();
+
+  /**
+   * The landing page is always light — it is drawn for one palette, and a
+   * visitor who chose dark inside the app should not meet it inverted. The
+   * inline script in the root layout covers a cold load; this covers client
+   * navigation, which never re-runs that script. The stored preference is only
+   * read here, never written, so leaving the page restores their choice.
+   */
+  useEffect(() => {
+    const root = document.documentElement;
+    const stored = getStoredTheme();
+    const resolved =
+      stored === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : stored;
+    const applied = pathname === "/" ? "light" : resolved;
+    root.setAttribute("data-theme", applied);
+    root.classList.remove("light", "dark");
+    root.classList.add(applied);
+  }, [pathname]);
 
   useEffect(() => {
     const pathSegments = pathname.split("/").filter(Boolean);

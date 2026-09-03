@@ -137,6 +137,13 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
           shared sunken bar ran them together into one unreadable wall. Each chip
           carries its own border and gap, and a keyed provider gets a dot rather
           than a second word competing with the name. */}
+      {providerTabs.length > 1 && keyedServices.size > 0 && (
+        <div className="flex items-center gap-[7px] pb-2.5 text-[11.5px] text-soft">
+          <span aria-hidden="true" className="h-1.5 w-1.5 flex-none rounded-full bg-acc" />
+          <span>Your own key — these run on your quota and billing</span>
+        </div>
+      )}
+
       {providerTabs.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
           {providerTabs.map((tab) => {
@@ -147,7 +154,7 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
                 type="button"
                 data-testid={`onboarding-model-service-${tab.service}`}
                 aria-pressed={isActive}
-                title={tab.keyed ? "You have a key for this provider" : undefined}
+                title={tab.keyed ? "You have a key for this provider" : "Runs on the free tier"}
                 onClick={() => setActiveService(tab.service)}
                 className={`flex shrink-0 items-center gap-[7px] rounded-[9px] border px-[11px] py-[6px] text-[12.5px] font-semibold transition-colors ${
                   isActive

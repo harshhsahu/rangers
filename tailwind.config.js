@@ -227,6 +227,10 @@ module.exports = {
           "--stroke": "#DFD9CB",
           "--stroke-strong": "#D5CBB8",
           "--shd-col": "transparent",
+          /* The tint card/tab shadows are drawn in. Themed, because an ink
+             shadow on an ink canvas is invisible — dark needs a darker-than-
+             background shadow, not the light theme's brown. */
+          "--shadow-tint": "rgba(20, 17, 13, 0.10)",
           "--bd": "1px",
           "--shd": "0 1px 2px rgba(30, 26, 22, 0.10)",
           "--base-50": "#FBF8F1",
@@ -266,6 +270,7 @@ module.exports = {
           "--stroke": "#2F2921",
           "--stroke-strong": "#3C352B",
           "--shd-col": "transparent",
+          "--shadow-tint": "rgba(0, 0, 0, 0.45)",
           "--bd": "1px",
           "--shd": "0 1px 2px rgba(0, 0, 0, 0.35)",
           "--base-50": "#221D18",

@@ -48,7 +48,7 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
         }
       }}
       onMouseEnter={() => onHover?.(row)}
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-[16px] border border-line bg-card shadow-[0_1px_2px_rgba(20,17,13,.06)] transition-colors hover:border-acc-line"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-[16px] border border-line bg-card shadow-[0_1px_2px_var(--shadow-tint)] transition-colors hover:border-acc-line"
     >
       <div className="flex items-start gap-[11px] p-4 pb-0">
         <div className="grid h-9 w-9 flex-none place-items-center rounded-[11px] bg-paper text-ink">

@@ -1297,7 +1297,7 @@ function Home({ params, searchParams, isEmbedUser }) {
   return (
     // Squad canvas colour from the design file — the cards sit a shade lighter
     // on top of it, which is what separates them from the page.
-    <div className="flex min-h-screen w-full bg-[#F4EFE7]">
+    <div className="flex min-h-screen w-full bg-paper-raised">
       <div className="w-full overflow-x-hidden flex flex-col min-h-screen flex-1">
         <div className="w-full max-w-full flex-1">
           {tutorialState?.showSuggestion && (
@@ -1402,7 +1402,7 @@ function Home({ params, searchParams, isEmbedUser }) {
                           {!isEmbedUser && (
                             <button
                               data-testid="create-new-agent-button"
-                              className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_rgba(20,17,13,.16)]"
+                              className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_var(--shadow-tint)]"
                               onClick={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
                             >
                               <Plus size={15} />
