@@ -1,7 +1,17 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { ClipboardX, CloudCheck, Clock, Home, Edit2, BotIcon, BarChart3, ArrowLeft } from "lucide-react";
+import {
+  ClipboardX,
+  CloudCheck,
+  Clock,
+  Home,
+  Edit2,
+  BotIcon,
+  BarChart3,
+  ArrowLeft,
+  MessageCircleMore,
+} from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useCustomSelector } from "@/customHooks/customSelector";
@@ -101,8 +111,14 @@ const Navbar = ({ isEmbedUser, params }) => {
         shortcut: "G C",
       },
     ];
-    // User history inside an agent is gone; analytics is the surviving report.
     if (!isEmbedUser || (isEmbedUser && showHistory)) {
+      baseTabs.push({
+        id: "history",
+        label: "History",
+        icon: MessageCircleMore,
+        shortLabel: "History",
+        shortcut: "G H",
+      });
       baseTabs.push({
         id: "analytics",
         label: "Analytics",
@@ -322,6 +338,11 @@ const Navbar = ({ isEmbedUser, params }) => {
         if (e.key === "c" || e.key === "C") {
           e.preventDefault();
           handleTabChange("configure");
+          gPressed = false;
+          if (timeoutId) clearTimeout(timeoutId);
+        } else if (e.key === "h" || e.key === "H") {
+          e.preventDefault();
+          handleTabChange("history");
           gPressed = false;
           if (timeoutId) clearTimeout(timeoutId);
         } else if (e.key === "a" || e.key === "A") {
