@@ -8,7 +8,7 @@ import {
   createApiKeyReducer,
   setBridgeApikeysByVersionReducer,
 } from "../reducer/apiKeysReducer";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { trackUserAction } from "@/utils/posthog";
 import { handleApiError, isNetworkError, getErrorMessage } from "@/utils/errorHandler";
 

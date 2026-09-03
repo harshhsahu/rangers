@@ -1,4 +1,4 @@
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import axios from "@/utils/interceptor";
 
 const URL = process.env.NEXT_PUBLIC_SERVER_URL;

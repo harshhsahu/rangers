@@ -5,7 +5,7 @@ import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
 import { MODAL_TYPE } from "@/utils/enums";
 import React, { useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Canvas from "../Canvas";
 import Modal from "../UI/Modal";
 import { closeModal } from "@/utils/utility";

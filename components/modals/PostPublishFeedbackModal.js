@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal } from "@/utils/utility";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "../UI/Modal";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { useDispatch } from "react-redux";

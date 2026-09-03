@@ -6,7 +6,7 @@ import { MODAL_TYPE, MIME_EXTENSION_MAP } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
 import { createResourceAction, updateResourceAction } from "@/store/action/knowledgeBaseAction";
 import { uploadImage } from "@/config/utilityApi";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
 import { FolderContext } from "@/components/folders/FolderContext";
 import { Database } from "lucide-react";

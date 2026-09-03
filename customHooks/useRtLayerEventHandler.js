@@ -14,7 +14,7 @@ import { updateAnalyticsFromRtLayer, addAnalyticsThread } from "@/store/reducer/
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import WebSocketClient from "rtlayer-client";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { didCurrentTabInitiateUpdate } from "@/utils/utility";
 import { RefreshIcon } from "@/components/Icons";
 import { buildLlmUrls } from "@/utils/attachmentUtils";
@@ -134,7 +134,7 @@ function useRtLayerEventHandler(channelIdentifier = "") {
           pauseOnHover: true,
           draggable: true,
           toastId: "agent-updated",
-          style: { border: "1px solid #ccc" },
+          style: { border: "1px solid var(--line)" },
         }
       );
     }

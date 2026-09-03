@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState, use, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, ChevronRight, Wrench, Bot, Settings, Funnel, Clock, Layers, Link2, Folder } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import PageHeader from "@/components/Pageheader";
 import MainLayout from "@/components/layoutComponents/MainLayout";
 import SearchItems from "@/components/UI/SearchItems";

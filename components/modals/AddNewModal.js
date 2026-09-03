@@ -4,7 +4,7 @@ import { CloseIcon } from "@/components/Icons";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { ChevronDown, ChevronRight, RefreshCw, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "../UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";

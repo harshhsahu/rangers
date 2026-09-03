@@ -2,7 +2,7 @@
 
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { AlertTriangle, Sparkles, SlidersHorizontal, Zap } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal } from "@/utils/utility";

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Send, Loader2, SearchCode } from "lucide-react";
 import { queryKnowledgeBase } from "@/config/knowledgeBaseApi";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal } from "@/utils/utility";
 import Modal from "../UI/Modal";

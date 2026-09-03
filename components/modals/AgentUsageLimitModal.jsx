@@ -6,7 +6,7 @@ import { closeModal } from "@/utils/utility";
 import { Settings2 } from "lucide-react";
 import { updateBridgeAction } from "@/store/action/bridgeAction";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 
 const UsageProgressDonut = ({ percent, label }) => (
   <div className="relative h-24 w-24 flex-shrink-0">

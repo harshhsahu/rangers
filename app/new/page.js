@@ -5,7 +5,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import Protected from "@/components/Protected";
 import { createAndStoreInternalJwt } from "@/utils/internalAuth";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { setCurrentOrgIdAction } from "@/store/action/orgAction";
 import { createBridgeAction, createAgentFromTemplateAction } from "@/store/action/bridgeAction";
 import { useRouter, useSearchParams } from "next/navigation";

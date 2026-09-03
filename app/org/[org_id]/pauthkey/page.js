@@ -14,7 +14,7 @@ import { closeModal, formatDate, formatRelativeTime, openModal } from "@/utils/u
 import { CopyIcon, TrashIcon } from "@/components/Icons";
 import React, { useEffect, useState, use } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import DeleteModal from "@/components/UI/DeleteModal";
 import Modal from "@/components/UI/Modal";
 import SearchItems from "@/components/UI/SearchItems";

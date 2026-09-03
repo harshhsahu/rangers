@@ -29,7 +29,7 @@ import {
   updateapi,
   uploadImage,
 } from "@/config/index";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import posthog, { trackAgentEvent } from "@/utils/posthog";
 import { handleApiError, isNetworkError } from "@/utils/errorHandler";
 import {

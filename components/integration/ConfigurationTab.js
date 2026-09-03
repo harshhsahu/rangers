@@ -7,7 +7,7 @@ import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateIntegrationDataAction } from "@/store/action/integrationAction";
 import { createApiAction, integrationAction, deleteFunctionAction } from "@/store/action/bridgeAction";
 import { setEmbedUserDetailsAction } from "@/store/action/appInfoAction";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { RefreshCw, Save } from "lucide-react";
 import ThemePaletteEditor, { hexToOklchString } from "./ThemePaletteEditor";
 import EmbedPromptBuilder from "../gtwy_embed/EmbedPromptBuilder";

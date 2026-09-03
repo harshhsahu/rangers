@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import ChannelsStep from "@/components/rangers/steps/ChannelsStep";
 import { CONNECTABLE_CHANNELS } from "@/components/rangers/rangerConstants";
 import { useConfigurationContext } from "../ConfigurationContext";

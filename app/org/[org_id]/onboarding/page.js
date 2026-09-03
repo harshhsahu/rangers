@@ -2,7 +2,7 @@
 
 import React, { use, useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import Protected from "@/components/Protected";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import useCreateRanger from "@/components/rangers/useCreateRanger";

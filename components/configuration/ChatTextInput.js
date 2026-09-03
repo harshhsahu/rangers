@@ -13,7 +13,7 @@ import {
 import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { SendHorizontalIcon, UploadIcon, LinkIcon, PlayIcon, CloseCircleIcon } from "@/components/Icons";
 import { Paperclip } from "lucide-react";
 import { PdfIcon } from "@/icons/pdfIcon";

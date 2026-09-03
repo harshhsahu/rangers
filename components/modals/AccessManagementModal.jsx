@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Modal from "../UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, getIconOfService } from "@/utils/utility";
-import { toast } from "react-toastify";
+import { toast } from "@/utils/toast";
 import { updateBridgeAction } from "@/store/action/bridgeAction";
 import { useDispatch } from "react-redux";
 import { UserCircleIcon } from "@/components/Icons";
