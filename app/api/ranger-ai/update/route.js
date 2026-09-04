@@ -30,6 +30,9 @@ export async function POST(request) {
     const threadId = typeof body?.thread_id === "string" ? body.thread_id.trim() : "";
     const agentId = typeof body?.agent_id === "string" ? body.agent_id.trim() : "";
     const versionId = typeof body?.version_id === "string" ? body.version_id.trim() : "";
+    // Arrays the version API replaces wholesale, plus what is available to attach. Sent
+    // as JSON strings because variables are substituted into the prompt as text.
+    const asJson = (value) => JSON.stringify(Array.isArray(value) ? value : []);
 
     if (!message) return NextResponse.json({ success: false, error: "message is required" }, { status: 400 });
     if (!threadId) return NextResponse.json({ success: false, error: "thread_id is required" }, { status: 400 });
@@ -74,6 +77,10 @@ export async function POST(request) {
           // capability is unavailable rather than handed a URL it cannot reach.
           frontend_url: frontendUrl,
           channels_available: frontendUrl ? "true" : "false",
+          server_url: (process.env.NEXT_PUBLIC_SERVER_URL || "").replace(/\/$/, ""),
+          current_mcp_servers: asJson(body?.current_mcp_servers),
+          current_doc_ids: asJson(body?.current_doc_ids),
+          available_knowledge_bases: asJson(body?.available_knowledge_bases),
         },
       }),
     });

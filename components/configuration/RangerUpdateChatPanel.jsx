@@ -114,6 +114,37 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
   const inputRef = useRef(null);
 
   const bridgeName = useCustomSelector((state) => state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.name || "");
+
+  /**
+   * Current MCP servers and knowledge bases, plus what the org has available to attach.
+   *
+   * Both are stored as whole arrays — the version API replaces `mcp_config.servers` and
+   * `doc_ids` outright rather than merging — so the agent has to send every entry it
+   * wants kept. Sending the current state as variables lets it do that without a read
+   * tool and without a second round trip: the store already holds all of it.
+   */
+  const versionState = useCustomSelector((state) => {
+    const version = state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId];
+    const servers = version?.configuration?.mcp_config?.servers;
+    return {
+      mcpServers: Array.isArray(servers) ? servers : [],
+      docIds: Array.isArray(version?.doc_ids) ? version.doc_ids : [],
+      orgId: state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.org_id || "",
+    };
+  });
+
+  // Only what the agent needs to resolve a name to an id — descriptions and titles, not
+  // the whole knowledge base record.
+  const availableKnowledgeBases = useCustomSelector((state) => {
+    const list = state?.knowledgeBaseReducer?.knowledgeBaseData?.[versionState.orgId];
+    if (!Array.isArray(list)) return [];
+    return list.map((item) => ({
+      resource_id: item?._id,
+      collection_id: item?.collectionId,
+      name: item?.title,
+      description: item?.description,
+    }));
+  });
   const agentInitial = (bridgeName || "R").trim().charAt(0).toUpperCase();
 
   /** One thread per version, so switching versions does not inherit the other's context. */
@@ -173,7 +204,18 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
         const res = await fetch("/api/ranger-ai/update", {
           method: "POST",
           headers: { "Content-Type": "application/json", ...(token ? { Authorization: token } : {}) },
-          body: JSON.stringify({ message: trimmed, thread_id: threadId, agent_id: bridgeId, version_id: versionId }),
+          body: JSON.stringify({
+            message: trimmed,
+            thread_id: threadId,
+            agent_id: bridgeId,
+            version_id: versionId,
+            // Sent per turn rather than held server-side: the user can edit either list
+            // in the left pane while the chat is open, and a stale copy would have the
+            // agent write back entries the user just deleted.
+            current_mcp_servers: versionState.mcpServers,
+            current_doc_ids: versionState.docIds,
+            available_knowledge_bases: availableKnowledgeBases,
+          }),
         });
 
         if (!res.ok || !res.body) {
@@ -265,7 +307,18 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
         setIsSending(false);
       }
     },
-    [bridgeId, dispatch, isSending, onChannelsChanged, patchLast, threadId, versionId]
+    [
+      availableKnowledgeBases,
+      bridgeId,
+      dispatch,
+      isSending,
+      onChannelsChanged,
+      patchLast,
+      threadId,
+      versionId,
+      versionState.docIds,
+      versionState.mcpServers,
+    ]
   );
 
   const handleSubmit = (event) => {

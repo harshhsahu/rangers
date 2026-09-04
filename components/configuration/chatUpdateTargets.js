@@ -17,6 +17,8 @@ export const UPDATE_TARGET = {
   MODEL_CONFIG: "MODEL_CONFIG",
   AGENT: "AGENT",
   CHANNEL: "CHANNEL",
+  MCP: "MCP",
+  KNOWLEDGE_BASE: "KNOWLEDGE_BASE",
 };
 
 /**
@@ -30,6 +32,8 @@ const TARGET_BY_TOOL = {
   update_agent_info: UPDATE_TARGET.AGENT,
   update_version_info: UPDATE_TARGET.MODEL_CONFIG,
   managerangerchannel: UPDATE_TARGET.CHANNEL,
+  managerangermcp: UPDATE_TARGET.MCP,
+  managerangerknowledgebase: UPDATE_TARGET.KNOWLEDGE_BASE,
 };
 
 /**
@@ -44,6 +48,8 @@ export const TARGET_LABEL = {
   [UPDATE_TARGET.MODEL_CONFIG]: "Model",
   [UPDATE_TARGET.AGENT]: "Agent",
   [UPDATE_TARGET.CHANNEL]: "Channel",
+  [UPDATE_TARGET.MCP]: "MCP servers",
+  [UPDATE_TARGET.KNOWLEDGE_BASE]: "Knowledge base",
 };
 
 /**
@@ -54,6 +60,9 @@ export const TARGET_LABEL = {
 const REFRESH_BY_TARGET = {
   [UPDATE_TARGET.PROMPT]: ({ dispatch, versionId }) => dispatch(getBridgeVersionAction({ versionId })),
   [UPDATE_TARGET.MODEL_CONFIG]: ({ dispatch, versionId }) => dispatch(getBridgeVersionAction({ versionId })),
+  // mcp_config and doc_ids both live on the version document, so they share its fetch.
+  [UPDATE_TARGET.MCP]: ({ dispatch, versionId }) => dispatch(getBridgeVersionAction({ versionId })),
+  [UPDATE_TARGET.KNOWLEDGE_BASE]: ({ dispatch, versionId }) => dispatch(getBridgeVersionAction({ versionId })),
   /**
    * Name and description live on the agent, not the version, so only the agent document
    * is re-read and merged into allBridgesMap.
