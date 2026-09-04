@@ -133,25 +133,26 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
    * wants kept. Sending the current state as variables lets it do that without a read
    * tool and without a second round trip: the store already holds all of it.
    */
+  /**
+   * The draft version as the agent sees it: everything it may read or write, in one
+   * object rather than a scalar per key.
+   *
+   * Passed whole so the agent decides what to change from what is actually stored,
+   * instead of this panel deciding in advance which keys are interesting — a config key
+   * we never thought to forward would otherwise be invisible to it.
+   */
   const versionState = useCustomSelector((state) => {
     const version = state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId];
     const servers = version?.configuration?.mcp_config?.servers;
-    const config = version?.configuration || {};
-    // The prompt is {role, goal, instruction} on newer versions and a bare string on
-    // older ones; both are passed through as written rather than coerced, so the agent
-    // sees what is actually stored.
-    const prompt = config.prompt;
     return {
+      configuration: {
+        service: version?.service || "",
+        ...(version?.configuration || {}),
+        doc_ids: Array.isArray(version?.doc_ids) ? version.doc_ids : [],
+      },
       mcpServers: Array.isArray(servers) ? servers : [],
       docIds: Array.isArray(version?.doc_ids) ? version.doc_ids : [],
       orgId: state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.org_id || "",
-      promptRole: typeof prompt === "object" ? prompt?.role || "" : "",
-      promptGoal: typeof prompt === "object" ? prompt?.goal || "" : "",
-      promptInstruction:
-        typeof prompt === "object" ? prompt?.instruction || "" : typeof prompt === "string" ? prompt : "",
-      service: version?.service || "",
-      model: config.model || "",
-      temperature: config.temperature ?? "",
     };
   });
 
@@ -263,16 +264,11 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
             // Sent per turn rather than held server-side: the user can edit either list
             // in the left pane while the chat is open, and a stale copy would have the
             // agent write back entries the user just deleted.
+            current_configuration: versionState.configuration,
             current_mcp_servers: versionState.mcpServers,
             current_doc_ids: versionState.docIds,
             available_knowledge_bases: availableKnowledgeBases,
             available_models: availableModels,
-            current_prompt_role: versionState.promptRole,
-            current_prompt_goal: versionState.promptGoal,
-            current_prompt_instruction: versionState.promptInstruction,
-            current_service: versionState.service,
-            current_model: versionState.model,
-            current_temperature: versionState.temperature,
           }),
         });
 
@@ -393,14 +389,9 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
       patchLast,
       threadId,
       versionId,
+      versionState.configuration,
       versionState.docIds,
       versionState.mcpServers,
-      versionState.model,
-      versionState.promptGoal,
-      versionState.promptInstruction,
-      versionState.promptRole,
-      versionState.service,
-      versionState.temperature,
     ]
   );
 
