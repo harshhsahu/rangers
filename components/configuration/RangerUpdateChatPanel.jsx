@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useDispatch } from "react-redux";
 import { ChevronRight, SendHorizontal, Wrench } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { toast } from "@/utils/toast";
+import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import { getAuthToken } from "@/utils/interceptor";
 import ReactMarkdown from "../LazyMarkdown";
 import { mdComponentsDark, mdProseClass, mdRemarkPlugins } from "@/utils/markdownComponents";
@@ -110,6 +111,15 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
    * reset after a page reload does not land back on a thread that was already used.
    */
   const [threadKey, setThreadKey] = useState("");
+
+  const hasUnsavedPrompt = useSyncExternalStore(
+    unsavedPromptGuard.subscribe,
+    unsavedPromptGuard.getSnapshot,
+    () => false
+  );
+  // Read at send time rather than render time — the guard flips while a turn is in flight.
+  const hasUnsavedPromptRef = useRef(hasUnsavedPrompt);
+  hasUnsavedPromptRef.current = hasUnsavedPrompt;
   const listRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -126,11 +136,52 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
   const versionState = useCustomSelector((state) => {
     const version = state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId];
     const servers = version?.configuration?.mcp_config?.servers;
+    const config = version?.configuration || {};
+    // The prompt is {role, goal, instruction} on newer versions and a bare string on
+    // older ones; both are passed through as written rather than coerced, so the agent
+    // sees what is actually stored.
+    const prompt = config.prompt;
     return {
       mcpServers: Array.isArray(servers) ? servers : [],
       docIds: Array.isArray(version?.doc_ids) ? version.doc_ids : [],
       orgId: state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.org_id || "",
+      promptRole: typeof prompt === "object" ? prompt?.role || "" : "",
+      promptGoal: typeof prompt === "object" ? prompt?.goal || "" : "",
+      promptInstruction:
+        typeof prompt === "object" ? prompt?.instruction || "" : typeof prompt === "string" ? prompt : "",
+      service: version?.service || "",
+      model: config.model || "",
+      temperature: config.temperature ?? "",
     };
+  });
+
+  /**
+   * Models the org can actually use, paired with the service that serves them.
+   *
+   * Kept paired rather than flattened to a name list because service and model are
+   * written together: moving to another provider's model without also changing `service`
+   * leaves the version pointing at a model its service does not have, which fails at the
+   * ranger's next message rather than at write time.
+   *
+   * Narrowed to the version's own model type so image and embedding models are never
+   * offered as chat models.
+   */
+  const availableModels = useCustomSelector((state) => {
+    const serviceModels = state?.modelReducer?.serviceModels || {};
+    const defaults = state?.serviceReducer?.default_model || {};
+    const modelType =
+      state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId]?.configuration?.type || "chat";
+
+    return Object.entries(serviceModels)
+      .map(([service, byType]) => ({
+        service,
+        // The model a service falls back to when one is not chosen, matching what
+        // ServiceDropdown writes on a service change — so switching provider from the
+        // chat lands on the same model it would from the UI.
+        default_model: defaults?.[service]?.model || null,
+        models: Object.keys(byType?.[modelType] || {}),
+      }))
+      .filter((entry) => entry.models.length > 0);
   });
 
   // Only what the agent needs to resolve a name to an id — descriptions and titles, not
@@ -215,6 +266,13 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
             current_mcp_servers: versionState.mcpServers,
             current_doc_ids: versionState.docIds,
             available_knowledge_bases: availableKnowledgeBases,
+            available_models: availableModels,
+            current_prompt_role: versionState.promptRole,
+            current_prompt_goal: versionState.promptGoal,
+            current_prompt_instruction: versionState.promptInstruction,
+            current_service: versionState.service,
+            current_model: versionState.model,
+            current_temperature: versionState.temperature,
           }),
         });
 
@@ -299,7 +357,25 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
           toast.success("Ranger updated");
         }
 
-        applyRangerUpdates(changes, { dispatch, bridgeId, versionId, onChannelsChanged });
+        /**
+         * A version refetch replaces the prompt in redux, which is what the editor renders
+         * from. If the user has typed there without saving, refreshing would discard it —
+         * so their unsaved text wins: the agent's write still landed, it is just not
+         * pulled onto the screen until they save or discard.
+         */
+        const blockPrompt =
+          hasUnsavedPromptRef.current && changes.some((change) => change.target === UPDATE_TARGET.PROMPT);
+        if (blockPrompt) {
+          toast.warning("Prompt updated, but you have unsaved edits open — save or discard them to see it.");
+        }
+
+        applyRangerUpdates(changes, {
+          dispatch,
+          bridgeId,
+          versionId,
+          onChannelsChanged,
+          blockedTargets: blockPrompt ? [UPDATE_TARGET.PROMPT] : [],
+        });
       } catch (err) {
         setSendError(err?.message || "Something went wrong. Try again.");
         setMessages((prev) => prev.filter((m) => m.id !== replyId));
@@ -309,6 +385,7 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
     },
     [
       availableKnowledgeBases,
+      availableModels,
       bridgeId,
       dispatch,
       isSending,
@@ -318,6 +395,12 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
       versionId,
       versionState.docIds,
       versionState.mcpServers,
+      versionState.model,
+      versionState.promptGoal,
+      versionState.promptInstruction,
+      versionState.promptRole,
+      versionState.service,
+      versionState.temperature,
     ]
   );
 

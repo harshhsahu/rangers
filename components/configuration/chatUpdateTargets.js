@@ -37,6 +37,9 @@ const TARGET_BY_TOOL = {
   // only has to pick a target that refreshes the version. The agent's own `changes`
   // entry is what distinguishes the two for labels and toasts.
   managerangerresources: UPDATE_TARGET.MCP,
+  // Writes prompt or configuration; both are the same version refetch. The agent's own
+  // `changes` entry distinguishes them for the toast and the row that flashes.
+  managerangerversion: UPDATE_TARGET.MODEL_CONFIG,
 };
 
 /**

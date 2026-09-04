@@ -81,6 +81,13 @@ export async function POST(request) {
           current_mcp_servers: asJson(body?.current_mcp_servers),
           current_doc_ids: asJson(body?.current_doc_ids),
           available_knowledge_bases: asJson(body?.available_knowledge_bases),
+          available_models: asJson(body?.available_models),
+          current_prompt_role: String(body?.current_prompt_role ?? ""),
+          current_prompt_goal: String(body?.current_prompt_goal ?? ""),
+          current_prompt_instruction: String(body?.current_prompt_instruction ?? ""),
+          current_service: String(body?.current_service ?? ""),
+          current_model: String(body?.current_model ?? ""),
+          current_temperature: String(body?.current_temperature ?? ""),
         },
       }),
     });
