@@ -39,6 +39,19 @@ export async function POST(request) {
 
     const pythonUrl = (process.env.NEXT_PUBLIC_PYTHON_SERVER_URL || "").replace(/\/$/, "");
     const pauthkey = process.env.GTWY_PAUTH_KEY;
+    /**
+     * Where the agent's tools reach THIS app. Separate from TELEGRAM_WEBHOOK_BASE_URL:
+     * that one is where Telegram delivers messages, which in a shared deployment is the
+     * hosted app, while a developer needs the agent to call back to their own machine —
+     * pointing both at the hosted app writes channel documents into the hosted database
+     * while the local UI reads its own, so the change appears to vanish.
+     */
+    const frontendUrl = (
+      process.env.RANGER_PUBLIC_URL ||
+      process.env.TELEGRAM_WEBHOOK_BASE_URL ||
+      process.env.NEXT_PUBLIC_FRONTEND_URL ||
+      ""
+    ).replace(/\/$/, "");
 
     if (!pythonUrl) throw new Error("NEXT_PUBLIC_PYTHON_SERVER_URL is not set");
     if (!pauthkey) throw new Error("GTWY_PAUTH_KEY is not set");
@@ -51,12 +64,16 @@ export async function POST(request) {
         agent_id: RANGER_UPDATE_AGENT_ID,
         thread_id: threadId,
         stream: true,
-        // Kept small on purpose. The agent's one tool needs the caller's token to act
-        // as them, and the id to address. Version config and channel origins are only
-        // passed once tools exist that use them.
         variables: {
           auth_token: token,
           agent_id: agentId,
+          version_id: versionId,
+          // The channel setup routes live in this app, not on the GTWY API, so the
+          // agent's tool needs a publicly reachable origin for them. Unset on a bare
+          // localhost dev server, hence the companion flag: the agent is told the
+          // capability is unavailable rather than handed a URL it cannot reach.
+          frontend_url: frontendUrl,
+          channels_available: frontendUrl ? "true" : "false",
         },
       }),
     });

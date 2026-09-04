@@ -27,38 +27,46 @@ const ChannelsPanel = () => {
   const [revealed, setRevealed] = useState({});
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (!versionId) return undefined;
-    let cancelled = false;
+  /**
+   * Reads the channel document back and mirrors it into local state. Extracted from the
+   * mount effect so the "Update the ranger" chat can trigger it after its agent connects
+   * or disconnects a channel — otherwise this panel would keep showing the state it
+   * loaded with until the page was reloaded.
+   */
+  const loadChannels = useCallback(async () => {
+    if (!versionId) return;
+    try {
+      const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+      const data = await res.json();
+      if (!data?.success) return;
 
-    (async () => {
-      try {
-        const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
-        const data = await res.json();
-        if (cancelled || !data?.success) return;
-
-        const connected = CONNECTABLE_CHANNELS.reduce((acc, channel) => {
-          if (data.data?.[channel.key]?.botToken) acc[channel.key] = true;
-          return acc;
-        }, {});
-        setConnectedChannels(connected);
-        // A bound channel opens expanded so its status and Disconnect are visible.
-        setChannels((prev) => {
-          const next = { ...prev };
-          Object.keys(connected).forEach((key) => {
-            next[key] = { ...next[key], enabled: true };
-          });
-          return next;
+      const connected = CONNECTABLE_CHANNELS.reduce((acc, channel) => {
+        if (data.data?.[channel.key]?.botToken) acc[channel.key] = true;
+        return acc;
+      }, {});
+      setConnectedChannels(connected);
+      // A bound channel opens expanded so its status and Disconnect are visible.
+      setChannels((prev) => {
+        const next = { ...prev };
+        Object.keys(connected).forEach((key) => {
+          next[key] = { ...next[key], enabled: true };
         });
-      } catch (err) {
-        console.error("Loading channel details failed", err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+        return next;
+      });
+    } catch (err) {
+      console.error("Loading channel details failed", err);
+    }
   }, [versionId]);
+
+  useEffect(() => {
+    loadChannels();
+  }, [loadChannels]);
+
+  // Raised by the update chat, which is not an ancestor of this panel.
+  useEffect(() => {
+    window.addEventListener("gtwy:channels-changed", loadChannels);
+    return () => window.removeEventListener("gtwy:channels-changed", loadChannels);
+  }, [loadChannels]);
 
   const setChannel = useCallback((key, patch) => {
     setChannels((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));

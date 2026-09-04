@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronRight, MessagesSquare } from "lucide-react";
 import { SparklesIcon, BotIcon, LinkIcon } from "@/components/Icons";
 import Modal from "@/components/UI/Modal";
@@ -60,29 +60,36 @@ const hasPromptContent = (value) => {
   return false;
 };
 
-/** Channel bindings live behind /api/channel-details, not in the bridge document. */
+/**
+ * Channel bindings live behind /api/channel-details, not in the bridge document, so
+ * there is no store slice to invalidate. The reload is also exposed to the
+ * "gtwy:channels-changed" event: the update chat's agent can bind a channel from the
+ * chat pane, and without this the row would keep its mount-time summary — no brand mark,
+ * still reading "Set up" — until the page was reloaded.
+ */
 const useConnectedChannels = (versionId) => {
   const [connected, setConnected] = useState([]);
 
-  useEffect(() => {
-    if (!versionId) return undefined;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
-        const data = await res.json();
-        if (cancelled || !data?.success) return;
-        setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken));
-      } catch (err) {
-        console.error("Loading channel details failed", err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+  const load = useCallback(async () => {
+    if (!versionId) return;
+    try {
+      const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+      const data = await res.json();
+      if (!data?.success) return;
+      setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken));
+    } catch (err) {
+      console.error("Loading channel details failed", err);
+    }
   }, [versionId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    window.addEventListener("gtwy:channels-changed", load);
+    return () => window.removeEventListener("gtwy:channels-changed", load);
+  }, [load]);
 
   return connected;
 };

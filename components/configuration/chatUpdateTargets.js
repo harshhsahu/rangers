@@ -29,7 +29,7 @@ export const UPDATE_TARGET = {
 const TARGET_BY_TOOL = {
   update_agent_info: UPDATE_TARGET.AGENT,
   update_version_info: UPDATE_TARGET.MODEL_CONFIG,
-  setup_channel: UPDATE_TARGET.CHANNEL,
+  managerangerchannel: UPDATE_TARGET.CHANNEL,
 };
 
 /**
@@ -67,8 +67,15 @@ const REFRESH_BY_TARGET = {
     const agent = response?.data?.agent;
     if (agent?._id) dispatch(fetchSingleBridgeReducer({ bridge: agent }));
   },
-  // Channel docs are Mongo-backed and outside redux, so the owner passes its own reload.
-  [UPDATE_TARGET.CHANNEL]: ({ onChannelsChanged }) => onChannelsChanged?.(),
+  /**
+   * Channel documents are Mongo-backed and outside redux, so there is no store slice to
+   * invalidate. ChannelsPanel owns its own fetch and listens for this event; a caller
+   * that renders channels differently can pass onChannelsChanged instead.
+   */
+  [UPDATE_TARGET.CHANNEL]: ({ onChannelsChanged }) => {
+    if (onChannelsChanged) return onChannelsChanged();
+    return window.dispatchEvent(new CustomEvent("gtwy:channels-changed"));
+  },
 };
 
 /**

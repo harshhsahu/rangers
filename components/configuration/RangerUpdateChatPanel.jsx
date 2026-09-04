@@ -4,10 +4,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useDispatch } from "react-redux";
 import { ChevronRight, SendHorizontal, Wrench } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
+import { toast } from "@/utils/toast";
 import { getAuthToken } from "@/utils/interceptor";
 import ReactMarkdown from "../LazyMarkdown";
 import { mdComponentsDark, mdProseClass, mdRemarkPlugins } from "@/utils/markdownComponents";
-import { applyRangerUpdates, targetForTool, UPDATE_TARGET } from "./chatUpdateTargets";
+import { applyRangerUpdates, targetForTool, TARGET_LABEL, UPDATE_TARGET } from "./chatUpdateTargets";
 
 const STARTERS = ["Rename it to Support Ranger", "Give it a shorter name", "What is this ranger called?"];
 
@@ -52,11 +53,31 @@ const declaredChanges = (raw) => {
     const parsed = JSON.parse(text);
     if (!Array.isArray(parsed?.changes)) return [];
     return parsed.changes
-      .filter((change) => change?.status === "success" && UPDATE_TARGET[change.target])
-      .map((change) => ({ target: change.target, status: "success" }));
+      .filter((change) => UPDATE_TARGET[change?.target])
+      .map((change) => ({
+        target: change.target,
+        status: change.status === "success" ? "success" : "failed",
+        detail: typeof change.detail === "string" ? change.detail : "",
+      }));
   } catch {
     return [];
   }
+};
+
+/**
+ * The chat pane can be scrolled away from, or the user may be reading the left pane while
+ * the agent works, so a change that only shows up as a refreshed row is easy to miss. One
+ * toast per reported change, using the agent's own one-line detail where it wrote one.
+ */
+const announceChanges = (changes) => {
+  changes.forEach((change) => {
+    const label = TARGET_LABEL[change.target] || change.target;
+    if (change.status === "success") {
+      toast.success(change.detail || `${label} updated`);
+    } else {
+      toast.error(change.detail || `${label} could not be updated`);
+    }
+  });
 };
 
 /** One tool call, rendered like the playground's — name, args, and how it ended. */
@@ -83,11 +104,12 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
   /**
-   * Bumped by the header's "New thread" button. It is part of the thread id, so a reset
+   * Set by the header's "New thread" button. It is part of the thread id, so a reset
    * gives the agent a genuinely fresh conversation rather than just clearing the screen
-   * while it keeps answering with the old context.
+   * while it keeps answering with the old context. Random rather than a counter, so a
+   * reset after a page reload does not land back on a thread that was already used.
    */
-  const [threadSeq, setThreadSeq] = useState(0);
+  const [threadKey, setThreadKey] = useState("");
   const listRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -96,8 +118,8 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
 
   /** One thread per version, so switching versions does not inherit the other's context. */
   const threadId = useMemo(
-    () => `ranger-update-${versionId || "unknown"}${threadSeq ? `-${threadSeq}` : ""}`,
-    [versionId, threadSeq]
+    () => `ranger-update-${versionId || "unknown"}${threadKey ? `-${threadKey}` : ""}`,
+    [versionId, threadKey]
   );
 
   useEffect(() => {
@@ -111,7 +133,7 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
       setMessages([]);
       setSendError("");
       setInput("");
-      setThreadSeq((seq) => seq + 1);
+      setThreadKey(Math.random().toString(36).slice(2, 10));
     };
     window.addEventListener("gtwy:new-ranger-update-thread", startNewThread);
     return () => window.removeEventListener("gtwy:new-ranger-update-thread", startNewThread);
@@ -214,12 +236,28 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
           .map((tool) => ({ target: targetForTool(tool.name), status: "success" }));
         // applyRangerUpdates de-dupes by target, so overlap between the two sources
         // costs nothing.
-        applyRangerUpdates([...fromTools, ...declaredChanges(raw)], {
-          dispatch,
-          bridgeId,
-          versionId,
-          onChannelsChanged,
-        });
+        const declared = declaredChanges(raw);
+        // Only what the agent reported is announced: the tool-derived entries exist to
+        // drive refreshes and carry no wording of their own, and the blanket fallback
+        // below is a safety net, not something worth four toasts.
+        announceChanges(declared);
+
+        let changes = [...fromTools, ...declared.filter((change) => change.status === "success")];
+
+        /**
+         * A tool ran but nothing named a target — the tool was renamed agent-side, or the
+         * reply was not structured. Refreshing everything is a few cheap reads and is far
+         * better than the alternative: the user watching the agent report success against
+         * a screen that still shows the old value.
+         */
+        if (!changes.length && firedTools.length) {
+          changes = Object.values(UPDATE_TARGET).map((target) => ({ target, status: "success" }));
+          // Nothing named a target, so there is no detail to quote — but the user still
+          // ran something and deserves to be told it landed.
+          toast.success("Ranger updated");
+        }
+
+        applyRangerUpdates(changes, { dispatch, bridgeId, versionId, onChannelsChanged });
       } catch (err) {
         setSendError(err?.message || "Something went wrong. Try again.");
         setMessages((prev) => prev.filter((m) => m.id !== replyId));
