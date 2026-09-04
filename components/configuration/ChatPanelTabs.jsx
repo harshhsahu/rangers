@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 /**
  * The right-hand pane of the ranger config screen. It used to open with the
@@ -9,7 +9,7 @@ import { RotateCcw, Sparkles } from "lucide-react";
  * lives at the top of the left pane, so this pane is purely the two chats:
  *
  *   - Test the ranger — the playground, run against the unsaved prompt.
- *   - Update the ranger — the prompt helper, which rewrites the prompt.
+ *   - Update the ranger — the chat that edits this ranger's prompt, model and channels.
  *
  * Both stay mounted and the inactive one is hidden, so switching tabs does not
  * throw away a conversation.
@@ -19,51 +19,7 @@ const TABS = [
   { key: "helper", label: "Update the ranger" },
 ];
 
-/**
- * Placeholder for the helper tab while it is being built. It keeps the pane's
- * shape — same empty state, same composer — so the tab reads as unfinished
- * rather than broken, with every control inert.
- */
-const ComingSoonPane = ({ idPrefix }) => (
-  <div
-    id={`${idPrefix}-coming-soon`}
-    data-testid="chat-panel-coming-soon"
-    className="rg-chat-pane flex min-h-0 flex-1 flex-col"
-  >
-    <div className="rg-chat-scroll flex min-h-0 flex-1 flex-col items-center justify-center gap-3.5 text-center">
-      <span className="rg-chat-card-avatar">
-        <Sparkles size={15} />
-      </span>
-      <div>
-        <p className="text-[14.5px] font-semibold text-base-content">Coming soon</p>
-        <p className="pt-1 text-[12.5px] text-soft">
-          Updating the ranger from chat is on the way. Edit it from the sections on the left for now.
-        </p>
-      </div>
-    </div>
-
-    {/* Inert composer: shown so the pane keeps its shape, never focusable. */}
-    <div className="rg-chat-composer opacity-60">
-      <div className="flex items-end gap-[9px]">
-        <textarea
-          className="rg-chat-input cursor-not-allowed"
-          rows={1}
-          disabled
-          readOnly
-          tabIndex={-1}
-          aria-disabled="true"
-          placeholder="Coming soon"
-          data-testid="chat-panel-coming-soon-input"
-        />
-        <button type="button" className="rg-chat-send cursor-not-allowed" disabled tabIndex={-1} aria-hidden="true">
-          <Sparkles size={15} />
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const ChatPanelTabs = ({ testPanel, helperPanel, idPrefix = "chat-panel", helperComingSoon = false }) => {
+const ChatPanelTabs = ({ testPanel, helperPanel, idPrefix = "chat-panel" }) => {
   const [activeTab, setActiveTab] = useState("test");
 
   return (
@@ -74,7 +30,6 @@ const ChatPanelTabs = ({ testPanel, helperPanel, idPrefix = "chat-panel", helper
         <div className="inline-flex flex-none items-center gap-[3px] rounded-[10px] bg-paper-sunken p-[3px]">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.key;
-            const isSoon = tab.key === "helper" && helperComingSoon;
             return (
               <button
                 key={tab.key}
@@ -87,11 +42,6 @@ const ChatPanelTabs = ({ testPanel, helperPanel, idPrefix = "chat-panel", helper
                 }`}
               >
                 {tab.label}
-                {isSoon && (
-                  <span className="rounded bg-acc-soft px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-acc-deep">
-                    Soon
-                  </span>
-                )}
               </button>
             );
           })}
@@ -99,13 +49,17 @@ const ChatPanelTabs = ({ testPanel, helperPanel, idPrefix = "chat-panel", helper
 
         <span className="flex-1" />
 
-        {/* The playground's reset lives up here rather than in a second bar of
-            its own; Chat listens for the event because it is a sibling. */}
-        {activeTab === "test" && (
+        {/* Each pane's reset lives up here rather than in a second bar of its own; the
+            panes listen for their own event because they are siblings, not children. */}
+        {(activeTab === "test" || activeTab === "helper") && (
           <button
             type="button"
-            data-testid="chat-panel-new-thread"
-            onClick={() => window.dispatchEvent(new CustomEvent("gtwy:new-thread"))}
+            data-testid={activeTab === "test" ? "chat-panel-new-thread" : "chat-panel-new-update-thread"}
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent(activeTab === "test" ? "gtwy:new-thread" : "gtwy:new-ranger-update-thread")
+              )
+            }
             title="Start a new thread"
             className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-soft transition-colors hover:text-base-content"
           >
@@ -122,7 +76,7 @@ const ChatPanelTabs = ({ testPanel, helperPanel, idPrefix = "chat-panel", helper
         data-testid="chat-panel-helper"
         className={activeTab === "helper" ? "flex min-h-0 flex-1 flex-col" : "hidden"}
       >
-        {helperComingSoon ? <ComingSoonPane idPrefix={idPrefix} /> : helperPanel}
+        {helperPanel}
       </div>
     </div>
   );

@@ -22,6 +22,9 @@ const Chat = dynamic(() => import("@/components/configuration/Chat"), { loading:
 const PromptHelper = dynamic(() => import("@/components/PromptHelper"), { ssr: false });
 const NotesPanel = dynamic(() => import("@/components/NotesPanel"), { ssr: false });
 const ChatPanelTabs = dynamic(() => import("@/components/configuration/ChatPanelTabs"), { ssr: false });
+const RangerUpdateChatPanel = dynamic(() => import("@/components/configuration/RangerUpdateChatPanel"), {
+  ssr: false,
+});
 const ConfigurationSkeleton = dynamic(() => import("@/components/skeletons/ConfigurationSkeleton"), { ssr: false });
 
 export const runtime = "edge";
@@ -824,7 +827,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     <div id="parentChatbot" className="h-full flex flex-col">
                       <ChatPanelTabs
                         idPrefix="chat"
-                        helperComingSoon
                         testPanel={
                           <div id="chat-content-container" className="flex-1 min-h-0">
                             <Chat
@@ -836,8 +838,12 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                           </div>
                         }
                         helperPanel={
-                          <div id="chat-prompt-helper-container" className="flex-1 min-h-0">
-                            <PromptHelper id="chat-prompt-helper" isVisible showHeader={false} {...promptHelperProps} />
+                          <div id="chat-ranger-update-container" className="flex min-h-0 flex-1 flex-col">
+                            <RangerUpdateChatPanel
+                              idPrefix="chat-ranger-update"
+                              bridgeId={resolvedParams?.id}
+                              versionId={resolvedSearchParams?.version}
+                            />
                           </div>
                         }
                       />
@@ -994,7 +1000,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               <div id="mobile-chat-container" className="h-full flex flex-col">
                 <ChatPanelTabs
                   idPrefix="mobile-chat"
-                  helperComingSoon
                   testPanel={
                     <div id="mobile-chat-content-container" className="flex-1 min-h-0">
                       <Chat
@@ -1006,12 +1011,11 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     </div>
                   }
                   helperPanel={
-                    <div id="mobile-chat-prompt-helper-container" className="flex-1 min-h-0">
-                      <PromptHelper
-                        id="mobile-chat-prompt-helper"
-                        isVisible
-                        showHeader={false}
-                        {...promptHelperProps}
+                    <div id="mobile-chat-ranger-update-container" className="flex min-h-0 flex-1 flex-col">
+                      <RangerUpdateChatPanel
+                        idPrefix="mobile-chat-ranger-update"
+                        bridgeId={resolvedParams?.id}
+                        versionId={resolvedSearchParams?.version}
                       />
                     </div>
                   }
