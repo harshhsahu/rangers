@@ -32,8 +32,11 @@ const TARGET_BY_TOOL = {
   update_agent_info: UPDATE_TARGET.AGENT,
   update_version_info: UPDATE_TARGET.MODEL_CONFIG,
   managerangerchannel: UPDATE_TARGET.CHANNEL,
-  managerangermcp: UPDATE_TARGET.MCP,
-  managerangerknowledgebase: UPDATE_TARGET.KNOWLEDGE_BASE,
+  // One tool covers both MCP servers and knowledge bases. Either way the change lands on
+  // the version document, and MCP and KNOWLEDGE_BASE share its refetch — so this mapping
+  // only has to pick a target that refreshes the version. The agent's own `changes`
+  // entry is what distinguishes the two for labels and toasts.
+  managerangerresources: UPDATE_TARGET.MCP,
 };
 
 /**
@@ -116,6 +119,15 @@ export const applyRangerUpdates = (
       console.error(`Refreshing ${target} after a ranger update failed`, error);
     }
   });
+
+  /**
+   * Announces what was refreshed so the setup rows can show which one moved. Without it
+   * a value simply changes underneath the user, who was looking at the chat and has no
+   * idea which of the four rows to check.
+   */
+  if (refreshed.length) {
+    window.dispatchEvent(new CustomEvent("gtwy:ranger-refreshed", { detail: { targets: refreshed } }));
+  }
 
   return refreshed;
 };
