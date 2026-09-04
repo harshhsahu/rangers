@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Link2, Maximize2, Minimize2, Plus } from "lucide-react";
+import { Link2, Maximize2, Minimize2, Pencil, Plus } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getAllFunctions } from "@/store/action/bridgeAction";
 import useConnectorEmbed from "../useConnectorEmbed";
@@ -22,6 +22,8 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
   const [errors, setErrors] = useState({});
   // Bumping this tears the builder down and opens a fresh one in the box.
   const [reloadKey, setReloadKey] = useState(0);
+  // script_id of the tool the builder is editing, or null while building a new one.
+  const [editScriptId, setEditScriptId] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   // Set by the ref callback below, so the open effect runs only once the target
   // box is actually in the DOM (it is rendered conditionally).
@@ -45,6 +47,7 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
     embedToken,
     host: embedHost,
     reloadKey,
+    scriptId: editScriptId,
     meta: { type: "tool", createFrom: "Ranger Connectors" },
   });
 
@@ -52,6 +55,15 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
   const reloadBuilder = () => {
     clearEmbedError();
     dispatch(getAllFunctions());
+    setEditScriptId(null);
+    setReloadKey((key) => key + 1);
+  };
+
+  /** Reopens an existing tool in the same box. reloadKey forces the embed to remount. */
+  const editTool = (scriptId) => {
+    if (!scriptId) return;
+    clearEmbedError();
+    setEditScriptId(scriptId);
     setReloadKey((key) => key + 1);
   };
 
@@ -63,6 +75,7 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
           const integration = integrationData?.[tool?.script_id] || {};
           return {
             id: tool._id,
+            scriptId: tool.script_id,
             name: tool.title || integration.title || tool.script_id || "Untitled tool",
             description: tool.description || integration.description || tool.script_id || "",
             icon: integration.serviceIcons?.[0] || null,
@@ -191,6 +204,17 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
                     <div className="truncate text-[13px] font-bold text-ink">{tool.name}</div>
                     <div className="truncate text-[11px] text-soft">{tool.description}</div>
                   </div>
+
+                  <button
+                    type="button"
+                    data-testid={`ranger-connector-edit-${tool.id}`}
+                    title="Edit this connector"
+                    className="btn btn-ghost btn-xs btn-square"
+                    disabled={!embedToken || !tool.scriptId}
+                    onClick={() => editTool(tool.scriptId)}
+                  >
+                    <Pencil size={12} />
+                  </button>
 
                   <button
                     type="button"

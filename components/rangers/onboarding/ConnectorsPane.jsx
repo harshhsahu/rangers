@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Database, FilePlus, Link2, Plus, Server } from "lucide-react";
+import { Database, FilePlus, Link2, Pencil, Plus, Server } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getAllFunctions } from "@/store/action/bridgeAction";
 import KnowledgeBaseModal from "@/components/modals/KnowledgeBaseModal";
@@ -45,6 +45,8 @@ const ConnectorsPane = ({
   const dispatch = useDispatch();
   const [builderOpen, setBuilderOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  // script_id of the tool the builder is editing, or null while building a new one.
+  const [editScriptId, setEditScriptId] = useState(null);
   const [embedHost, setEmbedHost] = useState(null);
   const [mcpFormOpen, setMcpFormOpen] = useState(false);
   const [mcpName, setMcpName] = useState("");
@@ -68,6 +70,7 @@ const ConnectorsPane = ({
     embedToken,
     host: embedHost,
     reloadKey,
+    scriptId: editScriptId,
     enabled: builderOpen,
     meta: { type: "tool", createFrom: "Ranger Onboarding" },
   });
@@ -80,6 +83,7 @@ const ConnectorsPane = ({
           const integration = integrationData?.[tool?.script_id] || {};
           return {
             id: tool._id,
+            scriptId: tool.script_id,
             name: tool.title || integration.title || tool.script_id || "Untitled tool",
             description: tool.description || integration.description || tool.script_id || "",
             icon: integration.serviceIcons?.[0] || null,
@@ -88,10 +92,12 @@ const ConnectorsPane = ({
     [functionData, integrationData]
   );
 
-  const openBuilder = () => {
+  /** `scriptId` reopens an existing tool; omitted, the builder starts blank. */
+  const openBuilder = (scriptId = null) => {
     clearEmbedError();
     // A tool built in the embed only shows up in the list after a refetch.
     dispatch(getAllFunctions());
+    setEditScriptId(scriptId);
     setReloadKey((key) => key + 1);
     setBuilderOpen(true);
   };
@@ -132,7 +138,7 @@ const ConnectorsPane = ({
           data-testid="onboarding-new-connector-button"
           id="onboarding-new-connector-button"
           disabled={!embedToken}
-          onClick={openBuilder}
+          onClick={() => openBuilder()}
           className="inline-flex flex-none items-center gap-[6px] rounded-[10px] bg-acc px-[14px] py-[9px] text-[12.5px] font-bold text-acc-ink disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Plus size={14} />
@@ -163,7 +169,7 @@ const ConnectorsPane = ({
               {embedError && (
                 <div className="absolute inset-0 grid place-items-center gap-2 px-4 text-center">
                   <p className="text-[12px] text-error">{embedError}</p>
-                  <button type="button" className="btn btn-xs" onClick={openBuilder}>
+                  <button type="button" className="btn btn-xs" onClick={() => openBuilder()}>
                     Retry
                   </button>
                 </div>
@@ -286,6 +292,16 @@ const ConnectorsPane = ({
                       <span className="block truncate text-[13px] font-semibold text-ink">{tool.name}</span>
                       <span className="block truncate text-[11px] text-soft">{tool.description}</span>
                     </span>
+                    <button
+                      type="button"
+                      title="Edit this connector"
+                      data-testid={`onboarding-tool-edit-${tool.id}`}
+                      disabled={!embedToken || !tool.scriptId}
+                      onClick={() => openBuilder(tool.scriptId)}
+                      className="grid h-[26px] w-[26px] flex-none place-items-center rounded-[8px] border border-line text-soft transition-colors hover:text-ink disabled:opacity-40"
+                    >
+                      <Pencil size={12} />
+                    </button>
                     <button
                       type="button"
                       aria-pressed={isPicked}

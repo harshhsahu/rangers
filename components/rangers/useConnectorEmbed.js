@@ -48,6 +48,9 @@ const dockWrapper = (wrapper, target) => {
 /**
  * Opens the ViaSocket tool builder and docks it into `host`.
  *
+ * `scriptId` is the tool to reopen for editing; omitted, the builder starts blank. It is
+ * the embed's own first argument, and passing undefined is what makes it a create.
+ *
  * Both the embed token and the script-provided `window.openViasocket` arrive
  * asynchronously and in no fixed order, so readiness is polled rather than
  * guessed at with a fixed delay. Bumping `reloadKey` tears the builder down and
@@ -56,7 +59,7 @@ const dockWrapper = (wrapper, target) => {
  * Returns `{ error }` — a message once the script has had long enough to load
  * and still is not there, otherwise null.
  */
-const useConnectorEmbed = ({ embedToken, host, reloadKey = 0, enabled = true, meta }) => {
+const useConnectorEmbed = ({ embedToken, host, reloadKey = 0, enabled = true, meta, scriptId = null }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -90,7 +93,7 @@ const useConnectorEmbed = ({ embedToken, host, reloadKey = 0, enabled = true, me
       }
 
       setError(null);
-      window.openViasocket(undefined, { embedToken, meta });
+      window.openViasocket(scriptId || undefined, { embedToken, meta });
 
       // The embed injects its wrapper a tick after opening; poll for that too
       // rather than assuming it lands within a fixed delay.
@@ -127,7 +130,7 @@ const useConnectorEmbed = ({ embedToken, host, reloadKey = 0, enabled = true, me
     // `meta` is a literal at every call site; leaving it out of the deps keeps
     // the builder from being torn down and reopened on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [embedToken, host, reloadKey, enabled]);
+  }, [embedToken, host, reloadKey, enabled, scriptId]);
 
   return { error, clearError: () => setError(null) };
 };
