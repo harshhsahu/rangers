@@ -1,5 +1,4 @@
 import axios from "@/utils/interceptor";
-import { setInCookies } from "@/utils/utility";
 import { toast } from "@/utils/toast";
 
 const URL = process.env.NEXT_PUBLIC_SERVER_URL;
@@ -30,7 +29,6 @@ export const getAllOrg = async () => {
 export const switchOrg = async (company_ref_id) => {
   try {
     const data = await axios.post(`${PROXY_URL}/api/c/switchCompany`, { company_ref_id });
-    setInCookies("current_org_id", company_ref_id);
     return data;
   } catch (error) {
     console.error(error);
