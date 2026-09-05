@@ -30,16 +30,18 @@ export const UPDATE_TARGET = {
  */
 const TARGET_BY_TOOL = {
   update_agent_info: UPDATE_TARGET.AGENT,
-  update_version_info: UPDATE_TARGET.MODEL_CONFIG,
   managerangerchannel: UPDATE_TARGET.CHANNEL,
-  // One tool covers both MCP servers and knowledge bases. Either way the change lands on
-  // the version document, and MCP and KNOWLEDGE_BASE share its refetch — so this mapping
-  // only has to pick a target that refreshes the version. The agent's own `changes`
-  // entry is what distinguishes the two for labels and toasts.
-  managerangerresources: UPDATE_TARGET.MCP,
-  // Writes prompt or configuration; both are the same version refetch. The agent's own
-  // `changes` entry distinguishes them for the toast and the row that flashes.
+  // One tool covers both MCP servers and knowledge bases; either way the change lands on
+  // the version document, and MCP and KNOWLEDGE_BASE share its refetch — so this only has
+  // to pick a target that refreshes the version. The agent's own `changes` entry is what
+  // distinguishes the two for labels and toasts.
+  managerangerresourcesmcpkb: UPDATE_TARGET.MCP,
+  // Writes prompt, configuration or settings; all are the same version refetch. The
+  // agent's `changes` entry distinguishes prompt edits from config for the flashed row.
+  // Both names are mapped because the configured tool has been renamed before and a
+  // mismatch costs the user their refresh silently.
   managerangerversion: UPDATE_TARGET.MODEL_CONFIG,
+  managerangerversion_2: UPDATE_TARGET.MODEL_CONFIG,
 };
 
 /**
