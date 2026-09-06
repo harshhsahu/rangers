@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useDispatch } from "react-redux";
-import { ChevronRight, SendHorizontal, Wrench } from "lucide-react";
+import { CheckCircle2, ChevronRight, SendHorizontal, Wrench, XCircle } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { toast } from "@/utils/toast";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
@@ -81,14 +81,54 @@ const announceChanges = (changes) => {
   });
 };
 
-/** One tool call, rendered like the playground's — name, args, and how it ended. */
-const ToolCallChip = ({ call }) => (
-  <div className="rg-chat-trace" data-testid={`ranger-update-tool-${call.name}`}>
-    <Wrench size={11} className="opacity-70" />
-    <span className="font-semibold">{call.name}</span>
-    <span>{call.status === "calling" ? "running…" : call.status === "failed" ? "failed" : "done"}</span>
-  </div>
-);
+/**
+ * Did the tool actually succeed?
+ *
+ * A tool_result event only means the tool returned — it fires just the same when the API
+ * answered 401. Every tool reports a false success flag and an error string when it
+ * fails, so the result body is what decides, not the event.
+ */
+const toolSucceeded = (content) => {
+  let value = content;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed.startsWith("{")) return !/^error/i.test(trimmed);
+    try {
+      value = JSON.parse(trimmed);
+    } catch {
+      return true;
+    }
+  }
+  if (!value || typeof value !== "object") return true;
+  if (value.success === false) return false;
+  if (value.error) return false;
+  return true;
+};
+
+/** One tool call: what ran, and how it ended. */
+const ToolCallChip = ({ call }) => {
+  const failed = call.status === "failed";
+  return (
+    <div
+      className="rg-chat-trace w-full justify-between"
+      data-testid={`ranger-update-tool-${call.name}`}
+      title={call.detail || ""}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        <Wrench size={11} className="flex-none opacity-70" />
+        <span className="truncate font-semibold">{call.name}</span>
+      </span>
+
+      {call.status === "calling" ? (
+        <span className="loading loading-spinner loading-xs flex-none opacity-70" aria-label="running" />
+      ) : failed ? (
+        <XCircle size={13} className="flex-none text-error" aria-label="failed" />
+      ) : (
+        <CheckCircle2 size={13} className="flex-none text-success" aria-label="succeeded" />
+      )}
+    </div>
+  );
+};
 
 /**
  * "Update the ranger" — the chat that edits this agent instead of talking to it.
@@ -311,7 +351,11 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
               patchLast(replyId, { toolCalls: [...firedTools] });
             } else if (parsed.event === "tool_result") {
               const entry = firedTools.find((t) => t.name === parsed.name && t.status === "calling");
-              if (entry) entry.status = "done";
+              if (entry) {
+                const ok = toolSucceeded(parsed.content);
+                entry.status = ok ? "done" : "failed";
+                if (!ok) entry.detail = typeof parsed.content === "string" ? parsed.content : "";
+              }
               patchLast(replyId, { toolCalls: [...firedTools] });
             } else if (parsed.event === "error") {
               throw new Error(parsed.error || parsed.content || "The assistant hit an error.");
