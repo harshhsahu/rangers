@@ -23,14 +23,18 @@ const RangerGrid = ({
 }) => (
   <div
     data-testid="ranger-grid"
-    className="grid grid-cols-1 items-stretch gap-[14px] pb-10 pt-[14px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+    className="grid items-stretch gap-[14px] pb-10 pt-[14px]"
+    // auto-fill at a 300px floor, matching the design source: cards keep a readable width
+    // at every breakpoint instead of being squeezed to five across on a wide screen.
+    style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}
   >
-    {rows.map((row) => {
+    {rows.map((row, index) => {
       const raw = rawById?.get(String(row._id));
       return (
         <RangerCard
           key={row._id}
           row={row}
+          index={index}
           ranger={readRangerMeta(raw)}
           channels={channelsByAgentId?.get(String(row._id)) || []}
           metrics={raw?.metrics}

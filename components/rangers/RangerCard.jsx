@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { EllipsisVertical } from "lucide-react";
 import { ClockIcon } from "@/components/Icons";
 import OpenAiIcon from "@/icons/OpenAiIcon";
 import { RANGER_CHANNELS, CALLSIGN_BY_HEX } from "./rangerConstants";
@@ -12,9 +11,9 @@ const CHANNEL_BY_KEY = RANGER_CHANNELS.reduce((acc, channel) => {
 }, {});
 
 /**
- * Helmet art per swatch. Only five helmets exist, so purple borrows blue and pink borrows
- * red — the image sits at 13% opacity behind a radial mask, where hue matters more than
- * the exact colour.
+ * Helmet art per swatch. Only five helmets exist for seven swatches, so purple borrows
+ * blue and pink borrows red — at 13% opacity behind a radial mask, hue carries the
+ * identity and the exact colour does not.
  */
 const HELMET_BY_HEX = {
   "#E03131": "red",
@@ -32,7 +31,7 @@ const formatNumber = (value, digits = 0) => {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: digits }).format(numeric);
 };
 
-/** The ranger's accent at a given alpha, for tints the theme tokens cannot express. */
+/** The ranger's accent at a given alpha, for tints no theme token can express. */
 const tint = (hex, alpha) => {
   const value = String(hex || "").replace("#", "");
   if (value.length !== 6) return `rgba(0,0,0,${alpha})`;
@@ -43,16 +42,17 @@ const tint = (hex, alpha) => {
 };
 
 /**
- * A single ranger in the squad grid.
+ * A single ranger in the squad grid, built to the design source's measurements.
  *
- * `row` is the same shape the table consumes (built in the agents page), plus
- * `ranger` for the colour/role read out of `meta.ranger`, and `channels` (keys
- * of the messaging channels this agent has credentials for).
+ * `row` is the same shape the table consumes (built in the agents page), plus `ranger`
+ * for the colour/role read out of `meta.ranger`, and `channels` (keys of the messaging
+ * channels this agent has credentials for). `index` is the roster position, shown as the
+ * card's number.
  *
- * The subtitle reads "<callsign> · <role>": the callsign comes from the swatch
- * so every ranger has one even before a role is written.
+ * The subtitle reads "<callsign> · <role>": the callsign comes from the swatch so every
+ * ranger has one even before a role is written.
  */
-const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, onHover, onMenuClick }) => {
+const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0, onOpen, onHover, onMenuClick }) => {
   const [channelsOpen, setChannelsOpen] = useState(false);
   const [hot, setHot] = useState(false);
   const isPaused = row?.bridge_status === 0;
@@ -61,8 +61,8 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
   const subtitle = ranger?.role ? `${callsign} · ${ranger.role.toLowerCase()}` : callsign;
   const helmet = HELMET_BY_HEX[accent] || "red";
 
-  // "On duty" means the ranger has actually run. Usage is the only signal here that
-  // distinguishes a configured ranger from a working one.
+  // "On duty" means the ranger has actually run inside the active usage window. Usage is
+  // the only signal here that separates a configured ranger from a working one.
   const live = Boolean(row.lastRunLabel && row.lastRunLabel !== "—");
 
   /** Power bar under each usage figure. Fills once on mount, and only when there is usage. */
@@ -76,6 +76,8 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
     opacity: live ? 1 : 0.6,
     animation: live ? "rgPower .9s cubic-bezier(.2,.8,.3,1) both" : "none",
   });
+
+  const dot = { width: "3px", height: "3px", borderRadius: "999px", background: "var(--soft)" };
 
   return (
     <article
@@ -98,8 +100,9 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
         setHot(false);
         setChannelsOpen(false);
       }}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-[16px] bg-card"
+      className="group relative flex cursor-pointer flex-col overflow-hidden bg-card"
       style={{
+        borderRadius: "18px",
         border: `1px solid ${hot ? tint(accent, 0.55) : "var(--line)"}`,
         boxShadow: hot
           ? `0 18px 34px -18px ${tint(accent, 0.55)}, 0 2px 0 ${tint(accent, 0.35)}`
@@ -109,7 +112,7 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
       }}
     >
       {/* Helmet art, masked to a soft ellipse on the right. It turns towards the viewer on
-          hover — the whole card is the light source, so the art follows rather than moves. */}
+          hover — the card is the light source, so the art follows rather than moves. */}
       <span
         aria-hidden
         className="pointer-events-none absolute bottom-0 left-0 top-0 z-0 block"
@@ -128,7 +131,7 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
         }}
       />
 
-      {/* Single sheen sweep on hover. Keyed on `hot` so it replays each time rather than
+      {/* One sheen sweep per hover. Mounted on `hot` so it replays each time rather than
           running once and never again. */}
       {hot && (
         <span
@@ -142,144 +145,172 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, onOpen, on
         />
       )}
 
-      <div className="relative z-[2] flex items-start gap-[11px] p-4 pb-0">
-        <span className="relative h-9 w-9 flex-none">
-          {live && (
-            <span
-              aria-hidden
-              className="absolute inset-0 block rounded-[11px]"
-              style={{ border: `2px solid ${tint(accent, 0.7)}`, animation: "rgPulse 2.2s ease-out infinite" }}
-            />
-          )}
-          <span className="relative grid h-9 w-9 place-items-center rounded-[11px] border border-line bg-card text-ink">
-            {isLoading ? (
-              <span className="loading loading-spinner loading-xs" />
-            ) : (
-              <OpenAiIcon width={17} height={17} />
-            )}
+      <div className="relative z-[2] px-[14px] pb-[14px] pt-[12px]">
+        <div className="flex items-start justify-between gap-2">
+          <span
+            className="rounded-full px-2 py-[3px] font-mono text-[11px] font-bold tracking-[.1em]"
+            style={{ background: tint(accent, 0.16), color: accent }}
+          >
+            #{String(index + 1).padStart(2, "0")}
           </span>
-        </span>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-[7px]">
-            <span aria-hidden className="block h-[7px] w-[7px] flex-none rounded-full" style={{ background: accent }} />
-            <span className="truncate text-[15.5px] font-semibold tracking-[-0.015em] text-ink" title={row.actualName}>
+          <div
+            role="button"
+            tabIndex={0}
+            data-testid={`ranger-card-menu-${row._id}`}
+            aria-label="Ranger actions"
+            className="flex flex-none cursor-pointer flex-col gap-[2.5px] px-[2px] py-1 opacity-45 transition-opacity hover:opacity-100 focus:opacity-100 group-hover:opacity-100"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onMenuClick(event, row);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                event.stopPropagation();
+                onMenuClick(event, row);
+              }
+            }}
+          >
+            <span style={dot} />
+            <span style={dot} />
+            <span style={dot} />
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 pt-[22px]">
+          <span className="relative h-10 w-10 flex-none">
+            {live && (
+              <span
+                aria-hidden
+                className="absolute inset-0 block rounded-[12px]"
+                style={{ border: `2px solid ${tint(accent, 0.7)}`, animation: "rgPulse 2.2s ease-out infinite" }}
+              />
+            )}
+            <span className="relative grid h-10 w-10 place-items-center rounded-[12px] border border-line bg-card shadow-[0_1px_3px_var(--shadow-tint)]">
+              {isLoading ? (
+                <span className="loading loading-spinner loading-xs" />
+              ) : (
+                <OpenAiIcon width={20} height={20} />
+              )}
+            </span>
+          </span>
+
+          <span className="flex min-w-0 flex-1 flex-col pr-[10px]">
+            <span
+              className="text-[17px] font-extrabold leading-[1.15] tracking-[-0.03em] text-ink"
+              style={{
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 2,
+                overflow: "hidden",
+                overflowWrap: "anywhere",
+              }}
+              title={row.actualName}
+            >
               {row.actualName || "Untitled"}
             </span>
+            <span
+              className="mt-1 truncate font-mono text-[9.5px] font-semibold uppercase leading-[1.5] tracking-[.16em]"
+              style={{ color: accent }}
+              title={subtitle}
+            >
+              {subtitle}
+            </span>
             {isPaused && (
-              <span className="flex-none rounded-full bg-paper px-2 py-[2px] text-[9.5px] font-bold uppercase tracking-[.06em] text-soft">
+              <span className="mt-[6px] w-fit rounded-full bg-paper px-2 py-[2px] text-[9.5px] font-bold uppercase tracking-[.06em] text-soft">
                 <ClockIcon size={9} className="mr-1 inline align-[-1px]" />
                 Paused
               </span>
             )}
-          </div>
-          <div
-            className="mt-[3px] truncate pl-[14px] text-[11px] font-semibold tracking-[.04em]"
-            style={{ color: accent }}
-            title={subtitle}
-          >
-            {subtitle}
-          </div>
-        </div>
-
-        <div
-          role="button"
-          tabIndex={0}
-          data-testid={`ranger-card-menu-${row._id}`}
-          aria-label="Ranger actions"
-          className="-mr-1 mt-[3px] shrink-0 cursor-pointer rounded-lg p-1 text-soft opacity-40 transition-opacity hover:bg-paper hover:opacity-100 focus:opacity-100 group-hover:opacity-100"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onMenuClick(event, row);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              event.stopPropagation();
-              onMenuClick(event, row);
-            }
-          }}
-        >
-          <EllipsisVertical size={16} />
+          </span>
         </div>
       </div>
 
-      {ranger?.description && (
-        <p className="relative z-[2] mx-4 mt-[10px] line-clamp-2 text-[12.5px] leading-[1.55] text-soft">
-          {ranger.description}
-        </p>
-      )}
-
-      <div className="relative z-[2] mt-auto flex items-center gap-[7px] p-4 py-[14px]">
-        {row.model && (
-          <span
-            className="min-w-0 flex-shrink truncate rounded-[6px] bg-paper px-[7px] py-[3px] font-mono text-[10.5px] text-soft"
-            title={row.model}
-          >
-            {row.model}
-          </span>
+      <div className="relative z-[2] flex flex-1 flex-col px-[14px] pt-0">
+        {ranger?.description && (
+          <p className="mb-[10px] line-clamp-2 text-[12.5px] leading-[1.55] text-soft">{ranger.description}</p>
         )}
 
-        {channels.length > 0 && (
+        <div className="mt-auto flex items-center gap-2 pb-3">
+          {row.model && (
+            <span
+              className="min-w-0 flex-shrink truncate rounded-[6px] border border-line bg-card-band px-[7px] py-[3px] font-mono text-[10.5px] text-soft"
+              title={row.model}
+            >
+              {row.model}
+            </span>
+          )}
+
+          {channels.length > 0 && (
+            <span
+              className="inline-flex min-w-0 flex-[0_1_auto] items-center overflow-hidden"
+              onMouseEnter={() => setChannelsOpen(true)}
+              onMouseLeave={() => setChannelsOpen(false)}
+            >
+              {channels.map((key, position) => {
+                const channel = CHANNEL_BY_KEY[key];
+                if (!channel) return null;
+                const Icon = channel.icon;
+                return (
+                  <span
+                    key={key}
+                    title={channel.label}
+                    className="grid h-6 flex-none place-items-center rounded-full border border-line bg-card"
+                    style={{
+                      padding: channelsOpen ? "0 8px 0 5px" : "0 4px",
+                      marginLeft: position === 0 ? 0 : channelsOpen ? "4px" : "-10px",
+                      zIndex: 10 - position,
+                      transition: "margin-left .22s cubic-bezier(.2,.8,.3,1), padding .22s ease",
+                    }}
+                  >
+                    <Icon size={15} />
+                    <span
+                      className="overflow-hidden whitespace-nowrap pl-[5px] font-mono text-[10px] font-semibold text-ink"
+                      style={{ maxWidth: channelsOpen ? "60px" : 0, transition: "max-width .22s ease" }}
+                    >
+                      {channel.label}
+                    </span>
+                  </span>
+                );
+              })}
+            </span>
+          )}
+
+          <span className="flex-1" />
+
           <span
-            className="inline-flex items-center pl-[2px]"
-            onMouseEnter={() => setChannelsOpen(true)}
-            onMouseLeave={() => setChannelsOpen(false)}
+            className="flex-none whitespace-nowrap rounded-full px-[9px] py-[3px] text-[10px] font-bold uppercase tracking-[.08em]"
+            style={{
+              background: live ? tint(accent, 0.14) : "var(--paper)",
+              color: live ? accent : "var(--soft)",
+            }}
           >
-            {channels.map((key, index) => {
-              const channel = CHANNEL_BY_KEY[key];
-              if (!channel) return null;
-              const Icon = channel.icon;
-              return (
-                <span
-                  key={key}
-                  title={channel.label}
-                  className="grid h-6 w-6 flex-none place-items-center rounded-full bg-card shadow-[0_0_0_2px_var(--card)] transition-[margin] duration-200 ease-out"
-                  style={{
-                    marginLeft: index === 0 ? 0 : channelsOpen ? "5px" : "-9px",
-                    zIndex: 10 - index,
-                  }}
-                >
-                  <Icon size={20} />
-                </span>
-              );
-            })}
+            {live ? "on duty" : "standby"}
           </span>
-        )}
-
-        <span className="flex-1" />
-
-        <span
-          className="flex-none whitespace-nowrap rounded-full px-[9px] py-[3px] text-[10px] font-bold uppercase tracking-[.08em]"
-          style={{
-            background: live ? tint(accent, 0.14) : "var(--paper)",
-            color: live ? accent : "var(--soft)",
-          }}
-        >
-          {live ? "on duty" : "standby"}
-        </span>
+        </div>
       </div>
 
       {/* Usage — mirrors the table's cost/token/last-run columns so the usage filter stays meaningful */}
       <div className="relative z-[2] grid grid-cols-3 border-t border-card-line bg-card-band">
-        <div className="px-[10px] py-[10px]">
-          <div className="truncate font-mono text-[12.5px] font-bold text-ink">
+        <div className="border-r border-card-line px-3 py-[9px]">
+          <div className="truncate font-mono text-[13px] font-bold text-ink">
             {metrics ? `$${Number(metrics.total_cost ?? 0).toFixed(4)}` : "—"}
           </div>
-          <div className="pt-px text-[10px] text-soft">Cost</div>
+          <div className="text-[10px] text-soft">Cost</div>
           <span aria-hidden style={bar(0.35)} />
         </div>
-        <div className="px-[10px] py-[10px]">
-          <div className="truncate font-mono text-[12.5px] font-bold text-ink">
+        <div className="border-r border-card-line px-3 py-[9px]">
+          <div className="truncate font-mono text-[13px] font-bold text-ink">
             {metrics ? formatNumber(metrics.total_tokens) : "—"}
           </div>
-          <div className="pt-px text-[10px] text-soft">Tokens</div>
+          <div className="text-[10px] text-soft">Tokens</div>
           <span aria-hidden style={bar(0.62)} />
         </div>
-        <div className="px-[10px] py-[10px]">
-          <div className="truncate font-mono text-[12.5px] font-bold text-ink">{row.lastRunLabel || "—"}</div>
-          <div className="pt-px text-[10px] text-soft">Last run</div>
+        <div className="px-3 py-[9px]">
+          <div className="truncate font-mono text-[13px] font-bold text-ink">{row.lastRunLabel || "—"}</div>
+          <div className="text-[10px] text-soft">Last run</div>
           <span aria-hidden style={bar(0.9)} />
         </div>
       </div>
