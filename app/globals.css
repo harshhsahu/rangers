@@ -604,6 +604,34 @@ body {
   }
 }
 
+/* Ranger card motion. The sheen and power bars run once on hover or mount rather than
+   looping — a grid of thirteen cards each animating forever is noise, not feedback. */
+@keyframes rgSheen {
+  from {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+
+@keyframes rgPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes rgPower {
+  from {
+    width: 0;
+  }
+}
+
 /* Landing / marketing motion, mirrored from the design source. */
 @keyframes rgTick {
   0%,
