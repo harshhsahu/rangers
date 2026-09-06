@@ -185,6 +185,9 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
     const version = state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId];
     const servers = version?.configuration?.mcp_config?.servers;
     return {
+      // The version's model category (chat / image / embedding). Model lookups are scoped
+      // by it, so a non-chat ranger is not offered chat models.
+      modelType: String(version?.configuration?.type || "chat").toLowerCase(),
       configuration: {
         service: version?.service || "",
         ...(version?.configuration || {}),
@@ -315,6 +318,7 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
             // in the left pane while the chat is open, and a stale copy would have the
             // agent write back entries the user just deleted.
             current_configuration: versionState.configuration,
+            model_type: versionState.modelType,
             current_mcp_servers: versionState.mcpServers,
             current_doc_ids: versionState.docIds,
             available_knowledge_bases: availableKnowledgeBases,
@@ -450,6 +454,7 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
       versionId,
       versionState.configuration,
       versionState.docIds,
+      versionState.modelType,
       versionState.mcpServers,
     ]
   );

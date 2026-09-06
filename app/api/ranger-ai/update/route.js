@@ -83,6 +83,7 @@ export async function POST(request) {
           available_knowledge_bases: asJson(body?.available_knowledge_bases),
           available_models: asJson(body?.available_models),
           current_configuration: JSON.stringify(body?.current_configuration ?? {}),
+          model_type: String(body?.model_type || "chat"),
         },
       }),
     });
