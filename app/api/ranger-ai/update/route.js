@@ -78,11 +78,10 @@ export async function POST(request) {
           frontend_url: frontendUrl,
           channels_available: frontendUrl ? "true" : "false",
           server_url: (process.env.NEXT_PUBLIC_SERVER_URL || "").replace(/\/$/, ""),
-          current_mcp_servers: asJson(body?.current_mcp_servers),
-          current_doc_ids: asJson(body?.current_doc_ids),
+          // The ranger's own configuration is read by the agent's pre-function, straight
+          // from the API each turn, so none of it is duplicated here. Only what a tool
+          // needs and the pre-function cannot supply is forwarded.
           available_knowledge_bases: asJson(body?.available_knowledge_bases),
-          available_models: asJson(body?.available_models),
-          current_configuration: JSON.stringify(body?.current_configuration ?? {}),
           model_type: String(body?.model_type || "chat"),
         },
       }),

@@ -174,58 +174,20 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
    * tool and without a second round trip: the store already holds all of it.
    */
   /**
-   * The draft version as the agent sees it: everything it may read or write, in one
-   * object rather than a scalar per key.
+   * The little the agent still needs from redux.
    *
-   * Passed whole so the agent decides what to change from what is actually stored,
-   * instead of this panel deciding in advance which keys are interesting — a config key
-   * we never thought to forward would otherwise be invisible to it.
+   * Everything describing the ranger's own configuration is read by the agent's
+   * pre-function instead, straight from the API at the start of each turn — sending it
+   * from here as well would mean two sources for the same facts, and the one that drifts
+   * is always the copy.
    */
   const versionState = useCustomSelector((state) => {
     const version = state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId];
-    const servers = version?.configuration?.mcp_config?.servers;
     return {
-      // The version's model category (chat / image / embedding). Model lookups are scoped
-      // by it, so a non-chat ranger is not offered chat models.
+      // Model lookups are scoped by category, so a non-chat ranger is not offered chat models.
       modelType: String(version?.configuration?.type || "chat").toLowerCase(),
-      configuration: {
-        service: version?.service || "",
-        ...(version?.configuration || {}),
-        doc_ids: Array.isArray(version?.doc_ids) ? version.doc_ids : [],
-      },
-      mcpServers: Array.isArray(servers) ? servers : [],
-      docIds: Array.isArray(version?.doc_ids) ? version.doc_ids : [],
       orgId: state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.org_id || "",
     };
-  });
-
-  /**
-   * Models the org can actually use, paired with the service that serves them.
-   *
-   * Kept paired rather than flattened to a name list because service and model are
-   * written together: moving to another provider's model without also changing `service`
-   * leaves the version pointing at a model its service does not have, which fails at the
-   * ranger's next message rather than at write time.
-   *
-   * Narrowed to the version's own model type so image and embedding models are never
-   * offered as chat models.
-   */
-  const availableModels = useCustomSelector((state) => {
-    const serviceModels = state?.modelReducer?.serviceModels || {};
-    const defaults = state?.serviceReducer?.default_model || {};
-    const modelType =
-      state?.bridgeReducer?.bridgeVersionMapping?.[bridgeId]?.[versionId]?.configuration?.type || "chat";
-
-    return Object.entries(serviceModels)
-      .map(([service, byType]) => ({
-        service,
-        // The model a service falls back to when one is not chosen, matching what
-        // ServiceDropdown writes on a service change — so switching provider from the
-        // chat lands on the same model it would from the UI.
-        default_model: defaults?.[service]?.model || null,
-        models: Object.keys(byType?.[modelType] || {}),
-      }))
-      .filter((entry) => entry.models.length > 0);
   });
 
   // Only what the agent needs to resolve a name to an id — descriptions and titles, not
@@ -317,12 +279,10 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
             // Sent per turn rather than held server-side: the user can edit either list
             // in the left pane while the chat is open, and a stale copy would have the
             // agent write back entries the user just deleted.
-            current_configuration: versionState.configuration,
             model_type: versionState.modelType,
-            current_mcp_servers: versionState.mcpServers,
-            current_doc_ids: versionState.docIds,
+            // The one list the pre-function cannot supply to a tool: the resources tool
+            // resolves a knowledge base name to its ids from this.
             available_knowledge_bases: availableKnowledgeBases,
-            available_models: availableModels,
           }),
         });
 
@@ -443,19 +403,15 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
     },
     [
       availableKnowledgeBases,
-      resetComposerHeight,
-      availableModels,
       bridgeId,
       dispatch,
       isSending,
       onChannelsChanged,
       patchLast,
+      resetComposerHeight,
       threadId,
       versionId,
-      versionState.configuration,
-      versionState.docIds,
       versionState.modelType,
-      versionState.mcpServers,
     ]
   );
 
