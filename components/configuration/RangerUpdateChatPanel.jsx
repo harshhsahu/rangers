@@ -9,7 +9,7 @@ import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import { getAuthToken } from "@/utils/interceptor";
 import ReactMarkdown from "../LazyMarkdown";
 import { mdComponentsDark, mdProseClass, mdRemarkPlugins } from "@/utils/markdownComponents";
-import { applyRangerUpdates, targetForTool, TARGET_LABEL, UPDATE_TARGET } from "./chatUpdateTargets";
+import { applyRangerUpdates, isReadOnlyTool, targetForTool, TARGET_LABEL, UPDATE_TARGET } from "./chatUpdateTargets";
 
 const STARTERS = ["Rename it to Support Ranger", "Give it a shorter name", "What is this ranger called?"];
 
@@ -400,7 +400,11 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
          * better than the alternative: the user watching the agent report success against
          * a screen that still shows the old value.
          */
-        if (!changes.length && firedTools.length) {
+        // Read-only tools are excluded: a lookup that changed nothing must not flash every
+        // row as though it had.
+        const wroteSomething = firedTools.some((tool) => tool.status === "done" && !isReadOnlyTool(tool.name));
+
+        if (!changes.length && wroteSomething) {
           changes = Object.values(UPDATE_TARGET).map((target) => ({ target, status: "success" }));
           // Nothing named a target, so there is no detail to quote — but the user still
           // ran something and deserves to be told it landed.

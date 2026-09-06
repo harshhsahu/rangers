@@ -45,6 +45,15 @@ const TARGET_BY_TOOL = {
 };
 
 /**
+ * Tools that only read. They must never trigger a refresh — and specifically must never
+ * reach the blanket fallback, which refreshes every target when a tool ran but named none.
+ * A lookup would otherwise flash all four setup rows for a question the user only asked.
+ */
+const READ_ONLY_TOOLS = ["lookup_model_details"];
+
+export const isReadOnlyTool = (toolName) => READ_ONLY_TOOLS.includes(String(toolName || "").toLowerCase());
+
+/**
  * Matched case-insensitively: the tool's configured name is free text, and a casing
  * difference between here and the agent would silently cost the user their refresh.
  */
