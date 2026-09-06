@@ -250,17 +250,26 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
     if (list) list.scrollTop = list.scrollHeight;
   }, [messages]);
 
+  /**
+   * The composer grows with its content via an inline height set on input, so clearing
+   * the value is not enough — without this it keeps the height of the message just sent.
+   */
+  const resetComposerHeight = useCallback(() => {
+    if (inputRef.current) inputRef.current.style.height = "auto";
+  }, []);
+
   // Raised by the tab bar's "New thread" button, which is not an ancestor of this pane.
   useEffect(() => {
     const startNewThread = () => {
       setMessages([]);
       setSendError("");
       setInput("");
+      resetComposerHeight();
       setThreadKey(Math.random().toString(36).slice(2, 10));
     };
     window.addEventListener("gtwy:new-ranger-update-thread", startNewThread);
     return () => window.removeEventListener("gtwy:new-ranger-update-thread", startNewThread);
-  }, []);
+  }, [resetComposerHeight]);
 
   /** Replaces the in-flight assistant message; called on every delta. */
   const patchLast = useCallback((messageId, patch) => {
@@ -278,6 +287,7 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
 
       setSendError("");
       setInput("");
+      resetComposerHeight();
       const replyId = nextMessageId();
       setMessages((prev) => [
         ...prev,
@@ -425,6 +435,7 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
     },
     [
       availableKnowledgeBases,
+      resetComposerHeight,
       availableModels,
       bridgeId,
       dispatch,
