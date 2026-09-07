@@ -93,3 +93,14 @@ export function getStoredGtwyOrgId() {
   }
   return null;
 }
+
+/**
+ * GTWY user id of the embed session. The backend appends it to the RTLayer channel it
+ * publishes playground responses on, so the subscriber has to use the same id.
+ */
+export function getStoredGtwyUserId() {
+  if (typeof sessionStorage !== "undefined") {
+    return sessionStorage.getItem("gtwy_user_id");
+  }
+  return null;
+}

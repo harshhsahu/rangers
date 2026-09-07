@@ -24,6 +24,7 @@ import { useCustomSelector } from "@/customHooks/customSelector";
 import Protected from "../Protected";
 import ReactMarkdown from "../LazyMarkdown";
 import useRtLayerEventHandler from "@/customHooks/useRtLayerEventHandler";
+import { getStoredGtwyUserId } from "@/utils/internalAuth";
 import { initializeChatChannel, editChatMessage, setChatLoading, clearChatMessages } from "@/store/action/chatAction";
 import RenderNode from "../richUI/RenderNode";
 import ReasoningAccordion from "./ReasoningAccordion";
@@ -205,17 +206,27 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
     (state) => state?.bridgeReducer?.allBridgesMap?.[params?.id]?.published_version_id
   );
 
+  /**
+   * The RTLayer channel the playground listens on. It has to match what the backend
+   * publishes to exactly, which is `{org}_{bridge}_{version}_{user}` — see
+   * modelRouter.py's playground branch. The user id was missing here, so a non-streaming
+   * playground run answered on a channel nobody was subscribed to: the request returned
+   * 200, the model produced its answer, and the pane stayed empty.
+   *
+   * Embed sessions keep the id in sessionStorage, a normal login keeps it in the user
+   * details; the session value wins because that is the token the API call is made with.
+   */
+  const userDetailsId = useCustomSelector((state) => state?.userDetailsReducer?.userDetails?.id);
+  // Read on every render, not memoized: the embed login writes the session value after this
+  // component can already be mounted, and a memo keyed on the redux id would keep the
+  // empty first value and subscribe to a channel with no user id on it.
+  const currentUserId = getStoredGtwyUserId() || userDetailsId || "";
+
   const channelIdentifier = useMemo(() => {
     const isPublished = searchParams?.isPublished === "true";
-
-    if (isPublished) {
-      // For published version, use published version ID in channel identifier
-      return (params.org_id + "_" + params?.id + "_" + publishedVersionId).replace(/ /g, "_");
-    } else {
-      // For draft versions, include the version
-      return (params.org_id + "_" + params?.id + "_" + searchParams?.version).replace(/ /g, "_");
-    }
-  }, [params, searchParams, publishedVersionId]);
+    const versionPart = isPublished ? publishedVersionId : searchParams?.version;
+    return (params.org_id + "_" + params?.id + "_" + versionPart + "_" + currentUserId).replace(/ /g, "_");
+  }, [params, searchParams, publishedVersionId, currentUserId]);
 
   // Redux selectors for chat state
   const { messages, finishReasonDescription, starterQuestions, defaultQuestions, bridgeName } = useCustomSelector(
