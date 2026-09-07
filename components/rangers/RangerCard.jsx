@@ -228,7 +228,7 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
         </div>
       </div>
 
-      <div className="relative z-[2] flex flex-1 flex-col px-[14px] pt-0">
+      <div className="relative z-[2] flex flex-1 flex-col px-[14px] pt-3">
         {ranger?.description && (
           <p className="mb-[10px] line-clamp-2 text-[12.5px] leading-[1.55] text-soft">{ranger.description}</p>
         )}
@@ -257,18 +257,28 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
                   <span
                     key={key}
                     title={channel.label}
-                    className="grid h-6 flex-none place-items-center rounded-full border border-line bg-card"
+                    // inline-flex, not grid: with an icon and a label as siblings, grid
+                    // stacks them in two rows and the icon stops being centred.
+                    className="inline-flex h-6 flex-none items-center justify-center rounded-full border border-line bg-card"
                     style={{
-                      padding: channelsOpen ? "0 8px 0 5px" : "0 4px",
+                      // A collapsed pill is a circle, so its width is pinned to its height
+                      // and it carries no padding — otherwise the label's own spacing
+                      // widens it into an oval with the icon sitting off-centre.
+                      width: channelsOpen ? "auto" : "24px",
+                      padding: channelsOpen ? "0 8px 0 5px" : 0,
                       marginLeft: position === 0 ? 0 : channelsOpen ? "4px" : "-10px",
                       zIndex: 10 - position,
-                      transition: "margin-left .22s cubic-bezier(.2,.8,.3,1), padding .22s ease",
+                      transition: "margin-left .22s cubic-bezier(.2,.8,.3,1), padding .22s ease, width .22s ease",
                     }}
                   >
-                    <Icon size={15} />
+                    <Icon size={15} className="flex-none" />
                     <span
-                      className="overflow-hidden whitespace-nowrap pl-[5px] font-mono text-[10px] font-semibold text-ink"
-                      style={{ maxWidth: channelsOpen ? "60px" : 0, transition: "max-width .22s ease" }}
+                      className="overflow-hidden whitespace-nowrap font-mono text-[10px] font-semibold text-ink"
+                      style={{
+                        maxWidth: channelsOpen ? "60px" : 0,
+                        paddingLeft: channelsOpen ? "5px" : 0,
+                        transition: "max-width .22s ease, padding-left .22s ease",
+                      }}
                     >
                       {channel.label}
                     </span>
