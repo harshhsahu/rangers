@@ -13,7 +13,12 @@ function isProxyRequest(url = "") {
   return (PROXY_URL && url.includes(PROXY_URL)) || url.includes("/api/c/");
 }
 
-function getAuthToken() {
+/**
+ * The GTWY session token every authenticated call is made with. Exported so callers
+ * that need to hand the token to something other than axios (e.g. forwarding it to an
+ * agent) use this precedence rather than re-deriving it and drifting from it.
+ */
+export function getAuthToken() {
   // Embed + localhost prefer sessionStorage (same as embed layout)
   if (typeof window !== "undefined") {
     const fromSession = sessionStorage.getItem("local_token");

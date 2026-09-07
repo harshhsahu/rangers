@@ -1031,11 +1031,14 @@ summary:focus-visible {
     overflow-wrap: break-word;
     animation: rg-msg-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
   }
+  /* The tint alone marks a turn as the user's. Text stays --ink rather than
+     --acc-deep: that red-orange reads as an error state on anything longer than a
+     sentence, and a pasted block of URLs looked like a stack trace. */
   .rg-chat-bubble-mine {
     border: 0;
     border-radius: 14px 14px 4px 14px;
     background: var(--acc-tint);
-    color: var(--acc-deep);
+    color: var(--ink);
   }
 
   /* Tool-call trace and the token/latency/cost line under an answer. */

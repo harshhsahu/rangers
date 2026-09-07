@@ -21,7 +21,7 @@ import { getAllKnowBaseDataAction } from "@/store/action/knowledgeBaseAction";
 import { updateUserMetaOnboarding, updateOrgMetaAction, getUsersAction } from "@/store/action/orgAction";
 import { getServiceAction } from "@/store/action/serviceAction";
 import { getFromCookies, removeCookie } from "@/utils/utility";
-import { createAndStoreInternalJwt } from "@/utils/internalAuth";
+import { createAndStoreInternalJwt, getStoredGtwyOrgId } from "@/utils/internalAuth";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, use } from "react";
 import { useDispatch } from "react-redux";
@@ -267,11 +267,21 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
     }
   }, [isValidOrg, dispatch, resolvedParams?.org_id]);
 
+  /**
+   * Re-mint the session when the org in the URL is not the one the current token was
+   * issued for — the user can switch org in another tab, so this is checked on focus
+   * rather than once on mount.
+   *
+   * The comparison is against `gtwy_org_id`, which storeAuthToken() writes on every
+   * successful login, NOT against the `current_org_id` cookie: that cookie holds the
+   * MSG91 company_ref_id, a different id space from the GTWY org id in the URL. The two
+   * are never equal, so comparing them re-authenticated on every single focus event.
+   */
   useEffect(() => {
     const onFocus = async () => {
       if (isValidOrg && !isEmbedUser && resolvedParams?.org_id) {
-        const orgId = getFromCookies("current_org_id");
-        if (orgId !== resolvedParams.org_id) {
+        const tokenOrgId = getStoredGtwyOrgId();
+        if (String(tokenOrgId || "") !== String(resolvedParams.org_id)) {
           await createAndStoreInternalJwt(resolvedParams.org_id);
         }
       }

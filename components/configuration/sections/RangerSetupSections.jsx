@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronRight, MessagesSquare } from "lucide-react";
 import { SparklesIcon, BotIcon, LinkIcon } from "@/components/Icons";
 import Modal from "@/components/UI/Modal";
@@ -8,6 +8,7 @@ import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import { CONNECTABLE_CHANNELS } from "@/components/rangers/rangerConstants";
 import { useConfigurationContext } from "../ConfigurationContext";
+import { UPDATE_TARGET } from "../chatUpdateTargets";
 import PromptTab from "./PromptTab";
 import ModelTab from "./ModelTab";
 import ConnectorsTab from "./ConnectorsTab";
@@ -16,6 +17,37 @@ import ChannelsPanel from "./ChannelsPanel";
 const MODAL_WIDTH = "w-[min(1040px,95vw)]";
 /** These panels are tall, so the scrollbar has to be visible to hint at it. */
 const MODAL_BODY = "scrollbar-visible";
+
+/**
+ * Which row each refresh target belongs to. MCP servers and knowledge bases are edited
+ * inside the Connectors modal, so they flash that row.
+ */
+const ROW_BY_TARGET = {
+  [UPDATE_TARGET.PROMPT]: "prompt",
+  [UPDATE_TARGET.MODEL_CONFIG]: "model",
+  [UPDATE_TARGET.MCP]: "connectors",
+  [UPDATE_TARGET.KNOWLEDGE_BASE]: "connectors",
+  [UPDATE_TARGET.CHANNEL]: "channels",
+};
+
+/** How long a refreshed row stays in its loading state. */
+const FLASH_MS = 1000;
+
+/** Stand-in for a row while its data is being re-read, matching the row's own layout. */
+const SetupRowSkeleton = ({ testId }) => (
+  <div
+    data-testid={`${testId}-skeleton`}
+    aria-busy="true"
+    className="flex w-full animate-pulse items-center gap-3 rounded-[13px] border border-line bg-card px-4 py-3"
+  >
+    <span className="h-9 w-9 flex-none rounded-lg bg-base-200" />
+    <span className="min-w-0 flex-1">
+      <span className="block h-3.5 w-28 rounded bg-base-200" />
+      <span className="mt-1.5 block h-3 w-48 rounded bg-base-200" />
+    </span>
+    <span className="h-4 w-12 flex-none rounded-md bg-base-200" />
+  </div>
+);
 
 const SetupRow = ({ icon: Icon, title, summary, modalId, testId, configured, marks = [] }) => (
   <button
@@ -60,29 +92,36 @@ const hasPromptContent = (value) => {
   return false;
 };
 
-/** Channel bindings live behind /api/channel-details, not in the bridge document. */
+/**
+ * Channel bindings live behind /api/channel-details, not in the bridge document, so
+ * there is no store slice to invalidate. The reload is also exposed to the
+ * "gtwy:channels-changed" event: the update chat's agent can bind a channel from the
+ * chat pane, and without this the row would keep its mount-time summary — no brand mark,
+ * still reading "Set up" — until the page was reloaded.
+ */
 const useConnectedChannels = (versionId) => {
   const [connected, setConnected] = useState([]);
 
-  useEffect(() => {
-    if (!versionId) return undefined;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
-        const data = await res.json();
-        if (cancelled || !data?.success) return;
-        setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken));
-      } catch (err) {
-        console.error("Loading channel details failed", err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+  const load = useCallback(async () => {
+    if (!versionId) return;
+    try {
+      const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+      const data = await res.json();
+      if (!data?.success) return;
+      setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken));
+    } catch (err) {
+      console.error("Loading channel details failed", err);
+    }
   }, [versionId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    window.addEventListener("gtwy:channels-changed", load);
+    return () => window.removeEventListener("gtwy:channels-changed", load);
+  }, [load]);
 
   return connected;
 };
@@ -95,6 +134,36 @@ const RangerSetupSections = () => {
   const { isPublished, isEmbedUser, service, modelName, bridge_functions, reduxPrompt, searchParams } =
     useConfigurationContext();
   const connectedChannels = useConnectedChannels(searchParams?.version);
+
+  /**
+   * Rows briefly showing a skeleton because the update chat just changed them. The refetch
+   * itself is usually quick enough to be invisible, which is the problem — the flash is
+   * what tells the user which row moved.
+   */
+  const [refreshingRows, setRefreshingRows] = useState([]);
+
+  useEffect(() => {
+    const timers = [];
+
+    const onRefreshed = (event) => {
+      const targets = event?.detail?.targets || [];
+      const keys = [...new Set(targets.map((target) => ROW_BY_TARGET[target]).filter(Boolean))];
+      if (!keys.length) return;
+
+      setRefreshingRows((prev) => [...new Set([...prev, ...keys])]);
+      timers.push(
+        setTimeout(() => {
+          setRefreshingRows((prev) => prev.filter((key) => !keys.includes(key)));
+        }, FLASH_MS)
+      );
+    };
+
+    window.addEventListener("gtwy:ranger-refreshed", onRefreshed);
+    return () => {
+      window.removeEventListener("gtwy:ranger-refreshed", onRefreshed);
+      timers.forEach(clearTimeout);
+    };
+  }, []);
 
   const modelSummary = useMemo(() => {
     const parts = [service, modelName].filter(Boolean);
@@ -178,18 +247,22 @@ const RangerSetupSections = () => {
         </div>
       </div>
 
-      {rows.map((row) => (
-        <SetupRow
-          key={row.key}
-          icon={row.icon}
-          title={row.title}
-          summary={row.summary}
-          modalId={row.modalId}
-          testId={`ranger-setup-row-${row.key}`}
-          configured={row.configured}
-          marks={row.marks}
-        />
-      ))}
+      {rows.map((row) =>
+        refreshingRows.includes(row.key) ? (
+          <SetupRowSkeleton key={row.key} testId={`ranger-setup-row-${row.key}`} />
+        ) : (
+          <SetupRow
+            key={row.key}
+            icon={row.icon}
+            title={row.title}
+            summary={row.summary}
+            modalId={row.modalId}
+            testId={`ranger-setup-row-${row.key}`}
+            configured={row.configured}
+            marks={row.marks}
+          />
+        )
+      )}
 
       <Modal
         MODAL_ID={MODAL_TYPE.RANGER_PROMPT_MODAL}

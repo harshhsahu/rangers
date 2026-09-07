@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link2, Maximize2, Minimize2, Plus, X } from "lucide-react";
+import { Link2, Maximize2, Minimize2, Pencil, Plus, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { toast } from "@/utils/toast";
 import KnowledgebaseList from "../configurationComponent/KnowledgebaseList";
@@ -44,6 +44,12 @@ const ConnectorsTab = ({ isPublished }) => {
   const dispatch = useDispatch();
   const [showBuilder, setShowBuilder] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  /**
+   * script_id of the tool being edited, or null to build a new one. The embed takes it
+   * as openViasocket's first argument — passing undefined there is what makes the
+   * builder open blank, which is why an existing tool could not be reopened before.
+   */
+  const [editScriptId, setEditScriptId] = useState(null);
   /** The embed's own inline styles, restored when the builder is closed. */
   const wrapperStyleRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -102,7 +108,7 @@ const ConnectorsTab = ({ isPublished }) => {
       return undefined;
     }
 
-    window.openViasocket(undefined, {
+    window.openViasocket(editScriptId || undefined, {
       embedToken,
       meta: { type: "tool", createFrom: "Agent Connectors" },
     });
@@ -141,7 +147,7 @@ const ConnectorsTab = ({ isPublished }) => {
       // later, so keep asking it to close until it has settled.
       closeRetriesRef.current = [400, 1000, 2000].map((delay) => window.setTimeout(closeEmbed, delay));
     };
-  }, [showBuilder, embedToken]);
+  }, [showBuilder, embedToken, editScriptId]);
 
   /**
    * Expanding grows the box in place. The embed node is never re-parented and
@@ -169,11 +175,13 @@ const ConnectorsTab = ({ isPublished }) => {
     };
   }, [isExpanded]);
 
-  const openBuilder = () => {
+  /** `scriptId` reopens an existing tool; omitted, the builder starts blank. */
+  const openBuilder = (scriptId = null) => {
     if (!embedToken) {
       toast.error("Connector builder is still loading. Please try again in a moment.");
       return;
     }
+    setEditScriptId(scriptId);
     setShowBuilder(true);
   };
 
@@ -181,6 +189,7 @@ const ConnectorsTab = ({ isPublished }) => {
   const closeBuilder = () => {
     setShowBuilder(false);
     setIsExpanded(false);
+    setEditScriptId(null);
   };
 
   const connectTool = (functionId) => {
@@ -230,8 +239,14 @@ const ConnectorsTab = ({ isPublished }) => {
         <div className="flex flex-col rounded-xl border-2 border-stroke bg-card">
           <div className="flex flex-none items-center justify-between gap-3 border-b-2 border-stroke p-4">
             <div>
-              <h3 className="text-sm font-semibold text-base-content">Connector builder</h3>
-              <p className="mt-1 text-xs text-soft">Create and authenticate a ViaSocket tool for this organization.</p>
+              <h3 className="text-sm font-semibold text-base-content">
+                {editScriptId ? "Edit connector" : "Connector builder"}
+              </h3>
+              <p className="mt-1 text-xs text-soft">
+                {editScriptId
+                  ? `Editing ${editScriptId}. Changes apply everywhere this tool is used.`
+                  : "Create and authenticate a ViaSocket tool for this organization."}
+              </p>
             </div>
             {showBuilder ? (
               <div className="flex items-center gap-2">
@@ -259,7 +274,7 @@ const ConnectorsTab = ({ isPublished }) => {
               <button
                 type="button"
                 className="btn btn-primary btn-sm gap-1"
-                onClick={openBuilder}
+                onClick={() => openBuilder()}
                 disabled={!shouldToolsShow || isPublished || !isEditor}
                 data-testid="connectors-open-builder"
               >
@@ -331,6 +346,16 @@ const ConnectorsTab = ({ isPublished }) => {
                       <p className="truncate text-sm font-medium text-base-content">{tool.displayName}</p>
                       <p className="truncate text-xs text-soft">{tool.script_id}</p>
                     </div>
+                    <button
+                      type="button"
+                      data-testid={`org-connector-edit-${tool._id}`}
+                      title="Edit this connector"
+                      className="btn btn-ghost btn-xs btn-square"
+                      disabled={!embedToken || !tool.script_id}
+                      onClick={() => openBuilder(tool.script_id)}
+                    >
+                      <Pencil size={13} />
+                    </button>
                     <button
                       type="button"
                       data-testid={`org-connector-toggle-${tool._id}`}
