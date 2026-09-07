@@ -180,6 +180,23 @@ export const bridgeReducer = createSlice({
       // Use the complete bridges object that was already merged in the action
       // Don't destructure or we'll lose fields like agents, variables_path, etc.
       state.bridgeVersionMapping[bridges.parent_id][bridges._id] = bridges;
+
+      // Keep the agents-list row's service/model in sync with the active version
+      Object.values(state.org || {}).forEach((orgEntry) => {
+        const rowIndex = orgEntry?.orgs?.findIndex((bridge) => bridge._id === bridges.parent_id);
+        if (rowIndex > -1) {
+          const row = orgEntry.orgs[rowIndex];
+          const activeVersionId = row.published_version_id || row.versions?.[0];
+          if (!activeVersionId || activeVersionId === bridges._id) {
+            orgEntry.orgs[rowIndex] = {
+              ...row,
+              service: bridges.service ?? row.service,
+              configuration: { ...row.configuration, ...bridges.configuration },
+            };
+          }
+        }
+      });
+
       if (functionData) {
         const existingBridgeIds = state.org[bridges.org_id].functionData[functionData.function_id]?.bridge_ids || [];
 
