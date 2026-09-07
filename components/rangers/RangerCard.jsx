@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { ClockIcon } from "@/components/Icons";
 import OpenAiIcon from "@/icons/OpenAiIcon";
 import { RANGER_CHANNELS, CALLSIGN_BY_HEX } from "./rangerConstants";
 
@@ -61,9 +60,18 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
   const subtitle = ranger?.role ? `${callsign} · ${ranger.role.toLowerCase()}` : callsign;
   const helmet = HELMET_BY_HEX[accent] || "red";
 
-  // "On duty" means the ranger has actually run inside the active usage window. Usage is
-  // the only signal here that separates a configured ranger from a working one.
-  const live = Boolean(row.lastRunLabel && row.lastRunLabel !== "—");
+  /**
+   * Duty is the pause switch, not usage: a ranger that is switched on counts as on duty
+   * whether or not it has been called yet, and a paused one is on standby even if it ran
+   * all week.
+   */
+  const onDuty = !isPaused;
+
+  /**
+   * Whether there is any usage to draw. Kept apart from duty because it drives the power
+   * bars, which describe the usage figures above them rather than the switch.
+   */
+  const hasUsage = Boolean(row.lastRunLabel && row.lastRunLabel !== "—");
 
   /** Power bar under each usage figure. Fills once on mount, and only when there is usage. */
   const bar = (fraction) => ({
@@ -72,9 +80,9 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
     height: "3px",
     borderRadius: "999px",
     width: `${(fraction || 0.18) * 100}%`,
-    background: live ? accent : "var(--line)",
-    opacity: live ? 1 : 0.6,
-    animation: live ? "rgPower .9s cubic-bezier(.2,.8,.3,1) both" : "none",
+    background: hasUsage ? accent : "var(--line)",
+    opacity: hasUsage ? 1 : 0.6,
+    animation: hasUsage ? "rgPower .9s cubic-bezier(.2,.8,.3,1) both" : "none",
   });
 
   const dot = { width: "3px", height: "3px", borderRadius: "999px", background: "var(--soft)" };
@@ -181,7 +189,7 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
 
         <div className="flex items-start gap-3 pt-[22px]">
           <span className="relative h-10 w-10 flex-none">
-            {live && (
+            {onDuty && (
               <span
                 aria-hidden
                 className="absolute inset-0 block rounded-[12px]"
@@ -218,12 +226,6 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
             >
               {subtitle}
             </span>
-            {isPaused && (
-              <span className="mt-[6px] w-fit rounded-full bg-paper px-2 py-[2px] text-[9.5px] font-bold uppercase tracking-[.06em] text-soft">
-                <ClockIcon size={9} className="mr-1 inline align-[-1px]" />
-                Paused
-              </span>
-            )}
           </span>
         </div>
       </div>
@@ -293,11 +295,11 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
           <span
             className="flex-none whitespace-nowrap rounded-full px-[9px] py-[3px] text-[10px] font-bold uppercase tracking-[.08em]"
             style={{
-              background: live ? tint(accent, 0.14) : "var(--paper)",
-              color: live ? accent : "var(--soft)",
+              background: onDuty ? tint(accent, 0.14) : "var(--paper)",
+              color: onDuty ? accent : "var(--soft)",
             }}
           >
-            {live ? "on duty" : "standby"}
+            {onDuty ? "on duty" : "standby"}
           </span>
         </div>
       </div>
