@@ -11,9 +11,9 @@ const CHANNEL_BY_KEY = RANGER_CHANNELS.reduce((acc, channel) => {
 }, {});
 
 /**
- * Helmet art per swatch. Only five helmets exist for seven swatches, so purple borrows
- * blue and pink borrows red — at 13% opacity behind a radial mask, hue carries the
- * identity and the exact colour does not.
+ * Helmet art per swatch. Fewer helmets exist than swatches, so purple borrows blue and
+ * pink borrows red — at 13% opacity behind a radial mask, hue carries the identity and
+ * the exact colour does not. (white.jpg ships too, but no swatch claims it yet.)
  */
 const HELMET_BY_HEX = {
   "#E03131": "red",
