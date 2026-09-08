@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useCallback, useMemo, useState } from "react";
+import React, { use, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/utils/toast";
 import Protected from "@/components/Protected";
@@ -92,6 +92,21 @@ function OnboardingPage({ params }) {
     orgId,
     folderId: null,
   });
+
+  /**
+   * A refresh (or a stale/bookmarked link) can land here after the org
+   * already has an agent — e.g. created from another tab, or Redux state
+   * catching up after a slow first fetch. Onboarding only makes sense for a
+   * genuinely empty org, so send an existing squad straight to its agents
+   * page. Scoped to the first step so this never fires after this same
+   * wizard's own deploy moves agentCount from 0 to 1 (handleNext already
+   * navigates to the squad itself on a clean deploy).
+   */
+  useEffect(() => {
+    if (stepIndex === 0 && agentCount > 0) {
+      router.replace(`/org/${orgId}/agents`);
+    }
+  }, [agentCount, stepIndex, orgId, router]);
 
   const update = useCallback((patch) => setForm((prev) => ({ ...prev, ...patch })), []);
 
