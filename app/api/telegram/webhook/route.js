@@ -9,6 +9,64 @@ const TELEGRAM_TEXT_LIMIT = 4096;
 const DRAFT_CHUNK_THRESHOLD = Number(process.env.TELEGRAM_DRAFT_CHUNK_THRESHOLD) || 1000;
 const NEW_THREAD_COMMANDS = new Set(["/new_thread", "/newthread"]);
 
+function escapeTelegramHtml(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/**
+ * Convert the model's Markdown output to Telegram's HTML subset.
+ * Unmatched/partial markers (common mid-stream, e.g. a lone opening "**")
+ * are left as literal text rather than producing invalid HTML — every
+ * conversion below only fires on a complete, closed pair.
+ */
+function markdownToTelegramHtml(text) {
+  const raw = String(text || "");
+  if (!raw) return raw;
+
+  const codeBlocks = [];
+  const inlineCodes = [];
+
+  let out = raw.replace(/```(?:[a-zA-Z0-9_-]*\n)?([\s\S]*?)```/g, (_m, code) => {
+    const token = `CB${codeBlocks.length}`;
+    codeBlocks.push(`<pre><code>${escapeTelegramHtml(code.replace(/\n$/, ""))}</code></pre>`);
+    return token;
+  });
+
+  out = out.replace(/`([^`\n]+)`/g, (_m, code) => {
+    const token = `IC${inlineCodes.length}`;
+    inlineCodes.push(`<code>${escapeTelegramHtml(code)}</code>`);
+    return token;
+  });
+
+  out = escapeTelegramHtml(out);
+
+  // Links: [text](url)
+  out = out.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, label, url) => {
+    return `<a href="${url.replace(/"/g, "&quot;")}">${label}</a>`;
+  });
+
+  // Bold: **text** / __text__
+  out = out.replace(/\*\*([^\n]+?)\*\*/g, "<b>$1</b>");
+  out = out.replace(/__([^\n]+?)__/g, "<b>$1</b>");
+
+  // Strikethrough: ~~text~~
+  out = out.replace(/~~([^\n]+?)~~/g, "<s>$1</s>");
+
+  // Italic: *text* (single asterisk only — leaves _snake_case_ words untouched)
+  out = out.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, "$1<i>$2</i>");
+
+  // Headings → bold line
+  out = out.replace(/^ {0,3}#{1,6}\s+(.+)$/gm, "<b>$1</b>");
+
+  out = out.replace(/\uE000IC(\d+)\uE000/g, (_m, i) => inlineCodes[Number(i)]);
+  out = out.replace(/\uE000CB(\d+)\uE000/g, (_m, i) => codeBlocks[Number(i)]);
+
+  return out;
+}
+
 /** Draft/preview only — Telegram hard-caps a single message at 4096. */
 function truncateTelegramText(text) {
   const t = String(text || "");
@@ -147,14 +205,16 @@ async function sendDraft(botToken, chatId, draftId, text) {
   return telegramApi(botToken, "sendMessageDraft", {
     chat_id: chatId,
     draft_id: draftId,
-    text: truncateTelegramText(text ?? ""),
+    text: markdownToTelegramHtml(truncateTelegramText(text ?? "")),
+    parse_mode: "HTML",
   });
 }
 
 async function sendMessage(botToken, chatId, text) {
   return telegramApi(botToken, "sendMessage", {
     chat_id: chatId,
-    text: String(text || "…").slice(0, TELEGRAM_TEXT_LIMIT),
+    text: markdownToTelegramHtml(String(text || "…").slice(0, TELEGRAM_TEXT_LIMIT)),
+    parse_mode: "HTML",
   });
 }
 
@@ -181,7 +241,10 @@ async function sendPhoto(botToken, chatId, photoUrl, caption) {
     photo: photoUrl,
   };
   // Caption max 1024 — don't put a long essay here
-  if (caption) body.caption = String(caption).slice(0, 1024);
+  if (caption) {
+    body.caption = markdownToTelegramHtml(String(caption).slice(0, 1024));
+    body.parse_mode = "HTML";
+  }
   return telegramApi(botToken, "sendPhoto", body);
 }
 
