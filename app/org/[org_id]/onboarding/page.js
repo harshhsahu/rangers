@@ -88,7 +88,7 @@ function OnboardingPage({ params }) {
     knowledgeBases: state?.knowledgeBaseReducer?.knowledgeBaseData?.[orgId] || [],
   }));
 
-  const { createFromIdentity, deploy, phase, error } = useCreateRanger({
+  const { createFromIdentity, deploy, phase, error, created, connectTool, disconnectTool } = useCreateRanger({
     orgId,
     folderId: null,
   });
@@ -287,6 +287,11 @@ function OnboardingPage({ params }) {
                   onMcpServersChange={setMcpServers}
                   selectedToolIds={selectedToolIds}
                   onSelectedToolIdsChange={setSelectedToolIds}
+                  /* Set only once the AI path has created the agent; without it
+                     there is nothing to attach to and tools wait for deploy. */
+                  hasAgent={Boolean(created?.agentId)}
+                  onConnectTool={connectTool}
+                  onDisconnectTool={disconnectTool}
                   selectedKbIds={selectedKbIds}
                   onSelectedKbIdsChange={setSelectedKbIds}
                 />
