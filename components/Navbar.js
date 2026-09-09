@@ -16,6 +16,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateBridgeAction, deleteBridgeAction } from "@/store/action/bridgeAction";
+import { syncSchedulesForAgent } from "@/utils/schedulerLifecycle";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal, closeModal, sendDataToParent } from "@/utils/utility";
 import { toast } from "@/utils/toast";
@@ -371,6 +372,8 @@ const Navbar = ({ isEmbedUser, params }) => {
 
   const handleDeleteAgentConfirm = useCallback(async () => {
     await executeDelete(async () => {
+      // Before the agent goes — see syncSchedulesForAgent.
+      await syncSchedulesForAgent(bridgeId, "delete");
       const response = await dispatch(deleteBridgeAction({ bridgeId, org_id: orgId }));
       toast.success(response?.data?.message || "Agent deleted successfully");
       router.push(`/org/${orgId}/agents`);

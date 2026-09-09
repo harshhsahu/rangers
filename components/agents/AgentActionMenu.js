@@ -6,6 +6,7 @@ import { archiveBridgeAction, updateBridgeAction } from "@/store/action/bridgeAc
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import { toast } from "@/utils/toast";
+import { syncSchedulesForAgent } from "@/utils/schedulerLifecycle";
 
 const BRIDGE_STATUS = {
   ACTIVE: 1,
@@ -35,6 +36,9 @@ export const AgentMenuItems = ({
     const newStatus = bridgeStatus === BRIDGE_STATUS.PAUSED ? BRIDGE_STATUS.ACTIVE : BRIDGE_STATUS.PAUSED;
     try {
       await dispatch(updateBridgeAction({ bridgeId: bridge._id, dataToSend: { bridge_status: newStatus } }));
+      // A paused agent must stop firing its schedules too, or "paused" only
+      // describes the parts of the ranger a person can see.
+      await syncSchedulesForAgent(bridge._id, newStatus === BRIDGE_STATUS.ACTIVE ? "resume" : "pause");
       toast.success(`Agent ${newStatus === BRIDGE_STATUS.ACTIVE ? "resumed" : "paused"} successfully`);
       onClose?.();
     } catch (err) {

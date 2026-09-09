@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronRight, MessagesSquare } from "lucide-react";
+import { CalendarClock, ChevronRight, MessagesSquare } from "lucide-react";
 import { SparklesIcon, BotIcon, LinkIcon } from "@/components/Icons";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
+import { authHeaders } from "@/utils/internalAuth";
 import { CONNECTABLE_CHANNELS } from "@/components/rangers/rangerConstants";
 import { useConfigurationContext } from "../ConfigurationContext";
 import { UPDATE_TARGET } from "../chatUpdateTargets";
@@ -13,6 +14,7 @@ import PromptTab from "./PromptTab";
 import ModelTab from "./ModelTab";
 import ConnectorsTab from "./ConnectorsTab";
 import ChannelsPanel from "./ChannelsPanel";
+import SchedulerPanel from "./SchedulerPanel";
 
 const MODAL_WIDTH = "w-[min(1040px,95vw)]";
 /** These panels are tall, so the scrollbar has to be visible to hint at it. */
@@ -28,6 +30,7 @@ const ROW_BY_TARGET = {
   [UPDATE_TARGET.MCP]: "connectors",
   [UPDATE_TARGET.KNOWLEDGE_BASE]: "connectors",
   [UPDATE_TARGET.CHANNEL]: "channels",
+  [UPDATE_TARGET.SCHEDULE]: "scheduler",
 };
 
 /** How long a refreshed row stays in its loading state. */
@@ -127,11 +130,57 @@ const useConnectedChannels = (versionId) => {
 };
 
 /**
+ * Just the count and a one-line summary for the row — the panel loads the full
+ * list itself. Also listens for "gtwy:schedules-changed" so a schedule added by
+ * the update chat's agent updates the row without a reload.
+ */
+const useScheduleSummary = (versionId, agentId) => {
+  const [schedules, setSchedules] = useState([]);
+
+  const load = useCallback(async () => {
+    if (!versionId) return;
+    try {
+      const res = await fetch(
+        `/api/scheduler?version_id=${encodeURIComponent(versionId)}&agent_id=${encodeURIComponent(agentId || "")}`,
+        { headers: authHeaders() }
+      );
+      const data = await res.json();
+      if (data?.success) setSchedules(data.schedules || []);
+    } catch (err) {
+      console.error("Loading schedules failed", err);
+    }
+  }, [agentId, versionId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    window.addEventListener("gtwy:schedules-changed", load);
+    return () => window.removeEventListener("gtwy:schedules-changed", load);
+  }, [load]);
+
+  const active = schedules.filter((schedule) => schedule.enabled);
+  const failing = schedules.find((schedule) => schedule.last_run?.ok === false);
+
+  return {
+    scheduleCount: schedules.length,
+    scheduleSummary: !schedules.length
+      ? "Run this ranger automatically on a schedule."
+      : failing
+        ? `${active.length} active · last run failed`
+        : `${active.length} active${schedules.length > active.length ? ` · ${schedules.length - active.length} paused` : ""}${
+            active[0]?.description ? ` · ${active[0].description}` : ""
+          }`,
+  };
+};
+
+/**
  * Ranger setup is one row per area; the options live in modals so the page stays
- * a short list instead of four stacked panels.
+ * a short list instead of a stack of full panels.
  */
 const RangerSetupSections = () => {
-  const { isPublished, isEmbedUser, service, modelName, bridge_functions, reduxPrompt, searchParams } =
+  const { isPublished, isEmbedUser, service, modelName, bridge_functions, reduxPrompt, searchParams, params } =
     useConfigurationContext();
   const connectedChannels = useConnectedChannels(searchParams?.version);
 
@@ -176,6 +225,8 @@ const RangerSetupSections = () => {
     return `${count} tool${count > 1 ? "s" : ""} attached`;
   }, [bridge_functions]);
 
+  const { scheduleCount, scheduleSummary } = useScheduleSummary(searchParams?.version, params?.id);
+
   const channelSummary = connectedChannels.length
     ? `${connectedChannels.map((channel) => channel.label).join(" · ")} connected`
     : "Telegram, Discord, and custom triggers.";
@@ -207,6 +258,14 @@ const RangerSetupSections = () => {
         configured: (bridge_functions?.length || 0) > 0,
       },
       {
+        key: "scheduler",
+        icon: CalendarClock,
+        title: "Scheduler",
+        summary: scheduleSummary,
+        modalId: MODAL_TYPE.RANGER_SCHEDULER_MODAL,
+        configured: scheduleCount > 0,
+      },
+      {
         key: "channels",
         icon: MessagesSquare,
         title: "Channels",
@@ -218,6 +277,8 @@ const RangerSetupSections = () => {
     ],
     [
       reduxPrompt,
+      scheduleCount,
+      scheduleSummary,
       modelSummary,
       service,
       modelName,
@@ -295,6 +356,17 @@ const RangerSetupSections = () => {
         bodyClassName={MODAL_BODY}
       >
         <ConnectorsTab isPublished={isPublished} />
+      </Modal>
+
+      <Modal
+        MODAL_ID={MODAL_TYPE.RANGER_SCHEDULER_MODAL}
+        title="Scheduler"
+        description="Run this ranger automatically — daily, weekly, or on your own cadence."
+        icon={<CalendarClock size={16} className="text-base-content" />}
+        widthClass={MODAL_WIDTH}
+        bodyClassName={MODAL_BODY}
+      >
+        <SchedulerPanel />
       </Modal>
 
       <Modal
