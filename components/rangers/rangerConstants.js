@@ -14,12 +14,8 @@ export const RANGER_COLORS = [
   { key: "green", label: "Green", callsign: "Jade", hex: "#2F9E44" },
   { key: "purple", label: "Purple", callsign: "Violet", hex: "#7048E8" },
   { key: "pink", label: "Pink", callsign: "Rose", hex: "#D6336C" },
-  // hex is Open Color orange7, not actually yellow — "Yellow" was a mislabel. The `key`
-  // is UI-only (data-testid / React key, never persisted — stored rangers keep `hex`), so
-  // it's renamed along with the label rather than left stale.
-  { key: "orange", label: "Orange", callsign: "Ember", hex: "#F2540B" },
+  { key: "yellow", label: "Yellow", callsign: "Ember", hex: "#F2540B" },
   { key: "black", label: "Slate", callsign: "Slate", hex: "#495057" },
-  { key: "yellow", label: "Yellow", callsign: "Citrine", hex: "#F08C00" },
 ];
 
 /** Swatch hex -> callsign, so a card can name a ranger by its colour. */

@@ -9,19 +9,15 @@ const CHANNEL_BY_KEY = RANGER_CHANNELS.reduce((acc, channel) => {
   return acc;
 }, {});
 
-/**
- * Helmet art per swatch — one dedicated photo per accent, all .jpg. (white.jpg ships too,
- * but no swatch claims it yet.)
- */
+/** Helmet art per swatch. Purple borrows blue, pink borrows red — no dedicated art yet. */
 const HELMET_BY_HEX = {
   "#E03131": "red",
   "#1C7ED6": "blue",
   "#2F9E44": "green",
-  "#7048E8": "violet",
-  "#D6336C": "pink",
-  "#F2540B": "orange",
+  "#7048E8": "blue",
+  "#D6336C": "red",
+  "#F2540B": "yellow",
   "#495057": "black",
-  "#F08C00": "yellow",
 };
 
 const formatNumber = (value, digits = 0) => {
