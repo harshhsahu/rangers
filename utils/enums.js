@@ -1,5 +1,8 @@
 import { BookIcon, BotIcon, KeyIcon, SettingsIcon, WrenchIcon } from "@/components/Icons";
 import { DollarSign, Star, Gauge, Activity, CheckCircle2, Timer, X, Cpu, ThumbsUp, ThumbsDown } from "lucide-react";
+// Static org id — routing no longer uses org_id as a dynamic segment;
+// production only ever runs with this single org id.
+export const ORG_ID = 11202;
 export const PAUTH_KEY_COLUMNS = ["name", "authkey", "created_at"];
 export const API_KEY_COLUMNS = ["name", "apikey", "apikey_usage", "last_used", "last_used_status"];
 export const WEBHOOKALERT_COLUMNS = ["name", "url", "headers", "alertType", "bridges"];

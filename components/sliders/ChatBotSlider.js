@@ -3,13 +3,14 @@ import { toggleSidebar } from "@/utils/utility";
 import { CloseIcon } from "@/components/Icons";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
+import { ORG_ID } from "@/utils/enums";
 
 function ChatBotSlider() {
   const router = useRouter();
   const pathName = usePathname();
   const path = pathName.split("?")[0].split("/");
   const [chatbotSearchQuery, setChatbotSearchQuery] = useState("");
-  const chatbotList = useCustomSelector((state) => state?.ChatBot?.org[path[2]]) || [];
+  const chatbotList = useCustomSelector((state) => state?.ChatBot?.org[ORG_ID]) || [];
 
   const handleChatbotSearchChange = (e) => {
     setChatbotSearchQuery(e.target.value);
@@ -20,7 +21,7 @@ function ChatBotSlider() {
   );
 
   const handleNavigation = (id) => {
-    router.push(`/org/${path[2]}/chatbot/configure/${id}`);
+    router.push(`/chatbot/configure/${id}`);
     toggleSidebar("default-chatbot-sidebar");
   };
 
@@ -58,7 +59,7 @@ function ChatBotSlider() {
               <li key={item._id} className=" w-full">
                 <a
                   id={`chatbot-slider-item-${item._id}`}
-                  className={`${item._id == path[5] ? "active" : `${item.id}`} py-2 px-2 rounded-md`}
+                  className={`${item._id == path[3] ? "active" : `${item.id}`} py-2 px-2 rounded-md`}
                   onClick={() => handleNavigation(item._id)}
                 >
                   {item?.title}

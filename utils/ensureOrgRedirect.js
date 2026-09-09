@@ -12,7 +12,7 @@ export const ensureOrgAndRedirect = async ({ organizations, user, dispatch, rout
   const gtwyOrgId = getStoredGtwyOrgId();
   if (gtwyOrgId) {
     dispatch(setCurrentOrgIdAction(gtwyOrgId));
-    navigate(`/org/${gtwyOrgId}/agents`);
+    navigate(`/agents`);
     return gtwyOrgId;
   }
 
@@ -23,7 +23,7 @@ export const ensureOrgAndRedirect = async ({ organizations, user, dispatch, rout
     await createAndStoreInternalJwt(id);
     const resolved = getStoredGtwyOrgId() || id;
     dispatch(setCurrentOrgIdAction(resolved));
-    navigate(`/org/${resolved}/agents`);
+    navigate(`/agents`);
     return resolved;
   };
 

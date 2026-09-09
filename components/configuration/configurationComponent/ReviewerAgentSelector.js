@@ -245,7 +245,7 @@ function ReviewerAgentSelector({ params, searchParams, isPublished, isEditor }) 
                       title="Open reviewer agent"
                       onClick={() => {
                         const isCmdOrCtrl = window.event && (window.event.ctrlKey || window.event.metaKey);
-                        const url = `/org/${params?.org_id}/agents/configure/${reviewerAgent._id}?version=${reviewerAgent?.published_version_id || reviewerAgent?.versions?.[0]}${isEmbedUser ? "&isEmbedUser=true" : ""}&parentAgentId=${params?.id}&parentVersionId=${searchParams?.version}`;
+                        const url = `/agents/configure/${reviewerAgent._id}?version=${reviewerAgent?.published_version_id || reviewerAgent?.versions?.[0]}${isEmbedUser ? "&isEmbedUser=true" : ""}&parentAgentId=${params?.id}&parentVersionId=${searchParams?.version}`;
                         if (isCmdOrCtrl && !isEmbedUser) window.open(url, "_blank");
                         else router.push(url);
                       }}

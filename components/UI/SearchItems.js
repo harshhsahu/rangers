@@ -89,7 +89,7 @@ const SearchItems = ({
       setParam("filter", null);
       userClearedSearch.current = false;
     }
-  }, [searchTerm, filterParam, setParam]);
+  }, [filterParam, setParam]);
 
   const normalizeSearchString = (str) => str?.toLowerCase()?.replace(/[\W_]/g, "").trim() || "";
 
@@ -123,7 +123,7 @@ const SearchItems = ({
   useEffect(() => {
     const filtered = filterData();
     setFilterItems(filtered);
-  }, [filterData, setFilterItems]);
+  }, []);
 
   const containerClasses =
     containerClass || (isWorkspaceItem ? `${item === "org" ? "w-full mt-2" : "max-w-xs ml-2"}` : "max-w-xs ml-2");

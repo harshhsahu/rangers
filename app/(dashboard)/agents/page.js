@@ -1,0 +1,1539 @@
+/* eslint-disable no-commented-code/no-commented-code, unused-imports/no-unused-imports, unused-imports/no-unused-vars */
+"use client";
+import CreateRangerModal from "@/components/rangers/CreateRangerModal";
+import RangerTabs, { RANGER_TAB_KEYS } from "@/components/rangers/RangerTabs";
+import CommandCenterTab from "@/components/rangers/CommandCenterTab";
+import useChannelDetails from "@/components/rangers/useChannelDetails";
+import RangerGrid from "@/components/rangers/RangerGrid";
+import MainLayout from "@/components/layoutComponents/MainLayout";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import OnBoarding from "@/components/OnBoarding";
+import PageHeader from "@/components/Pageheader";
+import Protected from "@/components/Protected";
+import TutorialSuggestionToast from "@/components/TutorialSuggestoinToast";
+import { useCustomSelector } from "@/customHooks/customSelector";
+import OpenAiIcon from "@/icons/OpenAiIcon";
+import { AgentMenuItems } from "@/components/agents/AgentActionMenu";
+import {
+  clearBridgeUsageMetricsAction,
+  deleteBridgeAction,
+  fetchBridgeUsageMetricsAction,
+} from "@/store/action/bridgeAction";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
+import useTutorialVideos from "@/hooks/useTutorialVideos";
+import { getIconOfService, openModal, formatRelativeTime, formatDate } from "@/utils/utility";
+import ResourcePage from "@/components/folders/ResourcePage";
+import FolderTabs from "@/components/folders/FolderTabs";
+import useFolders from "@/hooks/useFolders";
+import { useFolderContext } from "@/components/folders/FolderContext";
+import { Funnel, Undo2, Infinity, Trash2, Plus, Search } from "lucide-react";
+
+import { ClockIcon, EllipsisIcon } from "@/components/Icons";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useDispatch } from "react-redux";
+import { toast } from "@/utils/toast";
+import usePortalDropdown from "@/customHooks/usePortalDropdown";
+import SearchItems from "@/components/UI/SearchItems";
+import AgentEmptyState from "@/components/AgentEmptyState";
+import DeleteModal from "@/components/UI/DeleteModal";
+import ConfigureEnvironmentModal from "@/components/modals/ConfigureEnvironmentModal";
+import AgentUsageLimitModal from "@/components/modals/AgentUsageLimitModal";
+import useDeleteOperation from "@/customHooks/useDeleteOperation";
+import { useQueryParams } from "@/customHooks/useQueryParams";
+
+export const runtime = "edge";
+const ModelBadge = ({ model, service, modelsConfig }) => {
+  if (!model) return null;
+
+  // Get custom model name from modelsConfig if available
+  const modelConfig = modelsConfig?.[service]?.[model];
+  const displayName = modelConfig?.value !== undefined ? modelConfig.value : model;
+
+  return (
+    <span
+      className="inline-flex w-fit max-w-xs items-center gap-1 self-start rounded-[5px] border-[1.5px] border-line px-1.5 py-[2px] font-mono text-[9.5px] text-soft"
+      title={displayName || model}
+    >
+      <span className="truncate max-w-[140px]">{displayName || model}</span>
+    </span>
+  );
+};
+
+/** One header metric: a big mono number over a quiet label. */
+const SquadStatTile = ({ value, label, ...props }) => (
+  <div className="min-w-[96px] rounded-[14px] border border-line bg-card px-4 py-3" {...props}>
+    <div className="font-mono text-[21px] font-bold leading-none text-ink">{value}</div>
+    <div className="pt-[6px] text-[11px] text-soft">{label}</div>
+  </div>
+);
+
+const formatUsageNumber = (value, maximumFractionDigits = 2) => {
+  const numericValue = Number(value ?? 0);
+  if (!Number.isFinite(numericValue)) return "0";
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits }).format(numericValue);
+};
+
+const UsageProgressDonut = ({ percent, label }) => (
+  <div className="relative h-16 w-16">
+    <div
+      className="h-full w-full rounded-full border-2 border-stroke bg-base-200"
+      style={{
+        background: `conic-gradient(var(--acc) ${percent}%, var(--line) ${percent}% 100%)`,
+      }}
+    />
+    <div className="absolute inset-[6px] flex items-center justify-center rounded-full bg-base-100 text-xs font-semibold text-base-content/70">
+      {label}
+    </div>
+  </div>
+);
+
+export const UsageSummaryPopover = ({ stats, item, isEmbedUser, onSetLimit, onResetUsage }) => {
+  const { hasLimit, usagePercent, usageValue, limitValue, remaining } = stats;
+  const [limit, setLimit] = useState(limitValue ?? "");
+  const [resetPeriod, setResetPeriod] = useState(item?.bridge_limit_reset_period ?? "");
+  const [isLimitDirty, setIsLimitDirty] = useState(false);
+
+  const handleLimitChange = (e) => {
+    const value = e.target.value;
+    setLimit(value);
+    const original = limitValue ?? "";
+    setIsLimitDirty(String(value) !== String(original) || resetPeriod !== (item?.bridge_limit_reset_period ?? ""));
+  };
+
+  const handleResetPeriodChange = (e) => {
+    const value = e.target.value;
+    setResetPeriod(value);
+    setIsLimitDirty(String(limit) !== String(limitValue ?? "") || value !== (item?.bridge_limit_reset_period ?? ""));
+  };
+
+  return (
+    <div className="w-72 p-4 space-y-4 text-base-content">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold">Usage &amp; Limits</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <UsageProgressDonut
+          percent={hasLimit ? usagePercent : 0}
+          label={hasLimit ? `${Math.round(usagePercent)}%` : "--"}
+        />
+        <div className="flex-1 space-y-2 text-sm">
+          <div className="flex gap-1 items-center justify-between">
+            <span className="text-base-content/60">Limit</span>
+            <input
+              autoComplete="off"
+              type="number"
+              placeholder="Enter limit in $"
+              className="input input-bordered max-w-sm w-full input-sm"
+              value={limit}
+              min="0"
+              step="0.0001"
+              onChange={handleLimitChange}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-base-content/60">Used</span>
+            <span className="font-semibold">{formatUsageNumber(usageValue)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-base-content/60">Remaining</span>
+            <span className="font-semibold">{hasLimit ? formatUsageNumber(remaining) : "—"}</span>
+          </div>
+        </div>
+      </div>
+
+      {!isEmbedUser && (
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-1 items-center justify-between text-sm">
+            <span className="text-base-content/60">Reset Period</span>
+            <select
+              data-testid="agent-reset-period-select"
+              className="select select-bordered select-sm w-36"
+              value={resetPeriod}
+              onChange={handleResetPeriodChange}
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <button
+            data-testid="agent-update-limit-button"
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              onSetLimit(item, limit, resetPeriod);
+            }}
+            disabled={!isLimitDirty}
+          >
+            Set / Update Limit
+          </button>
+          <button
+            data-testid="agent-reset-usage-button"
+            className="btn btn-ghost btn-sm"
+            onClick={onResetUsage}
+            disabled={!Number(usageValue)}
+          >
+            Reset Usage
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Column label mapping for table headers
+const getColumnLabel = (column) => {
+  switch (column) {
+    case "averageResponseTime":
+      return "Average Response Time";
+    case "totalTokens":
+      return "Tokens";
+    case "cost":
+      return "Cost $";
+    case "promptDetails":
+      return "Prompt Details";
+    case "last_used":
+      return "Last Run";
+    case "created_at":
+    case "createdAt":
+      return "Created At";
+    case "updated_at":
+    case "updatedAt":
+      return "Updated At";
+    case "created_by":
+      return "Created By";
+    case "updated_by":
+      return "Updated By";
+    case "agent_limit":
+      return "Limit $";
+    case "apikey_usage":
+      return "Apikey Usage";
+    case "agent_usage":
+      return "Agent Usage";
+    case "embed_usage":
+      return "Embed Usage";
+    default:
+      return column.replace(/_/g, " ");
+  }
+};
+
+const customCellRenderers = {
+  cost: (row) => row.cost,
+  totalTokens: (row) => row.totalTokens,
+};
+
+// Empty cell component without tooltip
+const EmptyCell = () => "";
+
+// Loading skeleton component for usage metrics
+const LoadingSkeleton = () => <div className="w-8 h-4 bg-base-300 rounded animate-pulse"></div>;
+
+const renderCreatedByCell = (createdBy, timestamp) => {
+  if (!createdBy) {
+    return <EmptyCell />;
+  }
+
+  // If no timestamp, just show the user name without hover behavior
+  if (!timestamp) {
+    return (
+      <div className="w-[120px]">
+        <span title={createdBy} className="truncate block flex-1">
+          {createdBy}
+        </span>
+      </div>
+    );
+  }
+
+  // If timestamp exists, show user name with date on hover
+  return (
+    <div className="group cursor-help w-[120px]">
+      <span title={createdBy} className="group-hover:hidden truncate block flex-1">
+        {createdBy}
+      </span>
+      <span title={createdBy} className="hidden group-hover:inline">
+        {formatDate(timestamp)}
+      </span>
+    </div>
+  );
+};
+
+const renderUpdatedByCell = (updatedBy, timestamp) => {
+  if (!updatedBy) {
+    return <EmptyCell />;
+  }
+
+  // If no timestamp, just show the user name without hover behavior
+  if (!timestamp) {
+    return (
+      <div className="w-[120px]">
+        <span title={updatedBy} className="truncate block flex-1">
+          {updatedBy}
+        </span>
+      </div>
+    );
+  }
+
+  // If timestamp exists, show user name with date on hover
+  return (
+    <div className="group cursor-help w-[120px]">
+      <span title={updatedBy} className="group-hover:hidden truncate block flex-1">
+        {updatedBy}
+      </span>
+      <span title={updatedBy} className="hidden group-hover:inline">
+        {formatDate(timestamp)}
+      </span>
+    </div>
+  );
+};
+
+const renderLimitCell = (limit) => {
+  const limitValue = Number(limit ?? 0);
+  const hasLimit = Number.isFinite(limitValue) && limitValue > 0;
+
+  if (!hasLimit) {
+    return (
+      <div className="flex items-center justify-center">
+        <Infinity size={20} className="text-base-content" />
+      </div>
+    );
+  }
+
+  return <div className="text-center font-medium">{formatUsageNumber(limitValue, 4)}</div>;
+};
+
+// Footer Component
+const PoweredByFooter = () => {
+  return (
+    <footer className="w-full py-4 border-t-2 border-stroke">
+      <div className="flex justify-center items-center gap-2 font-medium opacity-50 text-sm text-base-content/70">
+        <span>Powered by</span>
+        <a
+          href="https://gtwy.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-primary hover:text-primary-focus transition-colors"
+        >
+          GTWY
+        </a>
+      </div>
+    </footer>
+  );
+};
+
+function Home({ params, searchParams, isEmbedUser }) {
+  const resolvedParams = { ...use(params), org_id: ORG_ID };
+  const { folders } = useFolders("agent", resolvedParams.org_id, isEmbedUser);
+  const { activeFolderId, setActiveFolderId } = useFolderContext();
+  // Use the tutorial videos hook
+  const { getApiAgentCreationVideo } = useTutorialVideos();
+  const resolvedSearchParams = use(searchParams);
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { setParam } = useQueryParams();
+  const {
+    allBridges,
+    bridgesLoaded,
+    averageResponseTime,
+    isLoading,
+    isFirstBridgeCreation,
+    descriptions,
+    showHistory,
+    usageMetrics,
+    linksData,
+    users,
+    modelsConfig,
+    showDeleteAgentOption,
+  } = useCustomSelector((state) => {
+    const orgData = state.bridgeReducer.org[resolvedParams.org_id] || {};
+    const user = state.userDetailsReducer.userDetails;
+
+    return {
+      allBridges: (orgData.orgs || []).slice().reverse(),
+      // Only true once a bridges fetch has actually landed for this org — the
+      // reducer's `loading` starts false, so it cannot tell "none yet" from
+      // "not fetched yet" on the first render.
+      bridgesLoaded: Object.prototype.hasOwnProperty.call(orgData, "orgs"),
+      averageResponseTime: orgData.average_response_time || [],
+      isLoading: state.bridgeReducer.loading,
+      isFirstBridgeCreation: user.meta?.onboarding?.bridgeCreation || "",
+      descriptions: state.flowDataReducer.flowData.descriptionsData?.descriptions || {},
+      showHistory: state.appInfoReducer.embedUserDetails?.showHistory || false,
+      usageMetrics: state.bridgeReducer.usageMetrics,
+      users: state.orgReducer.users,
+      linksData: state.flowDataReducer.flowData.linksData || [],
+      modelsConfig: state.appInfoReducer.embedUserDetails?.models || {},
+      showDeleteAgentOption: state.appInfoReducer.embedUserDetails?.showDeleteAgentOption ?? false,
+    };
+  });
+  /**
+   * A workspace with no agents has nothing to show here, so the squad page is
+   * not a destination yet — anyone landing on it with an empty org is sent to
+   * the onboarding wizard, every time, until a first ranger exists.
+   */
+  useEffect(() => {
+    if (isEmbedUser || isLoading || !bridgesLoaded) return;
+    if (allBridges.length > 0) return;
+    router.replace(`/onboarding`);
+  }, [allBridges.length, bridgesLoaded, isEmbedUser, isLoading, resolvedParams.org_id, router]);
+
+  /**
+   * True while it is not yet known whether this org has any agents, and while
+   * the redirect above is in flight. The squad page renders nothing in either
+   * case: a new user should land in onboarding, not watch an empty roster
+   * appear and then get pulled away from it.
+   */
+  const isResolvingFirstRun = !isEmbedUser && (!bridgesLoaded || (bridgesLoaded && !isLoading && !allBridges.length));
+
+  const pageHeaderContent = useMemo(() => {
+    return {
+      title: "Your squad",
+      description:
+        descriptions?.Agents || "Build and manage AI agents for workflows, automations, chatbots, and integrations.",
+    };
+  }, [descriptions]);
+  const deletedSectionTitle = "Deleted Agents";
+
+  // Command Center vs Ranger Squad, mirrored into ?tab= so the view is linkable.
+  const [activeTab, setActiveTab] = useState(
+    resolvedSearchParams?.tab === RANGER_TAB_KEYS.COMMAND ? RANGER_TAB_KEYS.COMMAND : RANGER_TAB_KEYS.SQUAD
+  );
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setParam("tab", tab === RANGER_TAB_KEYS.SQUAD ? null : tab, { replace: true });
+  };
+
+  useEffect(() => {
+    if (resolvedSearchParams?.folder === "trash") {
+      setActiveFolderId("trash");
+      setParam("folder", null, { replace: true });
+    }
+  }, [resolvedSearchParams?.folder, setActiveFolderId, setParam]);
+
+  // The sidebar's "+ Create new agent" routes here with ?create=1 because the
+  // Create Ranger modal is only mounted on this page.
+  useEffect(() => {
+    if (resolvedSearchParams?.create) {
+      setActiveTab(RANGER_TAB_KEYS.SQUAD);
+      openModal(MODAL_TYPE?.CREATE_RANGER_MODAL);
+      setParam("create", null, { replace: true });
+    }
+  }, [resolvedSearchParams?.create, setParam]);
+
+  // Initialize with empty array instead of typeFilteredBridges to avoid reference error
+  const [filterBridges, setFilterBridges] = useState([]);
+  const [loadingAgentId, setLoadingAgentId] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [tutorialState, setTutorialState] = useState({
+    showSuggestion: isFirstBridgeCreation,
+    showTutorial: false,
+  });
+  const [usageFilterPopover, setUsageFilterPopover] = useState({ open: false, top: 0, left: 0 });
+  const [usageFilterDates, setUsageFilterDates] = useState({ start_date: "", end_date: "" });
+  const [usageFilterError, setUsageFilterError] = useState("");
+  const [isUsageFilterSubmitting, setIsUsageFilterSubmitting] = useState(false);
+  const usageFilterPopoverRef = useRef(null);
+  const [selectedAgentForAccess, setSelectedAgentForAccess] = useState(null);
+  const [shouldSortByMetrics, _setShouldSortByMetrics] = useState(false); // Track if user wants sorting
+
+  // Use portal dropdown hook
+  const { handlePortalOpen, handlePortalCloseImmediate, PortalDropdown, PortalStyles } = usePortalDropdown({
+    offsetX: -100, // Better positioning for table dropdowns
+    offsetY: 5,
+    estimatedHeight: 330,
+  });
+  const { isDeleting, executeDelete } = useDeleteOperation();
+
+  const usageMetricsMap = useMemo(() => {
+    if (!usageMetrics?.data) {
+      return {};
+    }
+
+    // Make sure we handle different response structures properly
+    const metricsArray = Array.isArray(usageMetrics.data)
+      ? usageMetrics.data
+      : usageMetrics.data.data && Array.isArray(usageMetrics.data.data)
+        ? usageMetrics.data.data
+        : [];
+
+    const result = metricsArray.reduce((acc, item) => {
+      if (item?.bridge_id) {
+        // Store full metrics object so we can access both total_tokens and total_cost
+        acc[item.bridge_id] = item;
+      }
+      return acc;
+    }, {});
+
+    return result;
+  }, [usageMetrics?.data]);
+  const usageFilterIds = useMemo(() => new Set(Object.keys(usageMetricsMap)), [usageMetricsMap]);
+  const isUsageFilterActive = useMemo(
+    // Only consider filter active if explicitly set by user action
+    () => Boolean(usageMetrics?.filterActive),
+    [usageMetrics?.filterActive]
+  );
+
+  const usageFilterLabel = useMemo(() => {
+    if (!isUsageFilterActive) return "";
+    const formatReadableDate = (value) => {
+      if (!value) return "";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? value
+        : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    };
+    if (!usageMetrics?.filters?.start_date && !usageMetrics?.filters?.end_date) return "";
+    return `${formatReadableDate(usageMetrics?.filters?.start_date)} → ${formatReadableDate(usageMetrics?.filters?.end_date)}`;
+  }, [isUsageFilterActive, usageMetrics?.filters]);
+
+  // Process and merge metrics data with bridge data - IMPORTANT: Define this BEFORE typeFilteredBridges
+  const processedBridges = useMemo(() => {
+    if (!Array.isArray(allBridges) || allBridges.length === 0) {
+      return [];
+    }
+
+    // Merge metrics with bridge data
+    const result = allBridges.map((bridge) => {
+      const metrics = usageMetricsMap[bridge._id];
+      return {
+        ...bridge,
+        metrics,
+      };
+    });
+
+    return result;
+  }, [allBridges, usageMetricsMap]);
+
+  // Show all agent types in a single list
+  const typeFilteredBridges = useMemo(() => {
+    if (!Array.isArray(processedBridges)) return [];
+    return processedBridges;
+  }, [processedBridges]);
+
+  // Show all bridges but only sort when user explicitly requests it
+  const applyUsageFilter = (list) => {
+    if (!Array.isArray(list)) return list;
+
+    // Add hasMetrics property to each item
+    const listWithMetricsFlag = list.map((item) => ({
+      ...item,
+      hasMetrics: usageFilterIds.has(item._id),
+    }));
+
+    // Only sort if user has explicitly requested sorting
+    if (!shouldSortByMetrics) {
+      return listWithMetricsFlag; // Return unsorted list
+    }
+
+    // Sort: prioritize bridges with metrics
+    return [...listWithMetricsFlag].sort((a, b) => {
+      // Put bridges with metrics first
+      if (a.hasMetrics && !b.hasMetrics) return -1;
+      if (!a.hasMetrics && b.hasMetrics) return 1;
+
+      // If both have metrics or both don't have metrics, maintain original order
+      return 0;
+    });
+  };
+
+  // Simplified function to return metrics data for the table
+  // Function to render the timestamp with loading indicator
+  const renderMetricsTimestamp = (bridge, defaultTime) => {
+    // Check if metrics are still loading using Redux loading state
+    if (usageMetrics?.loading) {
+      return (
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-4 bg-base-300 rounded animate-pulse"></div>
+        </div>
+      );
+    }
+
+    // If metrics available, use the last_used_time from metrics
+    const timestamp = bridge?.metrics?.last_used_time || defaultTime;
+
+    if (!timestamp) return <EmptyCell />;
+
+    return (
+      <div className="group cursor-help">
+        <span className="group-hover:hidden">{formatRelativeTime(timestamp)}</span>
+        <span className="hidden group-hover:inline">{formatDate(timestamp)}</span>
+      </div>
+    );
+  };
+
+  const isUsageResetDisabled = useMemo(
+    () => !isUsageFilterActive && !usageFilterDates.start_date && !usageFilterDates.end_date,
+    [isUsageFilterActive, usageFilterDates.end_date, usageFilterDates.start_date]
+  );
+
+  const applyPresetUsageFilter = async (days) => {
+    const end = new Date();
+    const start = new Date();
+    // Last N days including today
+    start.setDate(end.getDate() - (days - 1));
+
+    const toYMD = (d) => d.toISOString().slice(0, 10);
+    const startDate = toYMD(start);
+    const endDate = toYMD(end);
+
+    setUsageFilterError("");
+    setUsageFilterDates({ start_date: startDate, end_date: endDate });
+    setIsUsageFilterSubmitting(true);
+    try {
+      // When user explicitly applies a filter, mark it as active
+      await dispatch(
+        fetchBridgeUsageMetricsAction({
+          start_date: startDate,
+          end_date: endDate,
+          filterActive: true, // Explicitly applying filter
+        })
+      );
+    } catch (error) {
+      console.error("Failed to apply preset usage filter:", error);
+    } finally {
+      setIsUsageFilterSubmitting(false);
+    }
+  };
+
+  const loadInitialMetrics = async () => {
+    try {
+      await dispatch(
+        fetchBridgeUsageMetricsAction({
+          start_date: null,
+          end_date: null,
+          filterActive: true, // Set to true to prioritize bridges with metrics
+        })
+      );
+    } catch (error) {
+      console.error("Failed to fetch initial metrics:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadInitialMetrics();
+  }, [dispatch]);
+
+  useEffect(() => {
+    setFilterBridges(typeFilteredBridges);
+  }, [typeFilteredBridges]);
+
+  // Reset loading state when component unmounts or navigation completes
+  useEffect(() => {
+    return () => {
+      setLoadingAgentId(null);
+    };
+  }, [allBridges]);
+
+  // Reset loading state when component unmounts or navigation completes
+  useEffect(() => {
+    return () => {
+      setLoadingAgentId(null);
+    };
+  }, []);
+
+  const filteredUnArchivedBridges = filterBridges?.filter(
+    (item) => (item.status === 1 || item.status === undefined) && !item.deletedAt
+  );
+  const filteredDeletedBridges = filterBridges?.filter((item) => item.deletedAt);
+
+  // Apply usage filter to prioritize metrics API agents
+  const usageFilteredUnArchived = applyUsageFilter(filteredUnArchivedBridges);
+  const usageFilteredDeleted = applyUsageFilter(filteredDeletedBridges);
+
+  useEffect(() => {
+    if (usageMetrics?.filters) {
+      setUsageFilterDates({
+        start_date: usageMetrics.filters.start_date,
+        end_date: usageMetrics.filters.end_date,
+      });
+    } else {
+      setUsageFilterDates({ start_date: "", end_date: "" });
+    }
+  }, [usageMetrics?.filters]);
+
+  const getDaysRemaining = (deletedAt) => {
+    if (!deletedAt) return 0;
+    const deletedDate = new Date(deletedAt);
+    const expiryDate = new Date(deletedDate.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from deletion
+    const now = new Date();
+    const diffTime = expiryDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
+
+  const getFolderIdStr = (fid) => {
+    if (!fid) return "";
+    if (typeof fid === "string") return fid;
+    if (typeof fid === "object") {
+      if (fid.$oid) return String(fid.$oid);
+      if (fid._id) return String(fid._id);
+      if (typeof fid.toString === "function" && fid.toString() !== "[object Object]") {
+        return fid.toString();
+      }
+    }
+    return String(fid);
+  };
+
+  const UnArchivedBridges = usageFilteredUnArchived
+    ?.filter((item) => item.status === 1 || item.status === undefined)
+    .map((item) => {
+      const createdAt = item.created_at || item.createdAt;
+      const updatedAt = item.updated_at || item.updatedAt;
+      const lastUsed = item.last_used;
+      const promptTotalTokens = item?.agent_info?.prompt_total_tokens;
+      const promptEnhancerPercentage = item?.ai_updates?.ai_updates?.prompt_enhancer_percentage;
+      return {
+        _id: item._id,
+        model: item.configuration?.model || "",
+        name: (
+          <div className="flex gap-[10px] items-center min-w-0">
+            <div className="grid h-[30px] w-[30px] flex-none place-items-center rounded-[9px] border-2 border-stroke bg-cool">
+              {loadingAgentId === item._id ? (
+                <div className="loading loading-spinner loading-xs"></div>
+              ) : (
+                getIconOfService(item.service, 16, 16)
+              )}
+            </div>
+            <div className="flex flex-col gap-[3px] min-w-0" title={item.name}>
+              <div className="flex items-center gap-2 w-[300px]">
+                <span className="truncate block flex-1 font-mono text-[13px] font-bold">{item.name}</span>
+                {item.bridge_status === 0 && (
+                  <div className="badge badge-warning gap-1">
+                    <ClockIcon size={10} />
+                    <span className="hidden sm:inline">Paused</span>
+                  </div>
+                )}
+              </div>
+              <ModelBadge model={item.configuration?.model} service={item.service} modelsConfig={modelsConfig} />
+            </div>
+          </div>
+        ),
+        actualName: item?.name || "",
+        slugName: item?.slugName || "",
+        service: getIconOfService(item.service),
+        bridgeType: item.bridgeType,
+        status: item.status,
+        bridge_status: item.bridge_status,
+        versionId: item?.published_version_id || item?.versions?.[0],
+        promptDetails:
+          promptTotalTokens != null || promptEnhancerPercentage != null ? (
+            <div className="flex flex-col text-xs">
+              {promptTotalTokens != null && (
+                <span className="font-semibold text-base-content">{formatUsageNumber(promptTotalTokens)} tokens</span>
+              )}
+              {promptEnhancerPercentage != null && (
+                <span className={promptEnhancerPercentage < 50 ? "text-error/60" : "text-base-content/70"}>
+                  {promptEnhancerPercentage}% Optimized
+                </span>
+              )}
+            </div>
+          ) : (
+            <EmptyCell />
+          ),
+        totalTokens: item.metrics ? (
+          formatUsageNumber(item.metrics.total_tokens)
+        ) : usageMetrics?.loading ? (
+          <LoadingSkeleton />
+        ) : (
+          <EmptyCell />
+        ),
+        totalTokens_original: item.metrics?.total_tokens || 0,
+        cost: item.metrics ? (
+          `${Number(item.metrics.total_cost).toFixed(4)}`
+        ) : usageMetrics?.loading ? (
+          <LoadingSkeleton />
+        ) : (
+          <EmptyCell />
+        ),
+        averageResponseTime: averageResponseTime[item?._id] ? averageResponseTime[item?._id] : "Not used in 24h",
+        agent_limit: renderLimitCell(item?.bridge_limit),
+        agent_limit_original: item?.bridge_limit || 0,
+        agent_usage: item?.bridge_usage ? parseFloat(item.bridge_usage).toFixed(4) : 0,
+        isLoading: loadingAgentId === item._id,
+        users: item?.users,
+        last_used: renderMetricsTimestamp(item, lastUsed),
+        // Plain-text relative time for the card's "Last run" stat (the table
+        // column above renders a tooltip-bearing node, which cards can't use).
+        lastRunLabel: (() => {
+          const stamp = item.metrics?.last_used_time || lastUsed;
+          if (!stamp) return "—";
+          const label = formatRelativeTime(stamp);
+          return label === "No records found" ? "—" : label;
+        })(),
+        last_used_original: item.metrics?.last_used_time || lastUsed,
+        last_used_orignal: usageMetricsMap[item._id]?.last_used_time || lastUsed,
+        created_by: renderCreatedByCell(
+          users?.find((user) => String(user?.user_id) === String(item.user_id))?.name,
+          createdAt
+        ),
+        created_by_original: users?.find((user) => String(user?.user_id) === String(item.user_id))?.name ? (
+          users?.find((user) => String(user?.user_id) === String(item.user_id))?.name
+        ) : (
+          <EmptyCell />
+        ),
+        created_at_original: createdAt,
+        updated_by: renderUpdatedByCell(
+          users?.find((user) => String(user?.user_id) === String(item.last_publisher_id))?.name,
+          updatedAt
+        ),
+        updated_by_original: users?.find((user) => String(user?.user_id) === String(item.last_publisher_id))?.name ? (
+          users?.find((user) => String(user?.user_id) === String(item.last_publisher_id))?.name
+        ) : (
+          <EmptyCell />
+        ),
+        updated_at_original: updatedAt,
+        bridge_limit_reset_period: item?.bridge_limit_reset_period || null,
+        folder_id: item?.folder_id ? getFolderIdStr(item.folder_id) : null,
+        settings: item?.settings || {},
+      };
+    });
+
+  const displayedUnArchivedBridges = useMemo(() => {
+    if (activeFolderId === "trash") {
+      return [];
+    }
+    if (activeFolderId === null) {
+      const sorted = [...UnArchivedBridges].sort((a, b) => {
+        const aFolder = a.folder_id || "";
+        const bFolder = b.folder_id || "";
+        if (!aFolder && bFolder) return 1; // uncategorized to bottom
+        if (aFolder && !bFolder) return -1; // uncategorized to bottom
+        if (!aFolder && !bFolder) return 0;
+
+        // Find folder names for alphabetical sorting
+        const foldersList = Array.isArray(folders) ? folders : [];
+        const folderA = foldersList.find((f) => f && getFolderIdStr(f._id) === getFolderIdStr(aFolder));
+        const folderB = foldersList.find((f) => f && getFolderIdStr(f._id) === getFolderIdStr(bFolder));
+        const nameA = folderA && folderA.name ? folderA.name.toLowerCase() : "";
+        const nameB = folderB && folderB.name ? folderB.name.toLowerCase() : "";
+        return nameA.localeCompare(nameB);
+      });
+      return sorted;
+    }
+    if (activeFolderId === "uncategorized") {
+      return UnArchivedBridges.filter((b) => !b.folder_id);
+    }
+    return UnArchivedBridges.filter((b) => getFolderIdStr(b.folder_id) === getFolderIdStr(activeFolderId));
+  }, [UnArchivedBridges, activeFolderId, folders]);
+
+  const folderCounts = useMemo(() => {
+    const unarchivedList = Array.isArray(UnArchivedBridges) ? UnArchivedBridges : [];
+    const foldersList = Array.isArray(folders) ? folders : [];
+
+    const counts = {
+      all: unarchivedList.length,
+      uncategorized: unarchivedList.filter((b) => !b.folder_id).length,
+    };
+    foldersList.forEach((folder) => {
+      if (folder && folder._id) {
+        counts[folder._id] = unarchivedList.filter(
+          (b) => getFolderIdStr(b.folder_id) === getFolderIdStr(folder._id)
+        ).length;
+      }
+    });
+    return counts;
+  }, [UnArchivedBridges, folders]);
+
+  // Helper function to calculate days remaining for deletion (30 days from deletedAt)
+
+  const DeletedBridges = usageFilteredDeleted?.map((item) => {
+    const createdAt = item.created_at || item.createdAt;
+    const updatedAt = item.updated_at || item.updatedAt;
+    const lastUsed = item.last_used;
+    // Direct access to metrics data without using helper functions
+    const promptTotalTokens = item?.agent_info?.prompt_total_tokens;
+    const promptEnhancerPercentage = item?.ai_updates?.ai_updates?.prompt_enhancer_percentage;
+
+    return {
+      _id: item._id,
+      model: item.configuration?.model || "",
+      name: (
+        <div className="flex gap-3">
+          <div className="flex gap-2 items-center">
+            {loadingAgentId === item._id ? (
+              <div className="loading loading-spinner loading-sm"></div>
+            ) : (
+              getIconOfService(item.service, 20, 20)
+            )}
+          </div>
+          <div className="flex-col">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 w-[300px]">
+                <span
+                  className={loadingAgentId === item._id ? "opacity-50 truncate block flex-1" : "truncate block flex-1"}
+                >
+                  {item.name}
+                </span>
+                {loadingAgentId === item._id && <span className="text-xs text-primary opacity-70">Loading...</span>}
+              </div>
+            </div>
+            <ModelBadge model={item.configuration?.model} service={item.service} modelsConfig={modelsConfig} />
+          </div>
+        </div>
+      ),
+      actualName: item?.name || "",
+      slugName: item?.slugName || "",
+      service: item.service === "openai" ? <OpenAiIcon /> : item.service,
+      bridgeType: item.bridgeType,
+      status: item.status,
+      deletedAt: item.deletedAt,
+      daysRemaining: getDaysRemaining(item.deletedAt),
+      versionId: item?.published_version_id || item?.versions?.[0],
+      promptDetails:
+        promptTotalTokens != null || promptEnhancerPercentage != null ? (
+          <div className="flex flex-col text-xs">
+            {promptTotalTokens != null && (
+              <span className="font-semibold text-base-content">{formatUsageNumber(promptTotalTokens)} tokens</span>
+            )}
+            {promptEnhancerPercentage != null && (
+              <span className={promptEnhancerPercentage < 50 ? "text-error/60" : "text-base-content/70"}>
+                {promptEnhancerPercentage}% Optimized
+              </span>
+            )}
+          </div>
+        ) : (
+          <EmptyCell />
+        ),
+      totalTokens: item.metrics ? (
+        formatUsageNumber(item.metrics.total_tokens)
+      ) : usageMetrics?.loading ? (
+        <LoadingSkeleton />
+      ) : (
+        <EmptyCell />
+      ),
+      totalTokens_original: item.metrics?.total_tokens || 0,
+      cost: item.metrics ? (
+        `${Number(item.metrics.total_cost).toFixed(4)}`
+      ) : usageMetrics?.loading ? (
+        <LoadingSkeleton />
+      ) : (
+        <EmptyCell />
+      ),
+      agent_limit: renderLimitCell(item?.bridge_limit),
+      agent_limit_original: item?.bridge_limit || 0,
+      averageResponseTime:
+        averageResponseTime[item?._id] === 0 ? (
+          <div className="text-xs">Not used in 24h</div>
+        ) : (
+          <div className="text-xs">{averageResponseTime[item?._id]} sec</div>
+        ),
+      isLoading: loadingAgentId === item._id,
+      last_used: renderMetricsTimestamp(item, lastUsed),
+      last_used_original: item.metrics?.last_used_time || lastUsed,
+      last_used_orignal: usageMetricsMap[item._id]?.last_used_time || lastUsed,
+      created_by: renderCreatedByCell(
+        users?.find((user) => String(user?.user_id) === String(item.user_id))?.name,
+        createdAt
+      ),
+      created_by_original: users?.find((user) => String(user?.user_id) === String(item.user_id))?.name,
+      created_at_original: createdAt,
+      updated_by: renderUpdatedByCell(
+        users?.find((user) => String(user?.user_id) === String(item.last_publisher_id))?.name,
+        updatedAt
+      ),
+      updated_by_original: users?.find((user) => String(user?.user_id) === String(item.last_publisher_id))?.name,
+      updated_at_original: updatedAt,
+      agent_usage: item?.bridge_usage ? parseFloat(item.bridge_usage).toFixed(4) : 0,
+      folder_id: item?.folder_id ? getFolderIdStr(item.folder_id) : null,
+      settings: item?.settings || {},
+    };
+  });
+
+  const displayedDeletedBridges = useMemo(() => {
+    if (activeFolderId === "trash") {
+      return DeletedBridges;
+    }
+    return [];
+  }, [DeletedBridges, activeFolderId]);
+
+  // Raw bridge (with merged metrics) by id — the card view needs `meta.ranger`
+  // and `service`, neither of which survive into the table row shape.
+  const rawBridgeById = useMemo(() => {
+    const map = new Map();
+    (processedBridges || []).forEach((bridge) => {
+      if (bridge?._id) map.set(String(bridge._id), bridge);
+    });
+    return map;
+  }, [processedBridges]);
+
+  // Channels an agent is wired to — shown as overlapping brand marks on cards.
+  // Shared with the Command Center so the endpoint is hit once per page.
+  const { channelsByAgentId } = useChannelDetails({ orgId: resolvedParams.org_id, agents: allBridges });
+
+  // Header tiles: squad size plus the cost/token totals for the active usage
+  // window, so the numbers always agree with what the cards below show.
+  const squadSummary = useMemo(() => {
+    const bridges = Array.isArray(processedBridges) ? processedBridges : [];
+    const live = bridges.filter((bridge) => bridge?.status === 1 || bridge?.status === undefined);
+    return live.reduce(
+      (acc, bridge) => ({
+        count: acc.count + 1,
+        tokens: acc.tokens + Number(bridge?.metrics?.total_tokens ?? 0),
+        cost: acc.cost + Number(bridge?.metrics?.total_cost ?? 0),
+      }),
+      { count: 0, tokens: 0, cost: 0 }
+    );
+  }, [processedBridges]);
+
+  const usageWindowLabel = isUsageFilterActive && usageFilterLabel ? usageFilterLabel : "last 24h";
+
+  const prefetchedRoutes = useRef(new Set());
+  const handleRowHover = (row) => {
+    if (!row?._id || !row?.versionId) {
+      return;
+    }
+    const routeKey = `${row._id}-${row.versionId}`;
+    if (!prefetchedRoutes.current.has(routeKey)) {
+      const agentType = row?.bridgeType || "api";
+      const prefetchUrl = `/agents/configure/${row._id}?version=${row.versionId}&type=${agentType}`;
+      router.prefetch(prefetchUrl);
+      prefetchedRoutes.current.add(routeKey);
+    }
+  };
+
+  const onClickConfigure = (id, versionId, agentType = "api") => {
+    // Prevent multiple clicks while loading
+    if (loadingAgentId) return;
+
+    setLoadingAgentId(id);
+    router.push(`/agents/configure/${id}?version=${versionId}&type=${agentType}`);
+  };
+
+  const closeUsageFilterPopover = () => {
+    setUsageFilterPopover((prev) => ({ ...prev, open: false }));
+  };
+  const handleUsageFilterIconClick = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (typeof window === "undefined") return;
+
+    const modalWidth = 320;
+    const modalHeight = 220;
+
+    const top = window.scrollY + Math.max(16, (window.innerHeight - modalHeight) / 2);
+    const left = window.scrollX + Math.max(16, (window.innerWidth - modalWidth) / 2);
+
+    setUsageFilterError("");
+    setUsageFilterPopover({
+      open: true,
+      top,
+      left,
+    });
+  };
+  const handleUsageDateChange = (key, value) => {
+    setUsageFilterError("");
+    setUsageFilterDates((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleUsageFilterApply = async () => {
+    if (!usageFilterDates.start_date || !usageFilterDates.end_date) {
+      setUsageFilterError("Please select both start and end dates.");
+      return;
+    }
+    if (usageFilterDates.start_date > usageFilterDates.end_date) {
+      setUsageFilterError("Start date cannot be after end date.");
+      return;
+    }
+    setIsUsageFilterSubmitting(true);
+    try {
+      // When user explicitly applies a custom date filter, mark it as active
+      await dispatch(
+        fetchBridgeUsageMetricsAction({
+          start_date: usageFilterDates.start_date,
+          end_date: usageFilterDates.end_date,
+          filterActive: true, // Explicitly applying filter
+        })
+      );
+      closeUsageFilterPopover();
+    } catch (error) {
+      console.error("Failed to fetch usage metrics:", error);
+    } finally {
+      setIsUsageFilterSubmitting(false);
+    }
+  };
+
+  const handleUsageFilterClear = () => {
+    dispatch(clearBridgeUsageMetricsAction());
+    setUsageFilterDates({ start_date: "", end_date: "" });
+    setUsageFilterError("");
+    closeUsageFilterPopover();
+  };
+
+  useEffect(() => {
+    if (!usageFilterPopover.open) return;
+    const handleClick = (event) => {
+      // Ignore clicks on native select and options since they are managed by the browser
+      if (event.target && (event.target.tagName === "OPTION" || event.target.tagName === "SELECT")) {
+        return;
+      }
+
+      // Ignore clicks on body/html/null if the focus is currently on an input/select/textarea inside the popover
+      if (
+        document.activeElement &&
+        (document.activeElement.tagName === "SELECT" ||
+          document.activeElement.tagName === "INPUT" ||
+          document.activeElement.tagName === "TEXTAREA") &&
+        usageFilterPopoverRef.current &&
+        usageFilterPopoverRef.current.contains(document.activeElement)
+      ) {
+        if (!event.target || event.target === document.body || event.target === document.documentElement) {
+          return;
+        }
+      }
+
+      if (usageFilterPopoverRef.current && !usageFilterPopoverRef.current.contains(event.target)) {
+        closeUsageFilterPopover();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [usageFilterPopover.open]);
+  const handleUsageFilterDropdownClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const dropdownContent = (
+      <ul className="menu bg-base-100 rounded-box w-56 p-2 shadow text-sm">
+        <li>
+          <button data-testid="usage-filter-option-1" onClick={() => applyPresetUsageFilter(1)}>
+            Last day
+          </button>
+        </li>
+        <li>
+          <button data-testid="usage-filter-option-5" onClick={() => applyPresetUsageFilter(5)}>
+            Last 5 days
+          </button>
+        </li>
+        <li>
+          <button data-testid="usage-filter-option-10" onClick={() => applyPresetUsageFilter(10)}>
+            Last 10 days
+          </button>
+        </li>
+        <li>
+          <button data-testid="usage-filter-option-15" onClick={() => applyPresetUsageFilter(15)}>
+            Last 15 days
+          </button>
+        </li>
+        <li>
+          <button data-testid="usage-filter-option-30" onClick={() => applyPresetUsageFilter(30)}>
+            Last 30 days
+          </button>
+        </li>
+
+        <li className="mt-1 border-t-2 border-stroke" />
+
+        <li>
+          <button
+            data-testid="usage-filter-option-reset"
+            onClick={(ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              handleUsageFilterClear();
+            }}
+            disabled={isUsageResetDisabled}
+          >
+            Reset filter
+          </button>
+        </li>
+
+        <li>
+          <button
+            data-testid="usage-filter-option-custom"
+            onClick={(ev) => {
+              // open existing custom date popover anchored near this button
+              ev.preventDefault();
+              ev.stopPropagation();
+              handlePortalCloseImmediate();
+              handleUsageFilterIconClick(ev);
+            }}
+          >
+            Custom date range…
+          </button>
+        </li>
+      </ul>
+    );
+
+    // Uses the same portal hook as the ellipsis EndComponent
+    handlePortalOpen(e.currentTarget, dropdownContent);
+  };
+  /**
+   * Row action menu. Shared by the table's ellipsis button and the card grid's
+   * kebab so both surfaces offer identical actions.
+   */
+  /**
+   * Trash rows keep a menu of their own — the live agent menu (pause, delete,
+   * move to folder) makes no sense for something already deleted, so restore is
+   * the only action offered.
+   */
+  const openDeletedRowMenu = (e, row) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const dropdownContent = (
+      <div className="w-52 rounded-box border border-line bg-base-100 p-1 shadow-2xl">
+        <button
+          type="button"
+          data-testid="deleted-agent-restore"
+          className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm hover:bg-base-200"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handlePortalCloseImmediate();
+            restoreBridge(row._id);
+          }}
+        >
+          <Undo2 size={14} />
+          Restore agent
+        </button>
+        {row?.daysRemaining !== undefined && (
+          <div className="px-4 pb-2 pt-1 text-xs text-error">{row.daysRemaining} days left</div>
+        )}
+      </div>
+    );
+
+    handlePortalOpen(e.currentTarget, dropdownContent);
+  };
+
+  const openRowMenu = (e, row) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const dropdownContent = (
+      <div className="bg-base-100 rounded-box w-52 shadow-2xl p-1 border-2 border-stroke">
+        <AgentMenuItems
+          bridge={row}
+          bridgeData={row}
+          bridgeStatus={allBridges.find((bridge) => bridge._id === row._id)?.bridge_status}
+          isArchived={row?.status === 0}
+          isUpdatingBridge={false}
+          isEmbedUser={isEmbedUser}
+          orgId={resolvedParams.org_id}
+          onClose={handlePortalCloseImmediate}
+          onSetSelectedAgent={(agent) => {
+            setSelectedAgentForAccess(agent);
+          }}
+          handlePortalOpen={handlePortalOpen}
+          handlePortalCloseImmediate={handlePortalCloseImmediate}
+          showDeleteAgentOption={showDeleteAgentOption}
+          onDelete={() => {
+            handlePortalCloseImmediate();
+            setItemToDelete(row);
+            setTimeout(() => openModal(MODAL_TYPE.DELETE_MODAL), 10);
+          }}
+        />
+      </div>
+    );
+
+    handlePortalOpen(e.currentTarget, dropdownContent);
+  };
+
+  const deleteBridge = async (item, name) => {
+    await executeDelete(async () => {
+      const bridgeId = item._id;
+      const response = await dispatch(deleteBridgeAction({ bridgeId, org_id: resolvedParams.org_id }));
+      toast.success(response?.data?.message || response?.message || response || "Agent deleted successfully");
+    });
+  };
+
+  const restoreBridge = async (bridgeId) => {
+    try {
+      const response = await dispatch(deleteBridgeAction({ bridgeId, org_id: resolvedParams.org_id, restore: true }));
+      toast.success(response?.data?.message || response?.message || response || "Agent restored successfully");
+    } catch (error) {
+      console.error("Failed to restore agent", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to restore agent";
+      toast.error(errorMessage);
+    }
+  };
+
+  if (isResolvingFirstRun) {
+    return (
+      <div data-testid="agents-first-run-gate" className="flex min-h-screen w-full items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  return (
+    // Squad canvas colour from the design file — the cards sit a shade lighter
+    // on top of it, which is what separates them from the page.
+    <div className="flex min-h-screen w-full bg-paper-raised">
+      <div className="w-full overflow-x-hidden flex flex-col min-h-screen flex-1">
+        <div className="w-full max-w-full flex-1">
+          {tutorialState?.showSuggestion && (
+            <TutorialSuggestionToast
+              setTutorialState={setTutorialState}
+              flagKey={"bridgeCreation"}
+              TutorialDetails={"Agent Creation"}
+            />
+          )}
+          {tutorialState?.showTutorial && (
+            <OnBoarding
+              setShowTutorial={() => setTutorialState((prev) => ({ ...prev, showTutorial: false }))}
+              video={getApiAgentCreationVideo()}
+              flagKey={"bridgeCreation"}
+            />
+          )}
+          <CreateRangerModal
+            orgId={resolvedParams.org_id}
+            onDeployed={({ agentId, versionId }) => {
+              router.push(`/agents/configure/${agentId}?version=${versionId}&type=api`);
+            }}
+          />
+          {!typeFilteredBridges.length && isLoading && <LoadingSpinner />}
+          <input autoComplete="off" id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+          <div className="drawer-content flex flex-col items-start justify-start">
+            <div className="flex w-full justify-start gap-4 lg:gap-16 items-start">
+              <div className="w-full">
+                <div className="flex flex-col px-[30px] lg:mx-0">
+                  <div className="pt-[30px] pb-[22px]">
+                    <MainLayout withPadding={false}>
+                      <div className="flex w-full flex-wrap items-end justify-between gap-[22px]">
+                        <div className="min-w-0 flex-[1_1_420px]">
+                          <PageHeader
+                            title={pageHeaderContent.title}
+                            description={pageHeaderContent.description}
+                            docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
+                            isEmbedUser={isEmbedUser}
+                          />
+                        </div>
+                        <div className="flex flex-[0_1_auto] flex-wrap gap-[10px]">
+                          <SquadStatTile
+                            data-testid="squad-stat-count"
+                            value={formatUsageNumber(squadSummary.count, 0)}
+                            label="Rangers"
+                          />
+                          <SquadStatTile
+                            data-testid="squad-stat-tokens"
+                            value={squadSummary.tokens ? formatUsageNumber(squadSummary.tokens, 0) : "—"}
+                            label={`Tokens · ${usageWindowLabel}`}
+                          />
+                          <SquadStatTile
+                            data-testid="squad-stat-cost"
+                            value={squadSummary.cost ? `$${squadSummary.cost.toFixed(4)}` : "—"}
+                            label={`Cost · ${usageWindowLabel}`}
+                          />
+                        </div>
+                      </div>
+                    </MainLayout>
+                  </div>
+
+                  {/* Canvas: sticky, #F4F0E7 on a 1px hairline, 12px/30px padding.
+                      The -mx offset matches the header's 30px gutter so the rule
+                      still runs the full width of the pane. */}
+                  <div
+                    data-testid="rangers-toolbar"
+                    className="sticky top-0 z-20 -mx-[30px] border-b border-line bg-paper-raised px-[30px] py-3"
+                  >
+                    <div className="flex flex-wrap items-center gap-[10px]">
+                      <RangerTabs activeTab={activeTab} onChange={handleTabChange} />
+
+                      {activeTab === RANGER_TAB_KEYS.SQUAD && typeFilteredBridges.length > 0 && (
+                        <>
+                          <div className="relative min-w-0 max-w-[280px] flex-[1_1_190px]">
+                            <Search
+                              size={14}
+                              aria-hidden
+                              className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-soft opacity-70"
+                            />
+                            <SearchItems
+                              data={allBridges}
+                              setFilterItems={setFilterBridges}
+                              item="Agents"
+                              placeholder="Search rangers"
+                              containerClass="w-full"
+                              inputContainerClass="relative"
+                              style="w-full !rounded-[10px] !border !border-line !bg-card py-[7px] pl-9 pr-16 text-[13.5px] text-ink outline-none placeholder:text-soft"
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            data-testid="agents-usage-filter-button"
+                            className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] border border-line bg-card px-3 py-[7px] text-[12.5px] text-soft"
+                            onClick={handleUsageFilterDropdownClick}
+                          >
+                            <Funnel size={13} />
+                            <span>Usage · {usageWindowLabel}</span>
+                          </button>
+
+                          <span className="flex-[1_1_0]" />
+
+                          {!isEmbedUser && (
+                            <button
+                              data-testid="create-new-agent-button"
+                              className="inline-flex flex-none cursor-pointer items-center gap-[7px] rounded-[10px] bg-acc px-4 py-[9px] text-[13.5px] font-bold text-acc-ink shadow-[0_1px_2px_var(--shadow-tint)]"
+                              onClick={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
+                            >
+                              <Plus size={15} />
+                              Create Ranger
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {activeTab === RANGER_TAB_KEYS.COMMAND ? (
+                    <CommandCenterTab orgId={resolvedParams.org_id} agents={allBridges} />
+                  ) : typeFilteredBridges.length === 0 ? (
+                    <AgentEmptyState
+                      orgid={resolvedParams.org_id}
+                      isEmbedUser={isEmbedUser}
+                      defaultBridgeType="trigger"
+                      title={pageHeaderContent.title}
+                      description={pageHeaderContent.description}
+                      docLink={linksData?.find((link) => link.title === "Agents")?.blog_link}
+                      hideHeader
+                    />
+                  ) : (
+                    <>
+                      {!isEmbedUser && (
+                        <FolderTabs
+                          variant="soft"
+                          resourceType="agent"
+                          showTrashTab={true}
+                          showFolders={false}
+                          deletedCount={DeletedBridges?.length || 0}
+                          folderCounts={folderCounts}
+                        />
+                      )}
+
+                      {activeFolderId !== "trash" && (
+                        <RangerGrid
+                          rows={displayedUnArchivedBridges}
+                          rawById={rawBridgeById}
+                          channelsByAgentId={channelsByAgentId}
+                          loadingAgentId={loadingAgentId}
+                          isReadOnly={isEmbedUser}
+                          onOpen={(row) => onClickConfigure(row?._id, row?.versionId, row?.bridgeType)}
+                          onHover={handleRowHover}
+                          onMenuClick={openRowMenu}
+                          onCreate={() => openModal(MODAL_TYPE?.CREATE_RANGER_MODAL)}
+                        />
+                      )}
+
+                      {displayedDeletedBridges?.length > 0 && (
+                        <div className="opacity-70">
+                          <RangerGrid
+                            rows={displayedDeletedBridges}
+                            rawById={rawBridgeById}
+                            channelsByAgentId={channelsByAgentId}
+                            isReadOnly
+                            onOpen={() => {}}
+                            onMenuClick={openDeletedRowMenu}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Powered By Footer */}
+          </div>
+
+          {usageFilterPopover.open &&
+            typeof document !== "undefined" &&
+            createPortal(
+              <div
+                className="fixed z-[999999999]"
+                style={{ top: usageFilterPopover.top, left: usageFilterPopover.left }}
+              >
+                <div
+                  ref={usageFilterPopoverRef}
+                  data-testid="agents-usage-filter-popover"
+                  className="w-72 rounded-2xl border-2 border-stroke bg-base-100 p-4 shadow-2xl space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-base-content">Filter usage</p>
+                      <p className="text-xs text-base-content/60">Show tokens between two dates</p>
+                    </div>
+                    {isUsageFilterActive && <span className="badge badge-primary badge-sm text-xs">Applied</span>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-base-content/60">Start date</label>
+                    <input
+                      autoComplete="off"
+                      type="date"
+                      data-testid="usage-filter-start-date"
+                      className="input input-bordered input-sm w-full"
+                      value={usageFilterDates.start_date}
+                      max={usageFilterDates.end_date || undefined}
+                      onChange={(e) => handleUsageDateChange("start_date", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold uppercase text-base-content/60">End date</label>
+                    <input
+                      autoComplete="off"
+                      type="date"
+                      data-testid="usage-filter-end-date"
+                      className="input input-bordered input-sm w-full"
+                      value={usageFilterDates.end_date}
+                      min={usageFilterDates.start_date || undefined}
+                      onChange={(e) => handleUsageDateChange("end_date", e.target.value)}
+                    />
+                  </div>
+                  {usageFilterError && <p className="text-xs text-error">{usageFilterError}</p>}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      data-testid="usage-filter-reset-button"
+                      onClick={handleUsageFilterClear}
+                      disabled={isUsageResetDisabled}
+                    >
+                      Reset
+                    </button>
+                    <button
+                      className="btn btn-primary btn-sm min-w-[70px]"
+                      data-testid="usage-filter-apply-button"
+                      onClick={handleUsageFilterApply}
+                      disabled={isUsageFilterSubmitting}
+                    >
+                      {isUsageFilterSubmitting ? <span className="loading loading-spinner loading-xs" /> : "Apply"}
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
+
+          {/* Single DeleteModal for all delete operations */}
+          <DeleteModal
+            onConfirm={deleteBridge}
+            item={itemToDelete}
+            title="Delete Agent"
+            description={`Are you sure you want to delete the Agent "${itemToDelete?.actualName}"? This agent will be moved to deleted items and permanently removed after 30 days.`}
+            loading={isDeleting}
+            isAsync={true}
+          />
+        </div>
+
+        {/* Powered By Footer pinned to bottom */}
+        {isEmbedUser && <PoweredByFooter />}
+        <ConfigureEnvironmentModal />
+        <AgentUsageLimitModal agent={selectedAgentForAccess} isEmbedUser={isEmbedUser} />
+
+        {/* Portal components from hook */}
+        <PortalStyles />
+        <PortalDropdown />
+      </div>
+    </div>
+  );
+}
+
+const WrappedHome = (props) => (
+  <ResourcePage>
+    <Home {...props} />
+  </ResourcePage>
+);
+export default Protected(WrappedHome);

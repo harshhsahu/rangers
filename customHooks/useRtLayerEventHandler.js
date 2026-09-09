@@ -18,6 +18,7 @@ import { toast } from "@/utils/toast";
 import { didCurrentTabInitiateUpdate } from "@/utils/utility";
 import { RefreshIcon } from "@/components/Icons";
 import { buildLlmUrls } from "@/utils/attachmentUtils";
+import { ORG_ID } from "@/utils/enums";
 import { getModelAction } from "@/store/action/modelAction";
 import { getServiceAction } from "@/store/action/serviceAction";
 import { useDispatch, useSelector } from "react-redux";
@@ -80,9 +81,10 @@ function useRtLayerEventHandler(channelIdentifier = "") {
     try {
       const path = pathName.split("?")[0].split("/");
       const embedOrgId = typeof window !== "undefined" ? sessionStorage.getItem("gtwy_org_id") : null;
+      const isDashboardRoute = path[1] !== "embed";
       return {
-        bridgeId: path[1] === "org" ? path[5] : null,
-        orgId: path[1] === "org" ? path[2] : embedOrgId,
+        bridgeId: isDashboardRoute ? path[3] : null,
+        orgId: isDashboardRoute ? ORG_ID : embedOrgId,
       };
     } catch (error) {
       console.error("Error parsing path parameters:", error);
@@ -575,8 +577,7 @@ function useRtLayerEventHandler(channelIdentifier = "") {
   useEffect(() => {
     if (!client) return;
 
-    const path = pathName.split("?")[0].split("/");
-    const rtOrgId = path[1] === "org" ? path[2] : sessionStorage.getItem("gtwy_org_id");
+    const rtOrgId = ORG_ID || sessionStorage.getItem("gtwy_org_id");
     if (!rtOrgId) return;
 
     const orgChannel = `org_${rtOrgId}`;
@@ -599,8 +600,7 @@ function useRtLayerEventHandler(channelIdentifier = "") {
   useEffect(() => {
     if (!client || !currentUserId) return;
 
-    const path = pathName.split("?")[0].split("/");
-    const rtOrgId = path[1] === "org" ? path[2] : sessionStorage.getItem("gtwy_org_id");
+    const rtOrgId = ORG_ID || sessionStorage.getItem("gtwy_org_id");
     if (!rtOrgId) return;
 
     const agentCreateChannel = `org_${rtOrgId}_${currentUserId}`.replace(/ /g, "_");

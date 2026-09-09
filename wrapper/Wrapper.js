@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import AppToaster from "@/components/UI/AppToaster";
 import { PersistGate } from "redux-persist/integration/react";
-import CommandPalette from "@/components/command/CommandPalette";
 import { usePathname } from "next/navigation";
 import { getStoredTheme, useThemeManager } from "@/customHooks/useThemeManager";
 import PostHogProvider from "@/components/PostHogProvider";
@@ -68,7 +67,7 @@ const Wrapper = ({ children }) => {
               {/* All the child components */}
               {children}
               {/* Global Command Palette */}
-              <CommandPalette />
+              {/* <CommandPalette /> */}
               {/* Notification toast container */}
               <AppToaster />
             </div>

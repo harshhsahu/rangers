@@ -7,7 +7,7 @@ const NotesPanel = ({ isVisible, params, isEmbedUser, onClose, showCloseButton =
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const pathParts = pathname.split("?")[0].split("/");
-  const bridgeId = pathParts[5] || params?.id;
+  const bridgeId = pathParts[3] || params?.id;
   const { versions, publishedVersionId } = useCustomSelector((state) => ({
     versions: Array.isArray(state?.bridgeReducer?.allBridgesMap?.[bridgeId]?.versions)
       ? state.bridgeReducer.allBridgesMap[bridgeId].versions

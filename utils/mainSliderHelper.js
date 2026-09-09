@@ -110,16 +110,16 @@ export const NAV_ITEM_CONFIG = {
 };
 
 /**
- * Builds a navigation URL for a given nav key and orgId.
- * Uses NAV_ITEM_CONFIG if a config entry exists, otherwise falls back to `/org/{orgId}/{key}`.
+ * Builds a navigation URL for a given nav key.
+ * Uses NAV_ITEM_CONFIG if a config entry exists, otherwise falls back to `/{key}`.
  */
 export const buildNavUrl = (key, orgId) => {
   const config = NAV_ITEM_CONFIG[key];
   if (config) {
     const query = config.query ? `?${new URLSearchParams(config.query).toString()}` : "";
-    return `/org/${orgId}/${config.path}${query}`;
+    return `/${config.path}${query}`;
   }
-  return `/org/${orgId}/${key}`;
+  return `/${key}`;
 };
 
 /**

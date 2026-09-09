@@ -12,7 +12,7 @@ import { getThread, updateContentHistory } from "@/store/action/historyAction";
 import { clearThreadData } from "@/store/reducer/historyReducer";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { closeModal, openModal } from "@/utils/utility";
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import HistoryPagePromptUpdateModal from "../modals/HistoryPagePromptUpdateModal";
 import { ChatLoadingSkeleton } from "./ChatLayoutLoader";
 import EditMessageModal from "../modals/EditMessageModal";
@@ -53,7 +53,7 @@ const ThreadContainer = ({
   isAnalytics = false,
 }) => {
   const routeParams = useParams();
-  const orgId = routeParams?.org_id;
+  const orgId = ORG_ID;
   const bridgeId = routeParams?.id;
   const pathname = usePathname();
   const searchParamsHook = useSearchParams();

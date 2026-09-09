@@ -1,4 +1,4 @@
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import SearchItems from "../UI/SearchItems";
 import MainSlider from "../sliders/MainSlider";
@@ -10,7 +10,7 @@ const OrganizationHeader = ({ organizationsArray, setDisplayedOrganizations }) =
   const pathname = usePathname();
   const orgIdFromUrl = useMemo(() => {
     const parts = pathname.split("?")[0].split("/");
-    return parts[1] === "org" ? parts[2] : null;
+    return parts[1] === "org" ? ORG_ID : null;
   }, [pathname]);
 
   const currentOrgId = useCustomSelector((state) => state.orgReducer?.currentOrgId);

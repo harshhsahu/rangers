@@ -310,7 +310,7 @@ export const createEmbedAgentAction =
             }
 
             if (router && createdAgent) {
-              router.push(`/org/${orgId}/agents/configure/${createdAgent._id}?version=${createdAgent.versions[0]}`);
+              router.push(`/agents/configure/${createdAgent._id}?version=${createdAgent.versions[0]}`);
             }
 
             return { success: true, agent: createdAgent };
@@ -356,7 +356,7 @@ export const createEmbedAgentAction =
         }
 
         if (router && createdAgent) {
-          router.push(`/org/${orgId}/agents/configure/${createdAgent._id}?version=${createdAgent.versions[0]}`);
+          router.push(`/agents/configure/${createdAgent._id}?version=${createdAgent.versions[0]}`);
         }
 
         return { success: true, agent: createdAgent };

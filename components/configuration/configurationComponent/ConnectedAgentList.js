@@ -229,12 +229,9 @@ const ConnectedAgentList = ({ params, searchParams, isPublished, isEditor = true
     if (bridge) {
       const isCmdOrCtrlClicked = window.event && (window.event.ctrlKey || window.event.metaKey);
       if (isCmdOrCtrlClicked) {
-        window.open(
-          `/org/${params?.org_id}/agents/configure/${bridge?._id}?version=${bridge?.published_version_id}`,
-          "_blank"
-        );
+        window.open(`/agents/configure/${bridge?._id}?version=${bridge?.published_version_id}`, "_blank");
       } else {
-        router.push(`/org/${params?.org_id}/agents/configure/${bridge?._id}?version=${bridge?.published_version_id}`);
+        router.push(`/agents/configure/${bridge?._id}?version=${bridge?.published_version_id}`);
       }
     }
   };
