@@ -37,7 +37,7 @@ const WithAuth = (Children) => {
         if (isEmbedUser) {
           const org_id = sessionStorage.getItem("gtwy_org_id");
           if (sessionStorage.getItem("local_token") && org_id) {
-            router.replace(`/org/${org_id}/agents`);
+            router.replace(`/agents`);
             return;
           }
           setLoading(false);
@@ -48,7 +48,7 @@ const WithAuth = (Children) => {
         // Already logged in — go to GTWY org from last embed/login
         if (proxyToken && (getFromCookies("local_token") || sessionStorage.getItem("local_token"))) {
           const gtwyOrg = sessionStorage.getItem("gtwy_org_id");
-          router.replace(gtwyOrg ? `/org/${gtwyOrg}/agents` : "/org");
+          router.replace(gtwyOrg ? `/agents` : "/org");
           return;
         }
 
@@ -76,12 +76,10 @@ const WithAuth = (Children) => {
             org_id: auth.org_id,
           });
 
-          const orgFromUrl = redirectionUrl?.match?.(/\/org\/(\d+)\//)?.[1];
-          const targetOrg = orgFromUrl || auth.org_id;
           const redirectTarget =
             redirectionUrl && redirectionUrl !== "/org" && !redirectionUrl.endsWith("/org")
               ? redirectionUrl
-              : `/org/${targetOrg}/agents`;
+              : `/agents`;
 
           router.replace(redirectTarget);
           removeCookie("previous_url");

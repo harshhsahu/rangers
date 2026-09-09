@@ -86,7 +86,7 @@ const RangerUsageStats = () => {
         {orgId && bridgeId && (
           <Link
             // Carry the version through, so analytics opens on the one being configured.
-            href={`/org/${orgId}/agents/analytics/${bridgeId}${versionId ? `?version=${versionId}` : ""}`}
+            href={`/agents/analytics/${bridgeId}${versionId ? `?version=${versionId}` : ""}`}
             data-testid="ranger-usage-open-analytics"
             className="text-[12px] font-semibold text-acc hover:opacity-80"
           >

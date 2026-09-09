@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
 import {
   BarChart3,
   Users,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 import { ResponsiveContainer, ComposedChart, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { getEmbedAnalyticsApi } from "@/config/analyticsApi";
-import { getStatsConfig } from "@/utils/enums";
+import { getStatsConfig, ORG_ID } from "@/utils/enums";
 import { AnalyticsStatsSkeleton, AnalyticsChartSkeleton } from "@/components/skeletons/AnalyticsSkeleton";
 import { formatRelativeTime, formatDate } from "@/utils/utility";
 
@@ -61,8 +60,7 @@ function formatChartTime(t, range) {
 }
 
 const EmbedAnalyticsTab = ({ data }) => {
-  const params = useParams();
-  const orgId = params?.org_id;
+  const orgId = ORG_ID;
   const folderId = data?.folder_id || data?._id;
 
   const [range, setRange] = useState("30d");
@@ -181,7 +179,7 @@ const EmbedAnalyticsTab = ({ data }) => {
 
   const openAgentAnalytics = (bridgeId) => {
     if (!orgId || !bridgeId) return;
-    window.open(`/org/${orgId}/agents/analytics/${bridgeId}`, "_blank", "noopener,noreferrer");
+    window.open(`/agents/analytics/${bridgeId}`, "_blank", "noopener,noreferrer");
   };
 
   if (!folderId) {

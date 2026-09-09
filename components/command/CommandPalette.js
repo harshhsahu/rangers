@@ -575,45 +575,43 @@ const CommandPalette = ({ isEmbedUser }) => {
       }
       // For deleted agents, navigate to the agents listing page with filter and folder=trash
       if (item.type === "agents" && item.deletedAt) {
-        router.push(`/org/${orgId}/agents?folder=trash&filter=${item.id}`);
+        router.push(`/agents?folder=trash&filter=${item.id}`);
         closePalette();
         return;
       }
       switch (item.type) {
         case "agents":
           if (item.versionId) {
-            router.push(`/org/${orgId}/agents/configure/${item.id}?version=${item.versionId}`);
+            router.push(`/agents/configure/${item.id}?version=${item.versionId}`);
           } else {
-            router.push(
-              `/org/${orgId}/agents/configure/${item.id}?version=${item.published_version_id || item.versions?.[0]}`
-            );
+            router.push(`/agents/configure/${item.id}?version=${item.published_version_id || item.versions?.[0]}`);
           }
           break;
         case "apikeys":
           // Always navigate to apikeys page with filter parameter
-          router.push(`/org/${orgId}/apikeys?filter=${item.id}`);
+          router.push(`/apikeys?filter=${item.id}`);
           break;
         case "docs":
           // Always navigate to knowledge base page with filter parameter
-          router.push(`/org/${orgId}/knowledge_base?filter=${item.id}`);
+          router.push(`/knowledge_base?filter=${item.id}`);
           break;
         case "integrations":
           // Always navigate to integrations page with filter parameter
-          router.push(`/org/${orgId}/integration?filter=${item.id}`);
+          router.push(`/integration?filter=${item.id}`);
           break;
         case "rag_embed":
           // Always navigate to RAG embed page with filter parameter
-          router.push(`/org/${orgId}/RAG_embed?filter=${item.id}`);
+          router.push(`/RAG_embed?filter=${item.id}`);
           break;
         case "Auths":
           // Always navigate to auth keys page with filter parameter
-          router.push(`/org/${orgId}/pauthkey?filter=${item.id}`);
+          router.push(`/pauthkey?filter=${item.id}`);
           break;
         case "widgets":
-          router.push(`/org/${orgId}/widgets${item.id ? `?filter=${item.id}` : ""}`);
+          router.push(`/widgets${item.id ? `?filter=${item.id}` : ""}`);
           break;
         case "tools":
-          router.push(`/org/${orgId}/tools${item.id ? `?filter=${item.id}` : ""}`);
+          router.push(`/tools${item.id ? `?filter=${item.id}` : ""}`);
           break;
         default:
           router.push("/");
@@ -630,10 +628,10 @@ const CommandPalette = ({ isEmbedUser }) => {
         return;
       }
       const routes = {
-        agents: `/org/${orgId}/agents`,
-        "api-agents": `/org/${orgId}/agents`,
-        "chatbot-agents": `/org/${orgId}/agents`,
-        apikeys: `/org/${orgId}/apikeys`,
+        agents: `/agents`,
+        "api-agents": `/agents`,
+        "chatbot-agents": `/agents`,
+        apikeys: `/apikeys`,
       };
       router.push(routes[key] || "/");
       closePalette();

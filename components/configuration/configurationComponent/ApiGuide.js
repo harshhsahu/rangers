@@ -128,7 +128,7 @@ const ApiGuide = ({ params, modelType, isEmbedUser, prompt = "" }) => {
               <Link
                 data-testid="api-guide-create-authkey-link"
                 id="api-guide-create-authkey-link"
-                href={`/org/${params.org_id}/pauthkey`}
+                href={`/pauthkey`}
                 target="_blank"
                 className="link link-primary"
               >

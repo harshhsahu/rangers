@@ -17,7 +17,7 @@ import { useDispatch } from "react-redux";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateBridgeAction, deleteBridgeAction } from "@/store/action/bridgeAction";
 import { syncSchedulesForAgent } from "@/utils/schedulerLifecycle";
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import { openModal, closeModal, sendDataToParent } from "@/utils/utility";
 import { toast } from "@/utils/toast";
 const ChatBotSlider = dynamic(() => import("./sliders/ChatBotSlider"), { ssr: false });
@@ -49,8 +49,8 @@ const Navbar = ({ isEmbedUser, params }) => {
   const router = useRouter();
   const pathname = usePathname();
   const pathParts = pathname.split("?")[0].split("/");
-  const orgId = params?.org_id || pathParts[2];
-  const bridgeId = params?.id || pathParts[5];
+  const orgId = params?.org_id || ORG_ID;
+  const bridgeId = params?.id || pathParts[3];
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const versionId = useMemo(() => searchParams?.get("version"), [searchParams]);
@@ -250,7 +250,7 @@ const Navbar = ({ isEmbedUser, params }) => {
   const handleTabChange = useCallback(
     (tabId) => {
       const navigate = () => {
-        const base = `/org/${orgId}/agents/${tabId}/${bridgeId}`;
+        const base = `/agents/${tabId}/${bridgeId}`;
 
         // Get bridge type from Redux and determine correct type parameter
         let typeValue;
@@ -293,24 +293,24 @@ const Navbar = ({ isEmbedUser, params }) => {
 
   const handleHomeClick = useCallback(() => {
     if (unsavedPromptGuard.hasUnsavedChanges) {
-      pendingNavRef.current = () => router.push(`/org/${orgId}/agents`);
+      pendingNavRef.current = () => router.push(`/agents`);
       openModal(MODAL_TYPE.UNSAVED_CHANGES_NAV_MODAL);
       return;
     }
-    router.push(`/org/${orgId}/agents`);
+    router.push(`/agents`);
   }, [router, orgId]);
 
   const handleBackToMainClick = useCallback(() => {
     if (unsavedPromptGuard.hasUnsavedChanges) {
       pendingNavRef.current = () =>
         router.push(
-          `/org/${orgId}/agents/configure/${parentAgentId}?version=${parentVersionId}${isEmbedUser ? "&isEmbedUser=true" : ""}`
+          `/agents/configure/${parentAgentId}?version=${parentVersionId}${isEmbedUser ? "&isEmbedUser=true" : ""}`
         );
       openModal(MODAL_TYPE.UNSAVED_CHANGES_NAV_MODAL);
       return;
     }
     router.push(
-      `/org/${orgId}/agents/configure/${parentAgentId}?version=${parentVersionId}${isEmbedUser ? "&isEmbedUser=true" : ""}`
+      `/agents/configure/${parentAgentId}?version=${parentVersionId}${isEmbedUser ? "&isEmbedUser=true" : ""}`
     );
   }, [router, orgId, parentAgentId, parentVersionId, isEmbedUser]);
 
@@ -376,7 +376,7 @@ const Navbar = ({ isEmbedUser, params }) => {
       await syncSchedulesForAgent(bridgeId, "delete");
       const response = await dispatch(deleteBridgeAction({ bridgeId, org_id: orgId }));
       toast.success(response?.data?.message || "Agent deleted successfully");
-      router.push(`/org/${orgId}/agents`);
+      router.push(`/agents`);
     });
   }, [executeDelete, dispatch, bridgeId, orgId, router]);
 

@@ -16,7 +16,6 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Plus, PlusIcon, Settings, Bot, X, CircleArrowOutUpRight } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { usePathname } from "next/navigation";
 import {
   BRIDGE_TYPES,
   useAgentLookup,
@@ -27,7 +26,7 @@ import {
   AgentConfigSidebar,
 } from "@/components/FlowDataManager";
 import { closeModal, getFromCookies, openModal } from "@/utils/utility";
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import CreateBridgeCards from "./CreateBridgeCards";
 import { useDispatch } from "react-redux";
 import FunctionParameterModal from "./configuration/configurationComponent/FunctionParameterModal";
@@ -150,8 +149,7 @@ function BridgeNode({ data }) {
 }
 
 function AgentNode({ id, data }) {
-  const pathname = usePathname();
-  const orgId = useMemo(() => pathname.split("?")[0].split("/")[2], [pathname]);
+  const orgId = ORG_ID;
 
   const { allFunction, allAgent } = useCustomSelector((state) => ({
     allFunction: state.bridgeReducer.org?.[orgId]?.functionData || {},

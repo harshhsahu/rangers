@@ -531,7 +531,7 @@ const ThreadItem = ({
     if (item?.sub_thread_id || item?.thread_id) {
       searchParams.set("subThread_id", item?.sub_thread_id || item?.thread_id);
     }
-    router.push(`/org/${params.org_id}/agents/history/${params.id}/visualize?${searchParams.toString()}`);
+    router.push(`/agents/history/${params.id}/visualize?${searchParams.toString()}`);
   };
 
   const getToolNameHelper = useCallback(
@@ -896,7 +896,7 @@ const ThreadItem = ({
           if (threadId) searchParams.set("thread_id", threadId);
           if (subThreadId) searchParams.set("sub_thread_id", subThreadId);
 
-          const path = `/org/${orgId}/agents/history/${agentId}?${searchParams.toString()}`;
+          const path = `/agents/history/${agentId}?${searchParams.toString()}`;
           if (isEmbedUser) {
             router.push(path);
             return;

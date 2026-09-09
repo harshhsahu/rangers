@@ -24,12 +24,12 @@ const PromptHelper = ({
 
   const pathname = usePathname();
   const pathParts = pathname.split("?")[0].split("/");
-  const bridgeId = pathParts[5];
+  const bridgeId = pathParts[3];
 
   // Extract parameters from URL if not provided
   const promptParams = params || {
-    id: bridgeId || pathParts[3],
-    version: pathParts[7] || pathParts[5],
+    id: bridgeId || pathParts[1],
+    version: pathParts[5] || pathParts[3],
   };
 
   // Update parent messages when local messages change

@@ -1,4 +1,7 @@
 const { spawn } = require("child_process");
+const path = require("path");
+
+const nextBin = path.join(__dirname, "..", "node_modules", ".bin", process.platform === "win32" ? "next.cmd" : "next");
 
 const files = process.argv.slice(2);
 
@@ -14,9 +17,8 @@ files.forEach((file) => {
 
 console.log(`Running next lint on ${files.length} files...`);
 
-const child = spawn("next", args, {
+const child = spawn(nextBin, args, {
   stdio: "inherit",
-  shell: true,
 });
 
 child.on("close", (code) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import OpenAiIcon from "@/icons/OpenAiIcon";
+import { getIconOfService } from "@/utils/utility";
 import { RANGER_CHANNELS, CALLSIGN_BY_HEX } from "./rangerConstants";
 
 const CHANNEL_BY_KEY = RANGER_CHANNELS.reduce((acc, channel) => {
@@ -51,7 +51,18 @@ const tint = (hex, alpha) => {
  * The subtitle reads "<callsign> · <role>": the callsign comes from the swatch so every
  * ranger has one even before a role is written.
  */
-const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0, onOpen, onHover, onMenuClick }) => {
+const RangerCard = ({
+  row,
+  ranger,
+  service,
+  channels = [],
+  metrics,
+  isLoading,
+  index = 0,
+  onOpen,
+  onHover,
+  onMenuClick,
+}) => {
   const [channelsOpen, setChannelsOpen] = useState(false);
   const [hot, setHot] = useState(false);
   const isPaused = row?.bridge_status === 0;
@@ -197,11 +208,7 @@ const RangerCard = ({ row, ranger, channels = [], metrics, isLoading, index = 0,
               />
             )}
             <span className="relative grid h-10 w-10 place-items-center rounded-[12px] border border-line bg-card shadow-[0_1px_3px_var(--shadow-tint)]">
-              {isLoading ? (
-                <span className="loading loading-spinner loading-xs" />
-              ) : (
-                <OpenAiIcon width={20} height={20} />
-              )}
+              {isLoading ? <span className="loading loading-spinner loading-xs" /> : getIconOfService(service, 20, 20)}
             </span>
           </span>
 

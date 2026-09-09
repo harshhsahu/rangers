@@ -85,7 +85,7 @@ const BatchApiGuide = ({ params, searchParams }) => {
           <Link
             data-testid="batch-api-guide-create-authkey-link"
             id="batch-api-guide-create-authkey-link"
-            href={`/org/${params.org_id}/pauthkey`}
+            href={`/pauthkey`}
             target="_blank"
             className="link link-primary"
           >
