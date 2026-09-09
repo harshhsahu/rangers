@@ -8,6 +8,8 @@ import { getAllFunctions } from "@/store/action/bridgeAction";
 import KnowledgeBaseModal from "@/components/modals/KnowledgeBaseModal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
+import { toast } from "@/utils/toast";
+import useEmbedToolCreated from "@/customHooks/useEmbedToolCreated";
 import useConnectorEmbed from "../useConnectorEmbed";
 
 /** The box the builder is docked into on this step. */
@@ -26,12 +28,16 @@ const DASHED_CTA =
  * Connectors: the ViaSocket tool builder, MCP servers, the org's authenticated
  * tools, and a knowledge-base hand-off. Every part of this step is optional.
  *
- * Nothing here talks to a version: the agent does not exist yet, and creating
- * one just so a tool could be attached would leave a stray agent behind for
- * anyone who walks out of onboarding. Both MCP servers and picked tools are
- * held in wizard state and written on deploy — MCP as
- * `configuration.mcp_config.servers` (the shape McpServerList saves) and tools
- * through the same functionData update the Connectors step uses.
+ * Whether a tool can be attached right now depends on how the wizard got here.
+ * "Write the prompt for me" creates the agent on the Prompt step, so from then
+ * on (`hasAgent`) a tool is attached to its version the moment it is picked or
+ * built. Written by hand, no agent exists yet — creating one just to hold a
+ * tool would leave a stray agent behind for anyone who walks out — so the pick
+ * stays in wizard state and deploy attaches it. Either way the id is kept in
+ * `selectedToolIds`, and deploy skips whatever is already attached.
+ *
+ * MCP servers are always deploy-time, written as
+ * `configuration.mcp_config.servers` (the shape McpServerList saves).
  */
 const ConnectorsPane = ({
   orgId,
@@ -41,6 +47,9 @@ const ConnectorsPane = ({
   onSelectedToolIdsChange,
   selectedKbIds,
   onSelectedKbIdsChange,
+  hasAgent = false,
+  onConnectTool,
+  onDisconnectTool,
 }) => {
   const dispatch = useDispatch();
   const [builderOpen, setBuilderOpen] = useState(false);
@@ -51,6 +60,8 @@ const ConnectorsPane = ({
   const [mcpFormOpen, setMcpFormOpen] = useState(false);
   const [mcpName, setMcpName] = useState("");
   const [mcpUrl, setMcpUrl] = useState("");
+  // The tool whose attach/detach call is in flight, so only its row shows it.
+  const [busyToolId, setBusyToolId] = useState(null);
 
   const { embedToken, functionData, integrationData, knowledgeBases } = useCustomSelector((state) => {
     const orgData = state?.bridgeReducer?.org?.[orgId] || {};
@@ -92,6 +103,58 @@ const ConnectorsPane = ({
     [functionData, integrationData]
   );
 
+  /**
+   * Pick or drop one tool. The selection moves first so the row answers the
+   * click either way; when the agent already exists the version is updated too,
+   * and a rejected detach puts the tool back rather than showing it as gone
+   * while it is still attached.
+   */
+  const applyTool = async (toolId, connect, label = "Tool") => {
+    if (busyToolId) return { success: false };
+    onSelectedToolIdsChange(
+      connect
+        ? selectedToolIds.includes(toolId)
+          ? selectedToolIds
+          : [...selectedToolIds, toolId]
+        : selectedToolIds.filter((id) => id !== toolId)
+    );
+
+    const action = connect ? onConnectTool : onDisconnectTool;
+    if (!hasAgent || !action) return { success: true, deferred: true };
+
+    setBusyToolId(toolId);
+    try {
+      const result = await action(toolId);
+      if (result?.success) return result;
+      if (connect) {
+        // Left selected on purpose: deploy retries whatever is not attached yet.
+        toast.error(`${label} could not be attached now — it will be connected on deploy.`);
+      } else {
+        onSelectedToolIdsChange(selectedToolIds.includes(toolId) ? selectedToolIds : [...selectedToolIds, toolId]);
+        toast.error(`${label} could not be disconnected — ${result?.message || "try again."}`);
+      }
+      return result;
+    } finally {
+      setBusyToolId(null);
+    }
+  };
+
+  /**
+   * A tool built in the builder above is connected to this ranger straight away
+   * — the user already said what they wanted by creating it here, so making
+   * them press Connect on the row as well is a step for nothing.
+   */
+  useEmbedToolCreated(async ({ functionId, title, connected }) => {
+    if (!functionId || connected) return;
+    // The new tool only shows up in the list below after a refetch.
+    dispatch(getAllFunctions());
+    if (selectedToolIds.includes(functionId)) return;
+
+    const label = title || "Tool";
+    const result = await applyTool(functionId, true, label);
+    if (result?.success) toast.success(`${label} connected to this ranger`);
+  });
+
   /** `scriptId` reopens an existing tool; omitted, the builder starts blank. */
   const openBuilder = (scriptId = null) => {
     clearEmbedError();
@@ -117,10 +180,7 @@ const ConnectorsPane = ({
       selectedKbIds.includes(kbId) ? selectedKbIds.filter((id) => id !== kbId) : [...selectedKbIds, kbId]
     );
 
-  const toggleTool = (toolId) =>
-    onSelectedToolIdsChange(
-      selectedToolIds.includes(toolId) ? selectedToolIds.filter((id) => id !== toolId) : [...selectedToolIds, toolId]
-    );
+  const toggleTool = (tool) => applyTool(tool.id, !selectedToolIds.includes(tool.id), tool.name);
 
   const canSaveMcp = Boolean(mcpName.trim() && mcpUrl.trim());
 
@@ -306,12 +366,13 @@ const ConnectorsPane = ({
                       type="button"
                       aria-pressed={isPicked}
                       data-testid={`onboarding-tool-toggle-${tool.id}`}
-                      onClick={() => toggleTool(tool.id)}
-                      className={`flex-none rounded-[8px] px-[11px] py-[6px] text-[12px] font-semibold ${
+                      disabled={Boolean(busyToolId)}
+                      onClick={() => toggleTool(tool)}
+                      className={`flex-none rounded-[8px] px-[11px] py-[6px] text-[12px] font-semibold disabled:opacity-60 ${
                         isPicked ? "border border-acc-line text-acc-deep" : "bg-acc text-acc-ink"
                       }`}
                     >
-                      {isPicked ? "Connected" : "Connect"}
+                      {busyToolId === tool.id ? "Saving…" : isPicked ? "Disconnect" : "Connect"}
                     </button>
                   </div>
                 </div>

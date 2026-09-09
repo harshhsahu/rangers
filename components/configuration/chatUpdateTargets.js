@@ -19,6 +19,7 @@ export const UPDATE_TARGET = {
   CHANNEL: "CHANNEL",
   MCP: "MCP",
   KNOWLEDGE_BASE: "KNOWLEDGE_BASE",
+  SCHEDULE: "SCHEDULE",
 };
 
 /**
@@ -42,12 +43,13 @@ const TARGET_BY_TOOL = {
   // mismatch costs the user their refresh silently.
   managerangerversion: UPDATE_TARGET.MODEL_CONFIG,
   managerangerversion_2: UPDATE_TARGET.MODEL_CONFIG,
+  managerangerschedule: UPDATE_TARGET.SCHEDULE,
 };
 
 /**
  * Tools that only read. They must never trigger a refresh — and specifically must never
  * reach the blanket fallback, which refreshes every target when a tool ran but named none.
- * A lookup would otherwise flash all four setup rows for a question the user only asked.
+ * A lookup would otherwise flash every setup row for a question the user only asked.
  */
 const READ_ONLY_TOOLS = ["lookup_model_details"];
 
@@ -67,6 +69,7 @@ export const TARGET_LABEL = {
   [UPDATE_TARGET.CHANNEL]: "Channel",
   [UPDATE_TARGET.MCP]: "MCP servers",
   [UPDATE_TARGET.KNOWLEDGE_BASE]: "Knowledge base",
+  [UPDATE_TARGET.SCHEDULE]: "Scheduler",
 };
 
 /**
@@ -102,6 +105,11 @@ const REFRESH_BY_TARGET = {
     if (onChannelsChanged) return onChannelsChanged();
     return window.dispatchEvent(new CustomEvent("gtwy:channels-changed"));
   },
+  /**
+   * Schedules are Mongo-backed too, so the same event pattern: SchedulerPanel and the
+   * setup row both own their fetch and listen for this.
+   */
+  [UPDATE_TARGET.SCHEDULE]: () => window.dispatchEvent(new CustomEvent("gtwy:schedules-changed")),
 };
 
 /**
@@ -137,7 +145,7 @@ export const applyRangerUpdates = (
   /**
    * Announces what was refreshed so the setup rows can show which one moved. Without it
    * a value simply changes underneath the user, who was looking at the chat and has no
-   * idea which of the four rows to check.
+   * idea which row to check.
    */
   if (refreshed.length) {
     window.dispatchEvent(new CustomEvent("gtwy:ranger-refreshed", { detail: { targets: refreshed } }));

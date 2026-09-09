@@ -81,6 +81,11 @@ export async function POST(request) {
           // The ranger's own configuration is read by the agent's pre-function, straight
           // from the API each turn, so none of it is duplicated here. Only what a tool
           // needs and the pre-function cannot supply is forwarded.
+          // Scheduling needs the same publicly reachable origin the channel
+          // routes do, plus the org's timezone: "5 pm" is meaningless without
+          // it, and the browser's zone is not the team's.
+          scheduler_available: frontendUrl ? "true" : "false",
+          org_timezone: String(body?.org_timezone || "UTC"),
           available_knowledge_bases: asJson(body?.available_knowledge_bases),
           model_type: String(body?.model_type || "chat"),
         },

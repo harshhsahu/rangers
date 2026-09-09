@@ -108,6 +108,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   const {
     createFromIdentity,
     connectTool,
+    disconnectTool,
     connectedTools,
     saveTone,
     deploy,
@@ -498,6 +499,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               orgId={orgId}
               connectedTools={connectedTools}
               onConnectTool={connectTool}
+              onDisconnectTool={disconnectTool}
               canConnect={Boolean(created?.agentId)}
             />
           )}

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExtern
 import { useDispatch } from "react-redux";
 import { CheckCircle2, ChevronRight, SendHorizontal, Wrench, XCircle } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
+import { getLocalTimezone } from "@/utils/timezoneData";
 import { toast } from "@/utils/toast";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import { getAuthToken } from "@/utils/interceptor";
@@ -190,6 +191,10 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
     };
   });
 
+  const orgTimezone = useCustomSelector(
+    (state) => state?.userDetailsReducer?.organizations?.[versionState.orgId]?.timezone || getLocalTimezone()
+  );
+
   // Only what the agent needs to resolve a name to an id — descriptions and titles, not
   // the whole knowledge base record.
   const availableKnowledgeBases = useCustomSelector((state) => {
@@ -283,6 +288,9 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
             // The one list the pre-function cannot supply to a tool: the resources tool
             // resolves a knowledge base name to its ids from this.
             available_knowledge_bases: availableKnowledgeBases,
+            // What "5 pm" means to this team, for the schedule tool. The org's
+            // own zone if it has one, otherwise the browser's.
+            org_timezone: orgTimezone,
           }),
         });
 

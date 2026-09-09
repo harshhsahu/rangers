@@ -501,6 +501,40 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     [dispatch, ensureHydratedVersion, safeSet]
   );
 
+  /** Detach a tool from the version, so a connect made in the wizard can be undone. */
+  const disconnectTool = useCallback(
+    async (functionId) => {
+      if (!functionId) return { success: false, message: "Unknown tool." };
+      if (!connectedToolsRef.current[functionId]) return { success: true };
+
+      const agentId = createdRef.current?.agentId;
+      const versionId = createdRef.current?.versionId;
+      if (!agentId || !versionId) {
+        return { success: false, message: "This ranger has no version to detach the tool from." };
+      }
+
+      try {
+        await ensureHydratedVersion(versionId);
+
+        await dispatch(
+          updateBridgeVersionAction({
+            bridgeId: agentId,
+            versionId,
+            dataToSend: { functionData: { function_id: functionId, function_operation: "0" } },
+          })
+        );
+
+        delete connectedToolsRef.current[functionId];
+        safeSet(setConnectedTools, { ...connectedToolsRef.current });
+        return { success: true };
+      } catch (err) {
+        console.error("Disconnecting the tool failed", err);
+        return { success: false, message: err?.response?.data?.message || err?.message || "Failed to disconnect." };
+      }
+    },
+    [dispatch, ensureHydratedVersion, safeSet]
+  );
+
   /**
    * Persist the tone the moment it is picked, in the same shape ToneDropdown
    * writes (`settings.tone`), so the wizard and the configure page agree.
@@ -693,6 +727,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     createFromIdentity,
     connectChannel,
     connectTool,
+    disconnectTool,
     connectedTools,
     saveTone,
     deploy,

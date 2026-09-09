@@ -5,6 +5,8 @@ import { useDispatch } from "react-redux";
 import { Link2, Maximize2, Minimize2, Pencil, Plus } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getAllFunctions } from "@/store/action/bridgeAction";
+import useEmbedToolCreated from "@/customHooks/useEmbedToolCreated";
+import { toast } from "@/utils/toast";
 import useConnectorEmbed from "../useConnectorEmbed";
 
 /** The box in this step that the builder is docked into. */
@@ -16,9 +18,10 @@ const MONOGRAM_COLORS = ["#ff7a59", "#2684ff", "#0f9d58", "#635bff", "#5e6ad2", 
 const monogramColor = (seed = "") =>
   MONOGRAM_COLORS[Math.abs([...seed].reduce((acc, char) => acc + char.charCodeAt(0), 0)) % MONOGRAM_COLORS.length];
 
-const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect }) => {
+const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnectTool, canConnect }) => {
   const dispatch = useDispatch();
-  const [connectingId, setConnectingId] = useState(null);
+  // The tool whose connect/disconnect call is in flight, so only its own row shows a spinner.
+  const [busyId, setBusyId] = useState(null);
   const [errors, setErrors] = useState({});
   // Bumping this tears the builder down and opens a fresh one in the box.
   const [reloadKey, setReloadKey] = useState(0);
@@ -84,15 +87,53 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
     [functionData, integrationData]
   );
 
-  const handleConnect = async (tool) => {
-    if (!onConnectTool || connectingId) return;
-    setConnectingId(tool.id);
+  /**
+   * Attach or detach one tool, keeping the row's error line in step. Returns
+   * the result so the auto-connect below can toast off the same call.
+   */
+  const runToggle = async (toolId, connect) => {
+    const action = connect ? onConnectTool : onDisconnectTool;
+    if (!action) return { success: false, message: "Unavailable." };
+
+    setBusyId(toolId);
     try {
-      const result = await onConnectTool(tool.id);
-      setErrors((prev) => ({ ...prev, [tool.id]: result?.success ? "" : result?.message || "Failed to connect." }));
+      const result = await action(toolId);
+      setErrors((prev) => ({
+        ...prev,
+        [toolId]: result?.success ? "" : result?.message || (connect ? "Failed to connect." : "Failed to disconnect."),
+      }));
+      return result;
     } finally {
-      setConnectingId(null);
+      setBusyId(null);
     }
+  };
+
+  /**
+   * A tool built in the builder above is attached to this ranger straight away
+   * — the user already said what they wanted by creating it here, so making
+   * them press Connect on the row as well is a step for nothing. `connected`
+   * means the org layout already attached it, so this would double up.
+   */
+  useEmbedToolCreated(async ({ functionId, title, connected }) => {
+    if (!functionId || connected) return;
+    // The new tool only shows up in the list below after a refetch.
+    dispatch(getAllFunctions());
+
+    const label = title || "Tool";
+    if (connectedTools?.[functionId]) return;
+    if (!onConnectTool || !canConnect) return;
+
+    const result = await runToggle(functionId, true);
+    if (result?.success) {
+      toast.success(`${label} connected to this ranger`);
+    } else {
+      toast.error(`${label} was created but not connected — ${result?.message || "Failed to connect."}`);
+    }
+  });
+
+  const handleToggle = (tool, connect) => {
+    if (busyId) return;
+    runToggle(tool.id, connect);
   };
 
   return (
@@ -177,7 +218,7 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
         <div className="flex flex-col gap-2">
           {tools.map((tool) => {
             const isConnected = Boolean(connectedTools?.[tool.id]);
-            const isConnecting = connectingId === tool.id;
+            const isBusy = busyId === tool.id;
             const error = errors[tool.id];
 
             return (
@@ -216,20 +257,24 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, canConnect 
                     <Pencil size={12} />
                   </button>
 
+                  {isConnected && !isBusy && (
+                    <span className="flex-none text-[11px] font-semibold text-success">Connected</span>
+                  )}
+
                   <button
                     type="button"
-                    data-testid={`ranger-connector-connect-${tool.id}`}
-                    className={`btn btn-xs ${isConnected ? "btn-ghost" : "btn-outline"}`}
-                    disabled={isConnected || isConnecting || !canConnect}
-                    onClick={() => handleConnect(tool)}
+                    data-testid={`ranger-connector-${isConnected ? "disconnect" : "connect"}-${tool.id}`}
+                    className={`btn btn-xs ${isConnected ? "btn-ghost text-error" : "btn-outline"}`}
+                    disabled={isBusy || !canConnect || (isConnected && !onDisconnectTool)}
+                    onClick={() => handleToggle(tool, !isConnected)}
                   >
-                    {isConnecting ? (
+                    {isBusy ? (
                       <>
                         <span className="loading loading-spinner loading-xs" />
-                        Connecting
+                        {isConnected ? "Disconnecting" : "Connecting"}
                       </>
                     ) : isConnected ? (
-                      "Connected"
+                      "Disconnect"
                     ) : (
                       "Connect"
                     )}

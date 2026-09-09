@@ -2,6 +2,7 @@
 "use client";
 import CreateRangerModal from "@/components/rangers/CreateRangerModal";
 import RangerTabs, { RANGER_TAB_KEYS } from "@/components/rangers/RangerTabs";
+import { syncSchedulesForAgent } from "@/utils/schedulerLifecycle";
 import CommandCenterTab from "@/components/rangers/CommandCenterTab";
 import useChannelDetails from "@/components/rangers/useChannelDetails";
 import RangerGrid from "@/components/rangers/RangerGrid";
@@ -1236,6 +1237,9 @@ function Home({ params, searchParams, isEmbedUser }) {
   const deleteBridge = async (item, name) => {
     await executeDelete(async () => {
       const bridgeId = item._id;
+      // Before the agent goes: afterwards the server cannot verify ownership of
+      // it, and its cron jobs would keep firing with no row left to find them.
+      await syncSchedulesForAgent(bridgeId, "delete");
       const response = await dispatch(deleteBridgeAction({ bridgeId, org_id: resolvedParams.org_id }));
       toast.success(response?.data?.message || response?.message || response || "Agent deleted successfully");
     });

@@ -37,6 +37,7 @@ import { userDetails } from "@/store/action/userDetailsAction";
 import { storeMarketingRefUserAction } from "@/store/action/marketingRefAction";
 import { useEmbedScriptLoader } from "@/customHooks/embedScriptLoader";
 import ServiceInitializer from "@/components/organization/ServiceInitializer";
+import { emitEmbedToolCreated } from "@/utils/toolEvents";
 import { ORG_ID } from "@/utils/enums";
 
 const Navbar = dynamic(() => import("@/components/Navbar"), { loading: () => <LoadingSpinner /> });
@@ -360,6 +361,10 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
           folder_id: e?.data?.metadata?.folder_id || null,
         };
         dispatch(createApiAction(ORG_ID, dataFromEmbed)).then((data) => {
+          // Whether this layout attached the tool to an agent itself. When it
+          // did not — the ranger modal and the onboarding wizard have no agent
+          // in the URL — the event at the end lets those screens attach it.
+          let connectedHere = false;
           // Handle reviewer tools - works regardless of page context
           if (e?.data?.metadata?.createFrom === "reviewer" && path[3] && resolvedSearchParams?.get("version")) {
             // Add as reviewer tool - preserve existing review_agent settings
@@ -378,7 +383,8 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
                 },
               })
             );
-          } else if (pathName.includes("agents")) {
+            connectedHere = true;
+          } else if (pathName.includes("agents") && path[3] && resolvedSearchParams?.get("version")) {
             if (e?.data?.metadata?.createFrom === "preFunction") {
               // Only add as pre-tool if not already present (preTools is an array of objects)
               const alreadyPreTool =
@@ -399,6 +405,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
                   })
                 );
               }
+              connectedHere = true;
             } else if (e?.data?.metadata?.createFrom === "postFunction") {
               // Add as post tool
               dispatch(
@@ -414,6 +421,7 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
                   },
                 })
               );
+              connectedHere = true;
             } else {
               // Only add as regular tool if not already in versionData
               if (!tools?.includes(data?._id)) {
@@ -430,7 +438,20 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
                   })
                 );
               }
+              connectedHere = true;
             }
+          }
+
+          // Screens that own an agent the URL knows nothing about (the ranger
+          // create modal, the onboarding wizard) attach the tool themselves off
+          // this event — only for a fresh build, never an edit of an existing one.
+          if (e?.data?.action === "published") {
+            emitEmbedToolCreated({
+              functionId: data?._id,
+              scriptId: data?.script_id,
+              title: data?.title || e?.data?.title || "Tool",
+              connected: connectedHere,
+            });
           }
           if (
             (e?.data?.action === "updated" || e?.data?.action === "published") &&
