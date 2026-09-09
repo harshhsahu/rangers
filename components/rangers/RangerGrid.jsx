@@ -36,6 +36,7 @@ const RangerGrid = ({
           row={row}
           index={index}
           ranger={readRangerMeta(raw)}
+          service={raw?.service}
           channels={channelsByAgentId?.get(String(row._id)) || []}
           metrics={raw?.metrics}
           isLoading={loadingAgentId === row._id}
