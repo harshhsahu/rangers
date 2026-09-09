@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "@/utils/toast";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { deleteApikeyAction, saveApiKeysAction } from "@/store/action/apiKeyAction";
-import { shortUniqueId } from "@/utils/utility";
-import { getIconOfService } from "@/utils/utility";
+import { getApiKeyGuideAction } from "@/store/action/flowDataAction";
+import { shortUniqueId, toggleSidebar, getIconOfService } from "@/utils/utility";
+import ApiKeyGuideSlider from "@/components/configuration/configurationComponent/ApiKeyGuide";
 
 /**
  * Provider keys, one row per service the workspace supports.
@@ -31,10 +32,18 @@ const KeysPane = ({ orgId }) => {
   const [drafts, setDrafts] = useState({});
   const [busyService, setBusyService] = useState(null);
 
-  const { services, apikeys } = useCustomSelector((state) => ({
+  const { services, apikeys, apiKeyGuideData } = useCustomSelector((state) => ({
     services: state?.serviceReducer?.services || [],
     apikeys: state?.apiKeysReducer?.apikeys?.[orgId] || [],
+    apiKeyGuideData: state?.flowDataReducer?.flowData?.apiKeyGuideData || [],
   }));
+
+  useEffect(() => {
+    if (apiKeyGuideData.length === 0) {
+      dispatch(getApiKeyGuideAction());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const savedByService = useMemo(() => {
     const map = {};
@@ -85,6 +94,19 @@ const KeysPane = ({ orgId }) => {
 
   return (
     <div data-testid="onboarding-pane-keys" id="onboarding-pane-keys">
+      {apiKeyGuideData.length > 0 && (
+        <div className="flex justify-end pb-2">
+          <button
+            type="button"
+            data-testid="onboarding-key-guide-open-button"
+            onClick={() => toggleSidebar("Api-Keys-guide-slider", "right")}
+            className="text-[12px] font-semibold text-acc hover:underline"
+          >
+            How to get an API key
+          </button>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-[14px] border border-line bg-card">
         {services.map((service, index) => {
           const value = service?.value;
@@ -147,6 +169,8 @@ const KeysPane = ({ orgId }) => {
       <p className="m-0 pt-3 text-[12px] text-soft">
         Keys are per provider. Add one now or skip — we will nudge you before the first run.
       </p>
+
+      <ApiKeyGuideSlider />
     </div>
   );
 };

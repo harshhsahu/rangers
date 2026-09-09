@@ -75,7 +75,7 @@ const CreateOrg = ({ handleSwitchOrg }) => {
             closeModal(MODAL_TYPE.CREATE_ORG_MODAL);
             setIsLoading(false);
             setTimeout(() => {
-              route.replace(`/org/${data.id}/agents`);
+              route.replace(`/agents`);
             }, 100);
           },
           // Error callback

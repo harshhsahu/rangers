@@ -202,7 +202,7 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "trigger", al
 
       // 2. Try sessionStorage for this organization's agents page
       if (orgid) {
-        const sessionKey = `activeFolderId_/org/${orgid}/agents`;
+        const sessionKey = `activeFolderId_/agents`;
         const saved = sessionStorage.getItem(sessionKey);
         if (saved && !INVALID_FOLDER_IDS.has(saved)) {
           return saved;
@@ -262,7 +262,7 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "trigger", al
             );
           }
 
-          router.push(`/org/${orgid}/agents/configure/${data.agent._id}?version=${data.agent.versions[0]}`);
+          router.push(`/agents/configure/${data.agent._id}?version=${data.agent.versions[0]}`);
           updateState({ isAiLoading: false });
           cleanState();
         })
@@ -290,9 +290,7 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "trigger", al
                     "Agent created Successfully"
                   );
                 }
-                router.push(
-                  `/org/${orgid}/agents/configure/${data.data.agent._id}?version=${data.data.agent.versions[0]}`
-                );
+                router.push(`/agents/configure/${data.data.agent._id}?version=${data.data.agent.versions[0]}`);
                 updateState({ isLoading: false });
                 cleanState();
               })
@@ -333,7 +331,7 @@ function CreateNewBridge({ orgid, isEmbedUser, defaultBridgeType = "trigger", al
               );
             }
 
-            router.push(`/org/${orgid}/agents/configure/${data.data.agent._id}?version=${data.data.agent.versions[0]}`);
+            router.push(`/agents/configure/${data.data.agent._id}?version=${data.data.agent.versions[0]}`);
             updateState({ isLoading: false });
             cleanState();
           })

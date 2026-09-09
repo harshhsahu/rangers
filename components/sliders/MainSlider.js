@@ -9,7 +9,7 @@ import { useCustomSelector } from "@/customHooks/customSelector";
 import { clearCookie, getFromCookies, openModal, closeModal } from "@/utils/utility";
 import TutorialModal from "@/components/modals/TutorialModal";
 import DemoModal from "../modals/DemoModal";
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import Protected from "../Protected";
 import BridgeSlider from "./BridgeSlider";
 import {
@@ -38,7 +38,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const router = useRouter();
 
   const pathParts = pathname.split("?")[0].split("/");
-  const orgId = orgIdFromHeader || pathParts[2];
+  const orgId = orgIdFromHeader || ORG_ID;
 
   const { userdetails, organizations, currrentOrgDetail, allBridges } = useCustomSelector((state) => ({
     userdetails: state.userDetailsReducer.userDetails,
@@ -96,7 +96,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
 
   // Pages at depth 4 that should collapse the sidebar (detail/full-screen pages)
   const COLLAPSE_AT_DEPTH_4 = ["chatbotConfig"];
-  const shouldCollapse = pathParts.length > 4 || (pathParts.length === 4 && COLLAPSE_AT_DEPTH_4.includes(pathParts[3]));
+  const shouldCollapse = pathParts.length > 2 || (pathParts.length === 2 && COLLAPSE_AT_DEPTH_4.includes(pathParts[1]));
 
   // Effect to handle sidebar state when path changes
   useEffect(() => {
@@ -324,7 +324,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
       openModal(MODAL_TYPE.CREATE_RANGER_MODAL);
       return;
     }
-    if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/agents?create=1`);
+    if (targetOrgId) guardedNavigate(`/agents?create=1`);
   }, [isMobile, pathname, targetOrgId]);
 
   // Mobile menu toggle handler
@@ -460,10 +460,10 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const spacerW = isMobile ? "56px" : isOpen ? "244px" : "56px";
   const sidebarAgentType = searchParams?.get("type")?.toLowerCase();
   const activeKey = useMemo(() => {
-    if (pathParts[3] === "agents") {
+    if (pathParts[1] === "agents") {
       return "agents";
     }
-    return pathParts[3];
+    return pathParts[1];
   }, [pathParts, sidebarAgentType, allBridges]);
   // Determine positioning based on mode
   const sidebarPositioning = isSideBySideMode && !shouldCollapse ? "relative" : "fixed";
@@ -653,7 +653,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
               <button
                 id="main-slider-refer-earn-button"
                 onClick={() => {
-                  if (targetOrgId) guardedNavigate(`/org/${targetOrgId}/referAndEarn`);
+                  if (targetOrgId) guardedNavigate(`/referAndEarn`);
                   if (isMobile) setIsMobileVisible(false);
                 }}
                 onMouseEnter={(e) => onItemEnter("refer-earn", e)}
@@ -674,7 +674,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
                 <button
                   id="main-slider-lifetime-access-button"
                   onClick={() => {
-                    guardedNavigate(`/org/${orgId}/lifetime-access`);
+                    guardedNavigate(`/lifetime-access`);
                     if (isMobile) setIsMobileVisible(false);
                   }}
                   onMouseEnter={(e) => onItemEnter("lifetimeAccess", e)}
@@ -697,7 +697,7 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
               </div>
 
               {/* Account row */}
-              {pathParts.length >= 4 && renderAccountRow()}
+              {pathParts.length >= 2 && renderAccountRow()}
             </div>
           </div>
         </div>

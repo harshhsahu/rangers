@@ -22,7 +22,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useRef, useState } from "react";
 import CreateOrg from "../CreateNewOrg";
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import { useDispatch } from "react-redux";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
 import ConfirmationModal from "@/components/UI/ConfirmationModal";
@@ -58,7 +58,7 @@ function OrgSlider() {
     const doSwitch = async () => {
       try {
         await createAndStoreInternalJwt(id);
-        router.push(`/org/${id}/agents`);
+        router.push(`/agents`);
         dispatch(setCurrentOrgIdAction(id));
       } catch (error) {
         console.error("Error switching organization", error);
@@ -120,7 +120,7 @@ function OrgSlider() {
                 <li key={item.id}>
                   <a
                     id={`org-slider-org-${item.id}`}
-                    className={`${item.id == path[2] ? "active" : `${item.id}`} py-2 px-2 rounded-md`}
+                    className={`${item.id == ORG_ID ? "active" : `${item.id}`} py-2 px-2 rounded-md`}
                     onClick={() => {
                       handleSwitchOrg(item.id, item.name);
                     }}
@@ -160,9 +160,9 @@ function OrgSlider() {
                 {" "}
                 <a
                   id="org-slider-pauth-key-link"
-                  className={`py-2 px-2 ${path[3] === "Pauthkey" ? "active" : ""} rounded-md`}
+                  className={`py-2 px-2 ${path[1] === "Pauthkey" ? "active" : ""} rounded-md`}
                   onClick={() => {
-                    router.push(`/org/${path[2]}/pauthkey`);
+                    router.push(`/pauthkey`);
                   }}
                 >
                   {" "}

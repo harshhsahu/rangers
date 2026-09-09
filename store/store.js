@@ -2,9 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import persistReducer from "redux-persist/es/persistReducer";
 import persistStore from "redux-persist/es/persistStore";
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
-import authDataSliceReducer from "./reducer/authkeyReducer";
 import bridgeSliceReducer from "./reducer/bridgeReducer";
-import chatBotSliceReducer from "./reducer/ChatBotReducer";
 import dryRunSliceReducer from "./reducer/dryRunReducer";
 import historySliceReducer from "./reducer/historyReducer";
 import knowledgeBaseSliceReducer from "./reducer/knowledgeBaseReducer";
@@ -14,17 +12,12 @@ import responseTypeSliceReducer from "./reducer/responseTypeReducer";
 import userDetailsSliceReducer from "./reducer/userDetailsReducer";
 import serviceSliceReducer from "./reducer/serviceReducer";
 import flowDataSliceReducer from "./reducer/flowDataReducer";
-import integrationSliceReducer from "./reducer/integrationReducer";
-import authSliceReducer from "./reducer/authReducer";
 import gtwyAgentSliceReducer from "./reducer/gwtyAgentReducer";
 import orchestralFlowSliceReducer from "./reducer/orchestralFlowReducer";
-import prebuiltPromptSliceReducer from "./reducer/prebuiltPromptReducer";
 import apiKeysSliceReducer from "./reducer/apiKeysReducer";
 import variableSliceReducer from "./reducer/variableReducer";
 import chatSliceReducer from "./reducer/chatReducer";
 import appInfoSliceReducer from "./reducer/appInfoReducer";
-import richUiTemplateSliceReducer from "./reducer/richUiTemplateReducer";
-import folderSliceReducer from "./reducer/folderReducer";
 import analyticsSliceReducer from "./reducer/analyticsReducer";
 const createNoopStorage = () => {
   return {
@@ -71,24 +64,17 @@ const rootReducer = combineReducers({
   historyReducer: historySliceReducer,
   dryRunReducer: dryRunSliceReducer,
   userDetailsReducer: userDetailsSliceReducer,
-  authDataReducer: authDataSliceReducer,
   orgReducer: orgSliceReducer,
   responseTypeReducer: responseTypeSliceReducer,
-  ChatBot: chatBotSliceReducer,
   knowledgeBaseReducer: knowledgeBaseSliceReducer,
   serviceReducer: serviceSliceReducer,
   gtwyAgentReducer: gtwyAgentSliceReducer,
   flowDataReducer: flowDataSliceReducer,
-  integrationReducer: integrationSliceReducer,
-  authReducer: authSliceReducer,
   orchestralFlowReducer: orchestralFlowSliceReducer,
-  prebuiltPromptReducer: prebuiltPromptSliceReducer,
   apiKeysReducer: apiKeysSliceReducer,
   variableReducer: variableSliceReducer,
   chatReducer: chatSliceReducer,
   appInfoReducer: appInfoSliceReducer,
-  richUiTemplateReducer: richUiTemplateSliceReducer,
-  folderReducer: folderSliceReducer,
   analyticsReducer: analyticsSliceReducer,
 });
 

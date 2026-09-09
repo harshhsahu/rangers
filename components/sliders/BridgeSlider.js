@@ -4,7 +4,7 @@ import { CloseIcon } from "@/components/Icons";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import CreateNewBridge from "../CreateNewBridge";
-import { MODAL_TYPE } from "@/utils/enums";
+import { MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import SearchItems from "../UI/SearchItems";
 
 function BridgeSlider() {
@@ -13,7 +13,7 @@ function BridgeSlider() {
   const searchParams = useSearchParams();
   const path = pathName.split("?")[0].split("/");
 
-  const bridgesList = useCustomSelector((state) => state.bridgeReducer.org[path[2]]?.orgs) || [];
+  const bridgesList = useCustomSelector((state) => state.bridgeReducer.org[ORG_ID]?.orgs) || [];
   const defaultBridgeType = searchParams?.get("type")?.toLowerCase() === "chatbot" ? "chatbot" : "trigger";
 
   const [filteredBridgesList, setFilteredBridgesList] = useState(bridgesList);
@@ -24,7 +24,7 @@ function BridgeSlider() {
   );
 
   const handleNavigation = (id, versionId) => {
-    router.push(`/org/${path[2]}/agents/configure/${id}?version=${versionId}`);
+    router.push(`/agents/configure/${id}?version=${versionId}`);
     toggleSidebar("default-agent-sidebar");
   };
 
@@ -53,7 +53,7 @@ function BridgeSlider() {
                 <li key={item._id} className="max-w-full">
                   <a
                     id={`bridge-slider-agent-${item._id}`}
-                    className={`  ${item._id == path[5] ? "active" : `${item.id}`} py-2 px-2 rounded-md truncate max-w-full`}
+                    className={`  ${item._id == path[3] ? "active" : `${item.id}`} py-2 px-2 rounded-md truncate max-w-full`}
                     onClick={() => handleNavigation(item._id, item?.published_version_id || item?.versions?.[0])}
                   >
                     {getIconOfService(item.service, 14, 14)}
@@ -106,7 +106,7 @@ function BridgeSlider() {
           </>
         )}
       </div>
-      <CreateNewBridge orgid={path[2]} Heading="Create New Agent" defaultBridgeType={defaultBridgeType} />
+      <CreateNewBridge orgid={ORG_ID} Heading="Create New Agent" defaultBridgeType={defaultBridgeType} />
     </aside>
   );
 }

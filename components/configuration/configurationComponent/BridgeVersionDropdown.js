@@ -178,7 +178,7 @@ function BridgeVersionDropdown({
       const firstVersion = bridgeVersionsArray[0];
       if (firstVersion) {
         hasInitialized.current = true;
-        router.push(`/org/${params.org_id}/agents/configure/${params.id}?version=${firstVersion}`);
+        router.push(`/agents/configure/${params.id}?version=${firstVersion}`);
         fetchVersionData(firstVersion);
       }
       return;
@@ -190,7 +190,7 @@ function BridgeVersionDropdown({
       if (defaultVersion) {
         hasInitialized.current = true;
         // Only update URL, don't fetch yet - the next effect will handle fetching
-        router.push(`/org/${params.org_id}/agents/configure/${params.id}?version=${defaultVersion}`);
+        router.push(`/agents/configure/${params.id}?version=${defaultVersion}`);
       }
     } else if (currentVersion && !bridgeVersionMapping?.[currentVersion] && shouldFetch) {
       hasInitialized.current = true;
@@ -216,7 +216,7 @@ function BridgeVersionDropdown({
       if (currentVersion === version) return;
 
       const doChange = () => {
-        router.push(`/org/${params.org_id}/agents/configure/${params.id}?version=${version}`);
+        router.push(`/agents/configure/${params.id}?version=${version}`);
         fetchVersionData(version);
 
         const versionData = bridgeVersionMapping?.[version];
@@ -296,7 +296,7 @@ function BridgeVersionDropdown({
                 "Version changed successfully"
               );
             }
-            router.push(`/org/${params.org_id}/agents/configure/${params.id}?version=${data.version_id}`);
+            router.push(`/agents/configure/${params.id}?version=${data.version_id}`);
           } else {
             console.error("Version creation failed - no version_id returned:", data);
           }
@@ -334,7 +334,7 @@ function BridgeVersionDropdown({
           publishedVersion && publishedVersion !== selectedDataToDelete?.version
             ? publishedVersion
             : remainingVersions[0];
-        router.push(`/org/${params.org_id}/agents/configure/${params.id}?version=${nextVersion}`);
+        router.push(`/agents/configure/${params.id}?version=${nextVersion}`);
         if (isEmbedUser) {
           const nextVersionData = bridgeVersionMapping?.[nextVersion];
           sendDataToParent(

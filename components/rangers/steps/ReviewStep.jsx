@@ -152,7 +152,7 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
           <div className="text-[11.5px] leading-relaxed text-base-content">
             No <span className="font-semibold">{form.service}</span> API key exists in this workspace. The ranger will
             publish, but it cannot answer until a key is added.{" "}
-            <Link href={`/org/${orgId}/apikeys`} className="font-semibold text-primary underline">
+            <Link href={`/apikeys`} className="font-semibold text-primary underline">
               Add one
             </Link>
             .
@@ -214,7 +214,7 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
             <p className="mt-1 text-[11.5px] leading-relaxed text-base-content">
               <span className="font-semibold">{created.name}</span> was created but is not fully set up. Retry below, or{" "}
               <Link
-                href={`/org/${orgId}/agents/configure/${created.agentId}?version=${created.versionId}`}
+                href={`/agents/configure/${created.agentId}?version=${created.versionId}`}
                 className="font-semibold text-primary underline"
               >
                 finish it manually

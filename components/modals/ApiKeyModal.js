@@ -1,9 +1,8 @@
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { saveApiKeysAction, updateApikeyAction } from "@/store/action/apiKeyAction";
 import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
-import { API_KEY_MODAL_INPUT, MODAL_TYPE } from "@/utils/enums";
+import { API_KEY_MODAL_INPUT, MODAL_TYPE, ORG_ID } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
-import { usePathname } from "next/navigation";
 import React, { useCallback, useState, useEffect, useContext } from "react";
 import { useDispatch } from "react-redux";
 import Modal from "../UI/Modal";
@@ -23,7 +22,6 @@ const ApiKeyModal = ({
   bridgeApikey_object_id,
   selectedService,
 }) => {
-  const pathName = usePathname();
   const folderContext = useContext(FolderContext);
   const activeFolderId = folderContext?.activeFolderId;
 
@@ -38,8 +36,7 @@ const ApiKeyModal = ({
     isAdd: false,
     isUpdate: false,
   });
-  const path = pathName?.split("?")[0].split("/");
-  const orgId = path[2] || "";
+  const orgId = ORG_ID;
   const dispatch = useDispatch();
   const { SERVICES } = useCustomSelector((state) => ({ SERVICES: state?.serviceReducer?.services }));
   const lockedService = service || selectedService || "";
