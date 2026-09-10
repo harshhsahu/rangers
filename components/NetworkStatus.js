@@ -43,7 +43,8 @@ export default function NetworkStatus() {
     if (isEmbedContext) {
       window.location.href = "/session-expired";
     } else {
-      window.location.href = isProd ? "/login" : "/org";
+      // /org no longer exists — see app/not-found.js.
+      window.location.href = isProd ? "/login" : "/agents";
     }
   };
 

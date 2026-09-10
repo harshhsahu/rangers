@@ -234,6 +234,14 @@ const RangerSetupSections = () => {
   const rows = useMemo(
     () => [
       {
+        key: "scheduler",
+        icon: CalendarClock,
+        title: "Scheduler",
+        summary: scheduleSummary,
+        modalId: MODAL_TYPE.RANGER_SCHEDULER_MODAL,
+        configured: scheduleCount > 0,
+      },
+      {
         key: "prompt",
         icon: SparklesIcon,
         title: "Prompt",
@@ -256,14 +264,6 @@ const RangerSetupSections = () => {
         summary: connectorSummary,
         modalId: MODAL_TYPE.RANGER_CONNECTORS_MODAL,
         configured: (bridge_functions?.length || 0) > 0,
-      },
-      {
-        key: "scheduler",
-        icon: CalendarClock,
-        title: "Scheduler",
-        summary: scheduleSummary,
-        modalId: MODAL_TYPE.RANGER_SCHEDULER_MODAL,
-        configured: scheduleCount > 0,
       },
       {
         key: "channels",

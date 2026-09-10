@@ -20,7 +20,9 @@ export default function NotFound() {
     if (isEmbedContext) {
       router.replace("/session-expired");
     } else {
-      router.replace(isProd ? "/login" : "/org");
+      // The agent list, not /org — that route went away with the (dashboard)
+      // restructure, so sending someone there from a 404 lands them on another one.
+      router.replace(isProd ? "/login" : "/agents");
     }
   };
 
