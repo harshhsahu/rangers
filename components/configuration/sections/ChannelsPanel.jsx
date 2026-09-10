@@ -140,6 +140,8 @@ const ChannelsPanel = () => {
         setConnectedChannels((prev) => ({ ...prev, [channelKey]: true }));
         setChannel(channelKey, { credentials: {} });
         toast.success(`${channel.label} connected.`);
+        // Tells the setup row's own listener to refetch, so it doesn't wait for a reload.
+        window.dispatchEvent(new Event("gtwy:channels-changed"));
         return { success: true };
       } catch (err) {
         const message = err?.message || `Failed to connect ${channel.label}.`;
@@ -175,6 +177,7 @@ const ChannelsPanel = () => {
         });
         setChannel(channelKey, { credentials: {} });
         toast.success(`${channel.label} disconnected.`);
+        window.dispatchEvent(new Event("gtwy:channels-changed"));
         return { success: true };
       } catch (err) {
         const message = err?.message || `Failed to disconnect ${channel.label}.`;
