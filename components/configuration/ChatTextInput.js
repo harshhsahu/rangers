@@ -87,12 +87,14 @@ function ChatTextInput({
     modelName,
     isEmbedUser,
     showVariables,
+    bridgeApiKey,
   } = useCustomSelector((state) => {
     const versionData = state?.bridgeReducer?.bridgeVersionMapping?.[params?.id]?.[versionId];
     const bridgeDataFromState = state?.bridgeReducer?.allBridgesMap?.[params?.id];
 
     // Use bridgeData when isPublished=true, otherwise use versionData
     const activeData = isPublished ? bridgeDataFromState : versionData;
+    const rawService = activeData?.service;
 
     return {
       bridge: activeData,
@@ -105,6 +107,7 @@ function ChatTextInput({
       modelName: isPublished ? bridgeDataFromState?.configuration?.model : versionData?.configuration?.model,
       isEmbedUser: state?.appInfoReducer?.embedUserDetails?.isEmbedUser || false,
       showVariables: state?.appInfoReducer?.embedUserDetails?.showVariables || false,
+      bridgeApiKey: activeData?.apikey_object_id?.[rawService],
     };
   });
 
@@ -161,6 +164,9 @@ function ChatTextInput({
       setAttachmentError(null);
     }
   }, [isVision, isFileSupported, uploadedImages, uploadedFiles]);
+
+  // Gated on `service` too, so it doesn't flash true before bridge config has loaded.
+  const showApiKeyWarning = service && !bridgeApiKey;
 
   const variables = useMemo(() => buildVariablesObject(variablesKeyValue), [variablesKeyValue]);
 
@@ -227,7 +233,7 @@ function ChatTextInput({
   }, [activePrompt, variablesKeyValue]);
 
   const handleSendMessage = async (e, forceRun = false) => {
-    if (loading || uploading) {
+    if (loading || uploading || showApiKeyWarning) {
       return;
     }
     if (unsavedPromptGuard.hasUnsavedChanges) {
@@ -888,170 +894,179 @@ function ChatTextInput({
         </div>
       )}
 
-      {/* Input Group */}
-      <div className="input-group relative flex w-full items-end gap-[9px]">
-        {/* Attachments. The paperclip is the leftmost control in the composer, so
-            `dropdown-end` right-aligned this menu to it and threw its 240px out to
-            the left, over the config pane. Left-aligned, it opens into the chat panel. */}
-        {(isVision || isFileSupported || isVideoSupported) && (
-          <div data-testid="chat-attachment-dropdown" id="chat-attachment-dropdown" className="dropdown dropdown-top">
-            <div className="tooltip tooltip-top" data-tip="Attach files">
-              <label
-                data-testid="chat-attachment-button"
-                id="chat-attachment-button"
-                tabIndex={0}
-                className={`rg-chat-square transition-colors duration-200 ${loading || uploading ? "opacity-60" : "hover:bg-paper"}`}
-                disabled={loading || uploading}
-              >
-                {uploading ? <span className="rg-spinner" /> : <Paperclip size={15} />}
-              </label>
-            </div>
-
-            {/* DaisyUI Dropdown Content */}
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu z-very-high w-60 rounded-box border-2 border-stroke bg-base-100 p-2 shadow-2xl"
-            >
-              <li className="menu-title">
-                <span className="text-xs font-semibold text-base-content/60">Attach files</span>
-              </li>
-
-              {/* Images Option */}
-              {isVision && (
-                <li>
-                  <a
-                    data-testid="chat-attach-images-option"
-                    id="chat-attach-images-option"
-                    onClick={() => handleAttachmentOption("images")}
-                    className="flex items-center gap-3 p-3"
-                  >
-                    <div className="p-1.5 bg-base-100 rounded-lg">
-                      <UploadIcon size={16} className="text-base-content" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium">Upload Images</div>
-                      <div className="text-xs text-base-content/60">JPG, PNG, GIF, WebP</div>
-                    </div>
-                  </a>
-                </li>
-              )}
-
-              {/* Videos Option */}
-              {isVideoSupported && (
-                <li>
-                  <a
-                    data-testid="chat-attach-videos-option"
-                    id="chat-attach-videos-option"
-                    onClick={() => handleAttachmentOption("videos")}
-                    className="flex items-center gap-3 p-3"
-                  >
-                    <div className="p-1.5 bg-base-100 rounded-lg">
-                      <PlayIcon size={16} className="text-base-content" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium">Upload Video</div>
-                      <div className="text-xs text-base-content/60">MP4, WebM, AVI (1 max)</div>
-                    </div>
-                  </a>
-                </li>
-              )}
-
-              {/* Files Option */}
-              {isFileSupported && (
-                <li>
-                  <a
-                    data-testid="chat-attach-files-option"
-                    id="chat-attach-files-option"
-                    onClick={() => handleAttachmentOption("files")}
-                    className="flex items-center gap-3 p-3"
-                  >
-                    <div className="p-1.5 bg-base-100 rounded-lg">
-                      <PdfIcon height={16} width={16} className="text-base-content" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium">Upload Documents</div>
-                      <div className="text-xs text-base-content/60">PDF, DOC, DOCX files</div>
-                    </div>
-                  </a>
-                </li>
-              )}
-
-              {/* URL Option */}
-              {isVideoSupported && (
-                <li>
-                  <a
-                    data-testid="chat-attach-url-option"
-                    id="chat-attach-url-option"
-                    onClick={() => handleAttachmentOption("url")}
-                    className="flex items-center gap-3 p-3"
-                  >
-                    <div className="p-1.5 bg-base-100 rounded-lg">
-                      <LinkIcon size={16} className="text-base-content" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      The above content does NOT show the entire file contents. If you need to view any lines of the
-                      file which were not shown to complete your task, call this tool again to view those lines.
-                      <div className="text-sm font-medium">Add URL</div>
-                      <div className="text-xs text-base-content/60">Youtube URL</div>
-                    </div>
-                  </a>
-                </li>
-              )}
-            </ul>
+      {/* Input Group + API key warning */}
+      <div className="flex min-w-0 w-full flex-col gap-1.5">
+        {showApiKeyWarning && (
+          <div data-testid="chat-api-key-warning" id="chat-api-key-warning" className="min-w-0">
+            <span className="badge badge-warning badge-sm h-auto max-w-full whitespace-normal break-words">
+              API key is not configured yet
+            </span>
           </div>
         )}
-        <input
-          autoComplete="off"
-          data-testid="chat-file-input"
-          id="chat-file-input"
-          ref={(el) => setFileInput(el)} // Use callback ref to set the state
-          type="file"
-          accept={
-            isVision && isFileSupported && isVideoSupported
-              ? `image/*,${DOC_ACCEPT},video/*`
-              : isVision && isVideoSupported
-                ? "image/*,video/*"
-                : isVision && isFileSupported
-                  ? `image/*,${DOC_ACCEPT}`
-                  : isVision
-                    ? "image/*"
-                    : isFileSupported
-                      ? DOC_ACCEPT
-                      : `image/*,${DOC_ACCEPT},video/*`
-          }
-          multiple={isVision || isFileSupported || isVideoSupported}
-          onChange={handleFileChange}
-          className="hidden"
-          data-max-size="35MB"
-        />
-        {modelType !== "completion" && (
-          <textarea
-            data-testid="chat-message-textarea"
-            id="chat-message-textarea"
-            ref={inputRef}
-            placeholder="Type here"
-            className={`rg-chat-input max-h-[200px] w-full overflow-y-auto ${validationError || attachmentError ? "!border-error" : ""}`}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            rows={1}
-            onInput={(e) => {
-              e.target.style.height = "auto"; // Reset height
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`; // Set to scroll height, max 200px
-            }}
+        <div className="input-group relative flex w-full items-end gap-[9px]">
+          {/* Attachments. The paperclip is the leftmost control in the composer, so
+            `dropdown-end` right-aligned this menu to it and threw its 240px out to
+            the left, over the config pane. Left-aligned, it opens into the chat panel. */}
+          {(isVision || isFileSupported || isVideoSupported) && (
+            <div data-testid="chat-attachment-dropdown" id="chat-attachment-dropdown" className="dropdown dropdown-top">
+              <div className="tooltip tooltip-top" data-tip="Attach files">
+                <label
+                  data-testid="chat-attachment-button"
+                  id="chat-attachment-button"
+                  tabIndex={0}
+                  className={`rg-chat-square transition-colors duration-200 ${loading || uploading ? "opacity-60" : "hover:bg-paper"}`}
+                  disabled={loading || uploading}
+                >
+                  {uploading ? <span className="rg-spinner" /> : <Paperclip size={15} />}
+                </label>
+              </div>
+
+              {/* DaisyUI Dropdown Content */}
+              <ul
+                tabIndex={0}
+                className="dropdown-content menu z-very-high w-60 rounded-box border-2 border-stroke bg-base-100 p-2 shadow-2xl"
+              >
+                <li className="menu-title">
+                  <span className="text-xs font-semibold text-base-content/60">Attach files</span>
+                </li>
+
+                {/* Images Option */}
+                {isVision && (
+                  <li>
+                    <a
+                      data-testid="chat-attach-images-option"
+                      id="chat-attach-images-option"
+                      onClick={() => handleAttachmentOption("images")}
+                      className="flex items-center gap-3 p-3"
+                    >
+                      <div className="p-1.5 bg-base-100 rounded-lg">
+                        <UploadIcon size={16} className="text-base-content" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">Upload Images</div>
+                        <div className="text-xs text-base-content/60">JPG, PNG, GIF, WebP</div>
+                      </div>
+                    </a>
+                  </li>
+                )}
+
+                {/* Videos Option */}
+                {isVideoSupported && (
+                  <li>
+                    <a
+                      data-testid="chat-attach-videos-option"
+                      id="chat-attach-videos-option"
+                      onClick={() => handleAttachmentOption("videos")}
+                      className="flex items-center gap-3 p-3"
+                    >
+                      <div className="p-1.5 bg-base-100 rounded-lg">
+                        <PlayIcon size={16} className="text-base-content" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">Upload Video</div>
+                        <div className="text-xs text-base-content/60">MP4, WebM, AVI (1 max)</div>
+                      </div>
+                    </a>
+                  </li>
+                )}
+
+                {/* Files Option */}
+                {isFileSupported && (
+                  <li>
+                    <a
+                      data-testid="chat-attach-files-option"
+                      id="chat-attach-files-option"
+                      onClick={() => handleAttachmentOption("files")}
+                      className="flex items-center gap-3 p-3"
+                    >
+                      <div className="p-1.5 bg-base-100 rounded-lg">
+                        <PdfIcon height={16} width={16} className="text-base-content" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">Upload Documents</div>
+                        <div className="text-xs text-base-content/60">PDF, DOC, DOCX files</div>
+                      </div>
+                    </a>
+                  </li>
+                )}
+
+                {/* URL Option */}
+                {isVideoSupported && (
+                  <li>
+                    <a
+                      data-testid="chat-attach-url-option"
+                      id="chat-attach-url-option"
+                      onClick={() => handleAttachmentOption("url")}
+                      className="flex items-center gap-3 p-3"
+                    >
+                      <div className="p-1.5 bg-base-100 rounded-lg">
+                        <LinkIcon size={16} className="text-base-content" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        The above content does NOT show the entire file contents. If you need to view any lines of the
+                        file which were not shown to complete your task, call this tool again to view those lines.
+                        <div className="text-sm font-medium">Add URL</div>
+                        <div className="text-xs text-base-content/60">Youtube URL</div>
+                      </div>
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+          <input
+            autoComplete="off"
+            data-testid="chat-file-input"
+            id="chat-file-input"
+            ref={(el) => setFileInput(el)} // Use callback ref to set the state
+            type="file"
+            accept={
+              isVision && isFileSupported && isVideoSupported
+                ? `image/*,${DOC_ACCEPT},video/*`
+                : isVision && isVideoSupported
+                  ? "image/*,video/*"
+                  : isVision && isFileSupported
+                    ? `image/*,${DOC_ACCEPT}`
+                    : isVision
+                      ? "image/*"
+                      : isFileSupported
+                        ? DOC_ACCEPT
+                        : `image/*,${DOC_ACCEPT},video/*`
+            }
+            multiple={isVision || isFileSupported || isVideoSupported}
+            onChange={handleFileChange}
+            className="hidden"
+            data-max-size="35MB"
           />
-        )}
-        {/* Enhanced Send Button */}
-        <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
-          <button
-            id="chat-send-button"
-            className={`rg-chat-send transition-opacity duration-200 ${loading || uploading ? "cursor-not-allowed" : "hover:opacity-90"}`}
-            onClick={() => {
-              handleSendMessage();
-            }}
-            disabled={loading || uploading}
-          >
-            {loading || uploading ? <span className="rg-spinner" /> : <SendHorizontalIcon size={15} />}
-          </button>
+          {modelType !== "completion" && (
+            <textarea
+              data-testid="chat-message-textarea"
+              id="chat-message-textarea"
+              ref={inputRef}
+              placeholder="Type here"
+              className={`rg-chat-input max-h-[200px] w-full overflow-y-auto ${validationError || attachmentError ? "!border-error" : ""}`}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              rows={1}
+              onInput={(e) => {
+                e.target.style.height = "auto"; // Reset height
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`; // Set to scroll height, max 200px
+              }}
+            />
+          )}
+          {/* Enhanced Send Button */}
+          <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
+            <button
+              id="chat-send-button"
+              className={`rg-chat-send transition-opacity duration-200 ${loading || uploading || showApiKeyWarning ? "cursor-not-allowed" : "hover:opacity-90"}`}
+              onClick={() => {
+                handleSendMessage();
+              }}
+              disabled={loading || uploading || showApiKeyWarning}
+            >
+              {loading || uploading ? <span className="rg-spinner" /> : <SendHorizontalIcon size={15} />}
+            </button>
+          </div>
         </div>
       </div>
 
