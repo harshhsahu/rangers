@@ -52,12 +52,26 @@ export const runtime = "edge";
 // a palette it was not drawn for. The preference itself is left untouched.
 const THEME_INIT = `(function(){try{var t=location.pathname==="/"?"light":(localStorage.getItem("theme")||sessionStorage.getItem("theme")||"light");var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;var e=document.documentElement;e.setAttribute("data-theme",r);e.classList.remove("light","dark");e.classList.add(r);}catch(_){}})();`;
 
+// Scripts go in the head element, not directly under the root element: React cannot
+// order a synchronous script placed there and warns that the document is invalid. The
+// theme initialiser must stay inline and synchronous so it runs before first paint.
+//
+// The root element suppresses hydration warnings for the same reason the body already
+// does. The theme initialiser changes it before React hydrates, on purpose, because the
+// server has no way to know which theme the visitor chose.
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-theme="light" className={`${bricolage.variable} ${jetbrainsMono.variable}`}>
-      <GoogleTagManager gtmId="GTM-PXRN8T45" />
-      <script src={`https://main.d2f49esifpcbwh.amplifyapp.com/tracker.js`} async />
-      <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+    <html
+      lang="en"
+      data-theme="light"
+      suppressHydrationWarning
+      className={`${bricolage.variable} ${jetbrainsMono.variable}`}
+    >
+      <head>
+        <GoogleTagManager gtmId="GTM-PXRN8T45" />
+        <script src={`https://main.d2f49esifpcbwh.amplifyapp.com/tracker.js`} async />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+      </head>
       <body suppressHydrationWarning className="font-sans">
         <PaletteFocusGuard />
         <Wrapper>{children}</Wrapper>
