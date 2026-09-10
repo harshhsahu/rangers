@@ -52,7 +52,7 @@ export async function GET(request) {
  * POST /api/scheduler
  * Body: { agent_id, version_id, message, frequency, time?, weekday?,
  *         day_of_month?, minute?, cron_expression?, timezone, label?,
- *         thread_mode? }
+ *         thread_mode?, group_id? }
  */
 export async function POST(request) {
   try {
