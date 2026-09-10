@@ -5,7 +5,7 @@ import { PdfIcon } from "@/icons/pdfIcon";
 import GoogleDocIcon from "@/icons/GoogleDocIcon";
 import { isWordFileUrl } from "@/utils/attachmentUtils";
 import { truncate } from "../historyPageComponents/AssistFile";
-import { AlertIcon } from "@/components/Icons";
+import { AlertIcon, CopyIcon, CheckIcon } from "@/components/Icons";
 import {
   ExternalLink,
   PlayIcon,
@@ -99,6 +99,60 @@ const buildLatencyTitle = (latency) => {
   if (Number(latency.over_all_time) > 0) parts.push(`Overall: ${Number(latency.over_all_time).toFixed(2)}s`);
   return parts.length ? parts.join(" · ") : undefined;
 };
+
+/** Gets the copy-able plain text for a message, regardless of sender/shape. */
+const getCopyText = (message) => {
+  if (message.sender === "error") return extractErrorMessage(message.content) || "";
+  const raw = message.content;
+  return typeof raw === "string" ? raw : raw != null ? JSON.stringify(raw) : "";
+};
+
+/** Small hover-revealed icon button that copies a message's text to the clipboard. */
+function MessageCopyButton({ content, className = "" }) {
+  const [copied, setCopied] = useState(false);
+  const resetTimerRef = useRef(null);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(content || "");
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = content || "";
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = setTimeout(() => setCopied(false), 1500);
+  }, [content]);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
+
+  return (
+    <button
+      type="button"
+      data-testid="chat-message-copy-button"
+      title={copied ? "Copied!" : "Copy message"}
+      onClick={handleCopy}
+      className={`inline-flex items-center gap-1 rounded p-1 text-base-content/50 transition-colors hover:bg-base-200/60 hover:text-base-content ${className}`}
+    >
+      {copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
+    </button>
+  );
+}
 
 function StreamingMessage({ content, isStreaming }) {
   const displayContent = isStreaming ? content + "\u200B" : content;
@@ -925,32 +979,43 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                 </div>
                               )}
                             </div>
-                            {/* Action Buttons Toolbar for Assistant Messages (including Metrics) */}
-                            {editingMessage !== message.id && message.sender === "assistant" && !message.isLoading && (
-                              <div className="flex items-center justify-between gap-1.5 w-full pr-8">
-                                <div className="flex items-center gap-1.5">
-                                  {/* Message metrics — the canvas prints these as one
-                                      mono line under the answer, not as bordered chips. */}
-                                  {(message.usage || message.latency) && (
-                                    <div className="rg-chat-meta rg-anim-in select-none">
-                                      {message.usage?.total_tokens > 0 && (
-                                        <span
-                                          title={`In: ${message.usage.input_tokens || 0} · Out: ${message.usage.output_tokens || 0}${message.usage.reasoning_tokens > 0 ? ` · Reasoning: ${message.usage.reasoning_tokens}` : ""}${message.usage.cached_tokens > 0 ? ` · Cached: ${message.usage.cached_tokens}` : ""}`}
-                                        >
-                                          {message.usage.total_tokens.toLocaleString()} tokens
-                                        </span>
+                            {/* Action Buttons Toolbar (Metrics for assistant + Copy for every sender) */}
+                            {editingMessage !== message.id &&
+                              !message.isLoading &&
+                              (message.sender === "assistant" ||
+                                message.sender === "user" ||
+                                message.sender === "error") && (
+                                <div
+                                  className={`flex items-center gap-1.5 ${message.sender === "assistant" ? "justify-start" : "w-full justify-end"}`}
+                                >
+                                  {message.sender === "assistant" && (
+                                    <div className="flex items-center gap-1.5">
+                                      {/* Message metrics — the canvas prints these as one
+                                          mono line under the answer, not as bordered chips. */}
+                                      {(message.usage || message.latency) && (
+                                        <div className="rg-chat-meta rg-anim-in select-none">
+                                          {message.usage?.total_tokens > 0 && (
+                                            <span
+                                              title={`In: ${message.usage.input_tokens || 0} · Out: ${message.usage.output_tokens || 0}${message.usage.reasoning_tokens > 0 ? ` · Reasoning: ${message.usage.reasoning_tokens}` : ""}${message.usage.cached_tokens > 0 ? ` · Cached: ${message.usage.cached_tokens}` : ""}`}
+                                            >
+                                              {message.usage.total_tokens.toLocaleString()} tokens
+                                            </span>
+                                          )}
+                                          {resolveExecutionTime(message.latency) !== null && (
+                                            <span title={buildLatencyTitle(message.latency)}>
+                                              {resolveExecutionTime(message.latency).toFixed(2)}s
+                                            </span>
+                                          )}
+                                          {message.usage?.cost > 0 && <span>${message.usage.cost.toFixed(4)}</span>}
+                                        </div>
                                       )}
-                                      {resolveExecutionTime(message.latency) !== null && (
-                                        <span title={buildLatencyTitle(message.latency)}>
-                                          {resolveExecutionTime(message.latency).toFixed(2)}s
-                                        </span>
-                                      )}
-                                      {message.usage?.cost > 0 && <span>${message.usage.cost.toFixed(4)}</span>}
                                     </div>
                                   )}
+                                  {!isRichUiMessage(message) && message?.content && (
+                                    <MessageCopyButton content={getCopyText(message)} />
+                                  )}
                                 </div>
-                              </div>
-                            )}
+                              )}
                           </div>
                         </div>
                       )}
