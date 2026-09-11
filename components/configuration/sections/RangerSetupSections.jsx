@@ -180,8 +180,17 @@ const useScheduleSummary = (versionId, agentId) => {
  * a short list instead of a stack of full panels.
  */
 const RangerSetupSections = () => {
-  const { isPublished, isEmbedUser, service, modelName, bridge_functions, reduxPrompt, searchParams, params } =
-    useConfigurationContext();
+  const {
+    isPublished,
+    isEmbedUser,
+    service,
+    modelName,
+    bridge_functions,
+    reduxPrompt,
+    searchParams,
+    params,
+    bridgeApiKey,
+  } = useConfigurationContext();
   const connectedChannels = useConnectedChannels(searchParams?.version);
 
   /**
@@ -255,7 +264,8 @@ const RangerSetupSections = () => {
         title: "LLM Configuration",
         summary: modelSummary,
         modalId: MODAL_TYPE.RANGER_MODEL_MODAL,
-        configured: Boolean(service && modelName),
+        // Needs a working API key, not just a model pick.
+        configured: Boolean(service && modelName) && bridgeApiKey,
       },
       {
         key: "connectors",
@@ -282,6 +292,7 @@ const RangerSetupSections = () => {
       modelSummary,
       service,
       modelName,
+      bridgeApiKey,
       connectorSummary,
       bridge_functions,
       channelSummary,

@@ -283,11 +283,14 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
   }, [params, searchParams, publishedVersionId, currentUserId]);
 
   // Redux selectors for chat state
-  const { messages, finishReasonDescription, starterQuestions, defaultQuestions, bridgeName } = useCustomSelector(
-    (state) => {
+  const { messages, finishReasonDescription, starterQuestions, defaultQuestions, bridgeName, showApiKeyWarning } =
+    useCustomSelector((state) => {
       const versionData = state?.bridgeReducer?.bridgeVersionMapping?.[params?.id]?.[searchParams?.version];
       const bridgeData = state?.bridgeReducer?.allBridgesMap?.[params?.id];
       const isPublished = searchParams?.isPublished === "true";
+      // Mirrors ChatTextInput's own copy, so the banner and the disabled composer agree.
+      const activeData = isPublished ? bridgeData : versionData;
+      const rawService = activeData?.service;
       return {
         messages: state?.chatReducer?.messagesByChannel?.[channelIdentifier] || [],
         finishReasonDescription: state?.flowDataReducer?.flowData?.finishReasonsData || [],
@@ -300,9 +303,9 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
         defaultQuestions: (isPublished ? bridgeData?.defaultQuestions : versionData?.defaultQuestions) || [],
         bridgeName: bridgeData?.name || "",
         modelType: isPublished ? bridgeData?.configuration?.type : versionData?.configuration?.type,
+        showApiKeyWarning: rawService && !activeData?.apikey_object_id?.[rawService],
       };
-    }
-  );
+    });
 
   // Starter questions: use bridge-level configured ones, fall back to defaults
   /** Same letter the update pane shows, so one agent reads as one identity. */
@@ -642,6 +645,16 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
           className="w-full flex-grow min-w-0 relative"
         >
           <div className="sm:p-2 justify-between flex flex-col h-full min-h-0 w-full z-low">
+            {/* Pinned at the top so it stays visible while scrolling. */}
+            {showApiKeyWarning && (
+              <div
+                data-testid="chat-api-key-warning"
+                id="chat-api-key-warning"
+                className="rg-chat-warning flex-none mb-2"
+              >
+                API key is not configured yet
+              </div>
+            )}
             <div
               data-testid="chat-messages-container"
               id="chat-messages-container"
@@ -1012,7 +1025,7 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                                     </div>
                                   )}
                                   {!isRichUiMessage(message) && message?.content && (
-                                    <MessageCopyButton content={getCopyText(message)} />
+                                    <MessageCopyButton content={getCopyText(message)} className="see-on-hover" />
                                   )}
                                 </div>
                               )}
