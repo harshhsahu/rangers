@@ -87,12 +87,14 @@ function ChatTextInput({
     modelName,
     isEmbedUser,
     showVariables,
+    bridgeApiKey,
   } = useCustomSelector((state) => {
     const versionData = state?.bridgeReducer?.bridgeVersionMapping?.[params?.id]?.[versionId];
     const bridgeDataFromState = state?.bridgeReducer?.allBridgesMap?.[params?.id];
 
     // Use bridgeData when isPublished=true, otherwise use versionData
     const activeData = isPublished ? bridgeDataFromState : versionData;
+    const rawService = activeData?.service;
 
     return {
       bridge: activeData,
@@ -105,6 +107,7 @@ function ChatTextInput({
       modelName: isPublished ? bridgeDataFromState?.configuration?.model : versionData?.configuration?.model,
       isEmbedUser: state?.appInfoReducer?.embedUserDetails?.isEmbedUser || false,
       showVariables: state?.appInfoReducer?.embedUserDetails?.showVariables || false,
+      bridgeApiKey: activeData?.apikey_object_id?.[rawService],
     };
   });
 
@@ -161,6 +164,9 @@ function ChatTextInput({
       setAttachmentError(null);
     }
   }, [isVision, isFileSupported, uploadedImages, uploadedFiles]);
+
+  // Gated on `service` too, so it doesn't flash true before bridge config has loaded.
+  const showApiKeyWarning = service && !bridgeApiKey;
 
   const variables = useMemo(() => buildVariablesObject(variablesKeyValue), [variablesKeyValue]);
 
@@ -227,6 +233,10 @@ function ChatTextInput({
   }, [activePrompt, variablesKeyValue]);
 
   const handleSendMessage = async (e, forceRun = false) => {
+    if (showApiKeyWarning) {
+      toast.error("API key is not configured yet");
+      return;
+    }
     if (loading || uploading) {
       return;
     }
@@ -1044,7 +1054,7 @@ function ChatTextInput({
         <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
           <button
             id="chat-send-button"
-            className={`rg-chat-send transition-opacity duration-200 ${loading || uploading ? "cursor-not-allowed" : "hover:opacity-90"}`}
+            className={`rg-chat-send transition-opacity duration-200 ${loading || uploading || showApiKeyWarning ? "cursor-not-allowed" : "hover:opacity-90"}`}
             onClick={() => {
               handleSendMessage();
             }}

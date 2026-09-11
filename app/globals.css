@@ -1137,6 +1137,21 @@ summary:focus-visible {
     font-size: 11px;
     color: var(--soft);
   }
+  /* Full-width warning banner, mono/uppercase like .rg-chat-sender. */
+  .rg-chat-warning {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--acc-line);
+    border-radius: 10px;
+    background: var(--acc-soft);
+    color: var(--acc-deep);
+    padding: 8px 13px;
+    font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
   /* Clears the 38px attach button plus the row's 9px gap, so the note lines up
      with the input rather than the button. */
   .rg-chat-note-indent {
