@@ -17,8 +17,8 @@ const SearchItems = ({
   const searchParams = useSearchParams();
   const { setParam } = useQueryParams();
   const filterParam = searchParams.get("filter");
-  const isWorkspaceItem =
-    item === "Organizations" || item === "Workspaces" || (item === "Agents" && isEmbedUser) || item === "metrics";
+  // Agents (ranger squad) now filters inline instead of opening the command palette.
+  const isWorkspaceItem = item === "Organizations" || item === "Workspaces" || item === "Agents" || item === "metrics";
   const itemLabel = item === "Organizations" ? "Workspaces" : item;
   const userClearedSearch = useRef(false);
   const searchInputRef = useRef(null);
@@ -120,10 +120,11 @@ const SearchItems = ({
     return filtered;
   }, [data, searchTerm]);
 
+  // Re-filter on every term/data change, not just on mount.
   useEffect(() => {
     const filtered = filterData();
     setFilterItems(filtered);
-  }, []);
+  }, [filterData, setFilterItems]);
 
   const containerClasses =
     containerClass || (isWorkspaceItem ? `${item === "org" ? "w-full mt-2" : "max-w-xs ml-2"}` : "max-w-xs ml-2");
