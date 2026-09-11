@@ -21,6 +21,7 @@ import { openModal } from "@/utils/utility";
 import ChatAiConfigDeatilViewModal from "@/components/modals/ChatAiConfigDeatilViewModal";
 import { AnalyticsStatsSkeleton, AnalyticsChartSkeleton } from "@/components/skeletons/AnalyticsSkeleton";
 import { getAgentAnalyticsFiltersApi } from "@/config/analyticsApi";
+import useRtLayerEventHandler from "@/customHooks/useRtLayerEventHandler";
 
 // URL params that must never be forwarded to the analytics API.
 const UI_ONLY_QUERY_PARAMS = new Set([
@@ -132,6 +133,12 @@ function Page({ params, searchParams }) {
 
   // Derive pagination from analytics response
   const hasMore = analyticsData?.pagination?.has_more ?? false;
+
+  // The analytics fetch response carries the exact RTLayer channel the backend
+  // pushes summary/requests_over_time/response_time updates to (it differs from
+  // the generic org_id_bridge_id channel the layout's default hook subscribes
+  // to), so subscribe to it explicitly once we have it.
+  useRtLayerEventHandler(analyticsData?.channel || "");
 
   // Map knowledge base IDs to their display names
   const knowledgeBaseNameMap = useMemo(() => {
