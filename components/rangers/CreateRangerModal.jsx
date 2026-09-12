@@ -94,7 +94,9 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
   // One thread per modal session, created up front: the chat route requires a
   // thread_id on every message, and it must stay stable so the agent keeps
   // conversation context across turns.
-  const [aiThreadId, setAiThreadId] = useState(() => `ranger-build-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+  const [aiThreadId, setAiThreadId] = useState(
+    () => `ranger-build-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+  );
   const [aiDraftConfig, setAiDraftConfig] = useState(buildInitialDraftConfig);
 
   const folderContext = useContext(FolderContext);
