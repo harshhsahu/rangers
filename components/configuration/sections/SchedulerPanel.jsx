@@ -49,6 +49,7 @@ const emptyDraft = (timezone) => ({
   day_of_month: 1,
   minute: 0,
   timezone,
+  sendToTelegram: false,
 });
 
 /** Absolute date, in the schedule's own zone — a relative "in 3h" hides mistakes. */
@@ -98,10 +99,21 @@ const SchedulerPanel = () => {
   const [aiText, setAiText] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiResult, setAiResult] = useState(null);
+  // The Telegram chat this bot has actually talked to — null until someone
+  // messages it once, which is the only way Telegram lets us learn a chatId.
+  const [telegramChat, setTelegramChat] = useState(null);
 
   useEffect(() => {
     setDraft((prev) => (prev.timezone ? prev : { ...prev, timezone: defaultTimezone }));
   }, [defaultTimezone]);
+
+  useEffect(() => {
+    if (!versionId) return;
+    fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`, { headers: authHeaders() })
+      .then((res) => res.json())
+      .then((data) => setTelegramChat(data?.data?.telegram?.chatUser || null))
+      .catch(() => setTelegramChat(null));
+  }, [versionId]);
 
   const load = useCallback(async () => {
     if (!versionId) return;
@@ -205,6 +217,9 @@ const SchedulerPanel = () => {
                 minute: Number(draft.minute),
               }),
           timezone: draft.timezone,
+          ...(draft.sendToTelegram && telegramChat?.chat_id
+            ? { delivery: { type: "telegram", chat_id: telegramChat.chat_id, username: telegramChat.username } }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -586,6 +601,39 @@ const SchedulerPanel = () => {
             </select>
           </label>
         </div>
+
+        <div className="mt-2 flex flex-wrap items-end gap-2">
+          <label className="flex min-w-0 flex-1 flex-col gap-1 text-[11.5px] font-semibold text-soft">
+            Send response to
+            <select
+              data-testid="ranger-schedule-delivery"
+              disabled={isReadOnly || !telegramChat?.chat_id}
+              className="w-full rounded-[9px] border-2 border-stroke bg-base-100 px-2 py-1.5 text-[12.5px] text-base-content"
+              value={draft.sendToTelegram ? "telegram" : "none"}
+              onChange={(event) => setDraft((prev) => ({ ...prev, sendToTelegram: event.target.value === "telegram" }))}
+            >
+              <option value="none">Just save the result</option>
+              {telegramChat?.chat_id && (
+                <option value="telegram">
+                  Telegram —{" "}
+                  {telegramChat.username
+                    ? `@${telegramChat.username}`
+                    : telegramChat.first_name || telegramChat.chat_id}
+                </option>
+              )}
+            </select>
+          </label>
+        </div>
+
+        {!telegramChat?.chat_id && (
+          <div className="mt-2 flex items-start gap-2 rounded-[9px] border-2 border-warning/40 bg-warning/10 px-2.5 py-1.5 text-[11.5px] text-warning">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+            <span>
+              You won&apos;t get scheduled responses in Telegram until you message this bot at least once — that&apos;s
+              how Telegram gives us a chat to reply to.
+            </span>
+          </div>
+        )}
 
         <div className="mt-2 flex flex-wrap items-end gap-2">
           <label className="flex min-w-0 flex-1 flex-col gap-1 text-[11.5px] font-semibold text-soft">

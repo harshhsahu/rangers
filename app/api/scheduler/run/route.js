@@ -1,8 +1,10 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
-import { getRangerSchedulesCollection } from "@/lib/mongo";
+import { getRangerSchedulesCollection, getChannelDetailsCollection } from "@/lib/mongo";
 import { streamGtwyCompletion } from "@/lib/gtwyChannelHelpers";
 import { toObjectId } from "@/lib/rangerSchedules";
+import { decryptSecret } from "@/lib/crypto";
+import { sendLongMessage } from "@/lib/telegramApi";
 
 export const runtime = "nodejs";
 
@@ -75,6 +77,21 @@ async function executeRun(row) {
       threadId,
       logPrefix: "[cron]",
     });
+
+    if (row.delivery?.type === "telegram" && row.delivery.chat_id) {
+      try {
+        const channels = await getChannelDetailsCollection();
+        const channel = await channels.findOne({ version_id: row.version_id });
+        const botToken = channel?.telegram?.botToken ? decryptSecret(channel.telegram.botToken) : null;
+        if (botToken) {
+          await sendLongMessage(botToken, row.delivery.chat_id, text || "…");
+        } else {
+          console.error("[cron] telegram delivery skipped: no bot token", { schedule: String(row._id) });
+        }
+      } catch (error) {
+        console.error("[cron] telegram delivery failed", { schedule: String(row._id), error: error?.message || error });
+      }
+    }
 
     await schedules.updateOne(
       { _id: row._id },
