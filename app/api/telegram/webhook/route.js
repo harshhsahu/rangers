@@ -210,6 +210,15 @@ async function sendDraft(botToken, chatId, draftId, text) {
   });
 }
 
+/** One retry — a single dropped/rate-limited call shouldn't silently kill the whole "thinking" indicator. */
+async function sendDraftWithRetry(botToken, chatId, draftId, text) {
+  const first = await sendDraft(botToken, chatId, draftId, text);
+  if (first?.ok) return first;
+  console.warn("[tg] sendMessageDraft failed, retrying once:", first?.description);
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  return sendDraft(botToken, chatId, draftId, text);
+}
+
 async function sendMessage(botToken, chatId, text) {
   return telegramApi(botToken, "sendMessage", {
     chat_id: chatId,
@@ -703,9 +712,10 @@ export async function POST(request) {
 
     const message = update?.message || update?.edited_message;
     const chatId = message?.chat?.id;
+    const updateId = update?.update_id;
 
     if (chatId == null) {
-      console.log("[tg] skipped: no chatId", { versionId, update_id: update?.update_id });
+      console.log("[tg] skipped: no chatId", { versionId, update_id: updateId });
       return NextResponse.json({ ok: true, skipped: true });
     }
 
@@ -722,6 +732,34 @@ export async function POST(request) {
       return NextResponse.json({ ok: true, error: "channel_not_found" });
     }
 
+    // Dedup: Telegram resends an update if this webhook doesn't ack fast enough.
+    // The update id only increases per bot, so seeing one at or below what was
+    // last recorded for this version means it's a retry we already handled.
+    if (updateId != null) {
+      const lastSeen = channel?.telegram?.lastUpdateId ?? null;
+      if (lastSeen != null && updateId <= lastSeen) {
+        console.log("[tg] duplicate update skipped", { updateId, lastSeen, chatId });
+        return NextResponse.json({ ok: true, duplicate: true });
+      }
+      await collection.updateOne({ version_id: versionId }, { $set: { "telegram.lastUpdateId": updateId } });
+    }
+
+    // Ack Telegram now — everything below (GTWY streaming, Telegram sends) can take a
+    // while, and a slow HTTP response is exactly what makes Telegram retry this update.
+    processTelegramMessage({ channel, versionId, message, chatId, update }).catch((error) =>
+      console.error("[tg] FATAL (async)", error?.message || error)
+    );
+
+    return NextResponse.json({ ok: true, accepted: true });
+  } catch (error) {
+    console.error("[tg] FATAL", error);
+    return NextResponse.json({ ok: true, error: error.message });
+  }
+}
+
+async function processTelegramMessage({ channel, versionId, message, chatId, update }) {
+  try {
+    const collection = await getChannelDetailsCollection();
     const botToken = decryptSecret(channel.telegram.botToken);
 
     // /new_thread — rotate GTWY thread_id only (do not delete Telegram messages)
@@ -731,11 +769,7 @@ export async function POST(request) {
       const threadId = await resetChatThread(collection, versionId, chatId);
       console.log("[tg] new_thread", { chatId, versionId, previousThreadId, threadId });
       await sendMessage(botToken, chatId, "New thread started. Previous conversation context has been cleared.");
-      return NextResponse.json({
-        ok: true,
-        new_thread: true,
-        thread_id: threadId,
-      });
+      return;
     }
 
     const userText = message?.text || "";
@@ -746,7 +780,7 @@ export async function POST(request) {
         chatId,
         update_id: update?.update_id,
       });
-      return NextResponse.json({ ok: true, skipped: true });
+      return;
     }
 
     let mediaUrl = null;
@@ -767,7 +801,7 @@ export async function POST(request) {
           chatId,
           "Sorry, Telegram video files aren't supported yet. Please send a YouTube link, or an image / voice note / audio / PDF."
         );
-        return NextResponse.json({ ok: true, skipped: true, reason: "video_not_supported" });
+        return;
       }
 
       try {
@@ -788,7 +822,7 @@ export async function POST(request) {
             ? "Sorry, that file is too large for Telegram (max 20MB). Please send a smaller file."
             : "Sorry, I couldn't process that file. Please try again.";
         await sendMessage(botToken, chatId, msg);
-        return NextResponse.json({ ok: true, error: "getFile_failed" });
+        return;
       }
 
       extraFields = buildGtwyMediaFields(media, mediaUrl);
@@ -798,7 +832,7 @@ export async function POST(request) {
           chatId,
           "Sorry, Telegram video files aren't supported yet. Please send a YouTube link, or an image / voice note / audio / PDF."
         );
-        return NextResponse.json({ ok: true, skipped: true, reason: "video_not_supported" });
+        return;
       }
     }
 
@@ -826,7 +860,7 @@ export async function POST(request) {
       attachmentKind: media?.type || null,
     });
 
-    const probe = await sendDraft(botToken, chatId, draftId, processingStatus);
+    const probe = await sendDraftWithRetry(botToken, chatId, draftId, processingStatus);
     if (!probe?.ok) {
       console.warn("[tg] sendMessageDraft unavailable:", probe?.description);
     } else {
@@ -914,16 +948,8 @@ export async function POST(request) {
       images: outboundImages.length,
       skippedTelegramFileUrls: (images?.length || 0) - outboundImages.length,
     });
-
-    return NextResponse.json({
-      ok: true,
-      drafts: stats.sentCount,
-      chars: finalText.length,
-      images: outboundImages.length,
-    });
   } catch (error) {
     console.error("[tg] FATAL", error);
-    return NextResponse.json({ ok: true, error: error.message });
   }
 }
 
