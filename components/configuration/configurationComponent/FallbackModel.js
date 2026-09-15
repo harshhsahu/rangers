@@ -447,7 +447,7 @@ const FallbackModel = ({
         </div>
       )}
 
-      {shouldRenderApiKey && (
+      {isFallbackEnabled && shouldRenderApiKey && (
         <div className="mt-4">
           <div className="flex flex-col gap-3 w-full">
             {/* Multiple API Keys Label */}
