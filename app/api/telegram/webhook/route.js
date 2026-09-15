@@ -732,6 +732,22 @@ export async function POST(request) {
       return NextResponse.json({ ok: true, error: "channel_not_found" });
     }
 
+    // Remember who has talked to this bot (assumes one active user per bot for now) —
+    // the scheduler needs this chatId to push responses back into Telegram.
+    await collection.updateOne(
+      { version_id: versionId },
+      {
+        $set: {
+          "telegram.chatUser": {
+            chat_id: chatId,
+            username: message?.from?.username || null,
+            first_name: message?.from?.first_name || null,
+            updated_at: new Date(),
+          },
+        },
+      }
+    );
+
     // Dedup: Telegram resends an update if this webhook doesn't ack fast enough.
     // The update id only increases per bot, so seeing one at or below what was
     // last recorded for this version means it's a retry we already handled.
