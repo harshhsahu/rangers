@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { getRangerSchedulesCollection, getChannelDetailsCollection } from "@/lib/mongo";
-import { streamGtwyCompletion } from "@/lib/gtwyChannelHelpers";
+import { streamGtwyCompletion, humanizeGtwyError } from "@/lib/gtwyChannelHelpers";
 import { toObjectId } from "@/lib/rangerSchedules";
 import { decryptSecret } from "@/lib/crypto";
 import { sendLongMessage } from "@/lib/telegramApi";
@@ -120,7 +120,7 @@ async function executeRun(row) {
             at: new Date(),
             ok: false,
             duration_ms: Date.now() - startedAt,
-            error: String(error?.message || error).slice(0, 500),
+            error: humanizeGtwyError(String(error?.message || error)).slice(0, 500),
           },
         },
         $inc: { run_count: 1, fail_streak: 1 },

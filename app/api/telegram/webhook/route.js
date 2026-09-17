@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getChannelDetailsCollection } from "@/lib/mongo";
 import { decryptSecret, maskSecret } from "@/lib/crypto";
 import { TelegramStreamUpdater } from "@/lib/telegramStreamUpdater";
+import { humanizeGtwyError } from "@/lib/gtwyChannelHelpers";
 
 export const runtime = "nodejs";
 
@@ -920,7 +921,7 @@ async function processTelegramMessage({ channel, versionId, message, chatId, upd
       } else if (/^HTTP \d+/i.test(errMsg) || errMsg.trim().startsWith("{")) {
         replyText = "Sorry, something went wrong generating a response.";
       } else {
-        replyText = errMsg || "Sorry, something went wrong generating a response.";
+        replyText = humanizeGtwyError(errMsg) || "Sorry, something went wrong generating a response.";
       }
     }
 
