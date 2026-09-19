@@ -25,7 +25,13 @@ import Protected from "../Protected";
 import ReactMarkdown from "../LazyMarkdown";
 import useRtLayerEventHandler from "@/customHooks/useRtLayerEventHandler";
 import { getStoredGtwyUserId } from "@/utils/internalAuth";
-import { initializeChatChannel, editChatMessage, setChatLoading, clearChatMessages } from "@/store/action/chatAction";
+import {
+  initializeChatChannel,
+  editChatMessage,
+  setChatLoading,
+  clearChatMessages,
+  clearChatChannelData,
+} from "@/store/action/chatAction";
 import RenderNode from "../richUI/RenderNode";
 import ReasoningAccordion from "./ReasoningAccordion";
 import ReviewPhaseAccordion from "./ReviewPhaseAccordion";
@@ -334,6 +340,19 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
       dispatch(initializeChatChannel(channelIdentifier));
     }
   }, [channelIdentifier, dispatch]);
+
+  // Drop the channel's state when the pane unmounts (tab switch / navigating away).
+  // A loading message left behind by an in-flight run would otherwise still be there
+  // on remount, with no socket listener alive to ever resolve it.
+  const channelIdentifierRef = useRef(channelIdentifier);
+  channelIdentifierRef.current = channelIdentifier;
+  useEffect(() => {
+    return () => {
+      if (channelIdentifierRef.current) {
+        dispatch(clearChatChannelData(channelIdentifierRef.current));
+      }
+    };
+  }, [dispatch]);
 
   useRtLayerEventHandler(channelIdentifier);
 
