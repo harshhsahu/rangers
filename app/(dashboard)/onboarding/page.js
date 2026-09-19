@@ -13,6 +13,8 @@ import {
   DEFAULT_RANGER_COLOR,
   DEPLOY_PHASES,
   RANGER_CHANNELS,
+  combinePromptParts,
+  parsePromptParts,
 } from "@/components/rangers/rangerConstants";
 import OnboardingRail from "@/components/rangers/onboarding/OnboardingRail";
 import IdentityPane from "@/components/rangers/onboarding/IdentityPane";
@@ -71,7 +73,7 @@ function OnboardingPage({ params }) {
     knowledgeBases: state?.knowledgeBaseReducer?.knowledgeBaseData?.[orgId] || [],
   }));
 
-  const { createFromIdentity, deploy, phase, error, created, connectTool, disconnectTool } = useCreateRanger({
+  const { deploy, phase, error, created, connectTool, disconnectTool } = useCreateRanger({
     orgId,
     folderId: null,
   });
@@ -141,26 +143,35 @@ function OnboardingPage({ params }) {
 
   const go = useCallback((index) => setStepIndex(Math.max(0, Math.min(ONBOARDING_STEPS.length - 1, index))), []);
 
+  /** Asks the LLM for a prompt. No agent is created here — that happens on deploy. */
   const handleWritePrompt = async () => {
     if (isWriting || !form.description.trim()) return;
     setIsWriting(true);
     setPromptStatus("Writing…");
     try {
-      const result = await createFromIdentity(form);
-      if (!result?.success) {
+      const res = await fetch("/api/ranger-ai/prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name, role: form.role, description: form.description }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
         setPromptStatus("");
-        toast.error(result?.message || "Could not draft the prompt. Write one below instead.");
+        toast.error(data?.error || "Could not draft the prompt. Write one below instead.");
         return;
       }
-      if (result.promptParts) {
-        update({ prompt: result.prompt, promptParts: result.promptParts });
-        setPromptStatus("Draft ready — edit below.");
-      } else if (result.prompt) {
-        update({ prompt: result.prompt, promptParts: null });
-        setPromptStatus("Draft ready — edit below.");
-      } else {
+
+      const promptParts = parsePromptParts(data.prompt);
+      const prompt = promptParts ? combinePromptParts(promptParts) : String(data.prompt || "").trim();
+      if (!prompt) {
         setPromptStatus("No draft came back — write the prompt below.");
+        return;
       }
+      update({ prompt, promptParts });
+      setPromptStatus("Draft ready — edit below.");
+    } catch (err) {
+      setPromptStatus("");
+      toast.error(err?.message || "Could not draft the prompt. Write one below instead.");
     } finally {
       setIsWriting(false);
     }
@@ -257,8 +268,7 @@ function OnboardingPage({ params }) {
                   onMcpServersChange={setMcpServers}
                   selectedToolIds={selectedToolIds}
                   onSelectedToolIdsChange={setSelectedToolIds}
-                  /* Set only once the AI path has created the agent; without it
-                     there is nothing to attach to and tools wait for deploy. */
+                  /* The agent exists only after deploy, so tools wait for it. */
                   hasAgent={Boolean(created?.agentId)}
                   onConnectTool={connectTool}
                   onDisconnectTool={disconnectTool}
