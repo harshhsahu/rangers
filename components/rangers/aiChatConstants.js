@@ -59,11 +59,18 @@ const matchChannelKey = (name) => {
   return CONNECTABLE_CHANNELS.find((channel) => normalized.includes(channel.key))?.key || null;
 };
 
+/** Chat writes free text ("Friendly, with a fixed format"), so look for a preset inside it. */
 const matchTone = (value) => {
   const normalized = String(value || "")
     .trim()
     .toLowerCase();
-  return TONES.find((tone) => tone.value === normalized)?.value || "";
+  if (!normalized) return "";
+  const exact = TONES.find((tone) => tone.value === normalized);
+  if (exact) return exact.value;
+  const hits = TONES.map((tone) => ({ value: tone.value, at: normalized.search(new RegExp(`\\b${tone.value}\\b`)) }))
+    .filter((hit) => hit.at !== -1)
+    .sort((a, b) => a.at - b.at);
+  return hits[0]?.value || "";
 };
 
 /** Maps draft_config onto the wizard's form. Unrecognised values are left blank, never guessed. */
