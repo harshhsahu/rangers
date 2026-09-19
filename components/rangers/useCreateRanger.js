@@ -126,11 +126,12 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
     setIdentityError("");
   }, []);
 
-  /** Phase 2 — create. Always sends flag:true; description becomes purpose when present. */
+  /** Phase 2 — create. Always sends flag:true; purpose is sent only when there is no prompt yet. */
   const runCreate = useCallback(
     async (form) => {
       const ranger = buildRangerMeta(form);
-      const description = form.description.trim();
+      // purpose is what makes the backend draft a prompt, so it is skipped once we have one.
+      const purpose = form.prompt?.trim() ? "" : form.description.trim();
       const dataToSend = {
         // Create must be "api" — the backend rejects "trigger" here. It is
         // promoted right after the agent exists (see promoteToTrigger).
@@ -139,11 +140,11 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         flag: true,
         meta: { ranger },
         ...(folderId ? { folder_id: folderId } : {}),
-        ...(description ? { purpose: description } : {}),
+        ...(purpose ? { purpose } : {}),
       };
 
       // Without purpose the backend still needs a concrete model to create against.
-      if (!description) {
+      if (!purpose) {
         dataToSend.service = form.service;
         dataToSend.model = form.model;
         dataToSend.type = form.modelGroup || "chat";
