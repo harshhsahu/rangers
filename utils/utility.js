@@ -1333,7 +1333,7 @@ export const formatTokensTable = (tokensObj) => {
   const costObj = tokensObj.cost || {};
   const categories = TOKEN_CATEGORIES;
   const rows = [];
-  const processedTokenKeys = new Set(["cost", "expected_cost"]);
+  const processedTokenKeys = new Set(["cost", "expected_cost", "total_tokens"]);
   const processedCostKeys = new Set();
 
   categories.forEach((cat) => {
