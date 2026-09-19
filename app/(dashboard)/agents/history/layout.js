@@ -10,9 +10,12 @@ export default function layoutHistoryPage({ children, params }) {
   }));
 
   const scriptId = "chatbot-main-script";
-  const scriptSrcProd = process.env.NEXT_PUBLIC_CHATBOT_SCRIPT_SRC_PROD;
+  const scriptSrc = process.env.NEXT_PUBLIC_CHATBOT_SCRIPT_SRC;
 
   useEffect(() => {
+    // The token lands after mount on a hard load; the embed can't be re-pointed once built.
+    if (!scriptSrc || !history_page_chatbot_token) return;
+
     const existingScript = document.getElementById(scriptId);
     if (existingScript) {
       document.head.removeChild(existingScript);
@@ -22,7 +25,7 @@ export default function layoutHistoryPage({ children, params }) {
     script.setAttribute("embedToken", history_page_chatbot_token);
     script.setAttribute("hideIcon", "true");
     script.id = scriptId;
-    script.src = scriptSrcProd;
+    script.src = scriptSrc;
     document.head.appendChild(script);
 
     return () => {
@@ -31,7 +34,7 @@ export default function layoutHistoryPage({ children, params }) {
         document.head.removeChild(script);
       }
     };
-  }, []);
+  }, [history_page_chatbot_token]);
 
   return <>{children}</>;
 }
