@@ -13,13 +13,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { useDispatch } from "react-redux";
 import { ExpandCollapse } from "@/components/UI/ExpandCollapse";
 import { truncate } from "./AssistFile";
 import ToolsDataModal from "./ToolsDataModal";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { getHistoryAction } from "@/store/action/historyAction";
-import { getAgentAnalyticsAction } from "@/store/action/analyticsAction";
 import {
   getToolName,
   openModal,
@@ -39,7 +36,6 @@ import {
   ChevronDown,
   Clock3,
   ExternalLink,
-  RotateCcw,
   ChevronRight,
   BookOpen,
   SlidersHorizontal,
@@ -47,7 +43,6 @@ import {
   User,
   Brain,
 } from "lucide-react";
-import { rerunApi } from "@/config/modelApi";
 import { toast } from "@/utils/toast";
 import { GenericSlider, useSlider } from "@/utils/sliderUtility";
 import CodeBlock from "../codeBlock/CodeBlock";
@@ -386,7 +381,6 @@ const ThreadItem = ({
   getAiConfig,
   setModalInput,
 }) => {
-  const dispatch = useDispatch();
   const { actualTheme } = useThemeManager();
   const isDark = actualTheme === "dark";
 
@@ -406,41 +400,15 @@ const ThreadItem = ({
   const [messageType, setMessageType] = useState(getInitialMessageType());
   const [toolsData, setToolsData] = useState([]);
   const toolsDataModalRef = useRef(null);
-  const { embedToken, knowledgeBaseData, isEmbedUser, orgBridges, allBridgesMap, publishedVersionId } =
-    useCustomSelector((state) => ({
-      embedToken: state?.bridgeReducer?.org?.[params?.org_id]?.embed_token,
-      knowledgeBaseData: state?.knowledgeBaseReducer?.knowledgeBaseData?.[params?.org_id] || [],
-      isEmbedUser: state?.appInfoReducer?.embedUserDetails?.isEmbedUser,
-      orgBridges: state?.bridgeReducer?.org?.[params?.org_id]?.orgs || [],
-      allBridgesMap: state?.bridgeReducer?.allBridgesMap || {},
-      publishedVersionId: state?.bridgeReducer?.allBridgesMap?.[item?.bridge_id]?.published_version_id,
-    }));
+  const { embedToken, knowledgeBaseData, isEmbedUser, orgBridges, allBridgesMap } = useCustomSelector((state) => ({
+    embedToken: state?.bridgeReducer?.org?.[params?.org_id]?.embed_token,
+    knowledgeBaseData: state?.knowledgeBaseReducer?.knowledgeBaseData?.[params?.org_id] || [],
+    isEmbedUser: state?.appInfoReducer?.embedUserDetails?.isEmbedUser,
+    orgBridges: state?.bridgeReducer?.org?.[params?.org_id]?.orgs || [],
+    allBridgesMap: state?.bridgeReducer?.allBridgesMap || {},
+  }));
   const [isDropupOpen, setIsDropupOpen] = useState(false);
-  const [isRerunning, setIsRerunning] = useState(false);
   const [isSystemPromptExpanded, setIsSystemPromptExpanded] = useState(false);
-  const handleRerun = async () => {
-    if (!item?.message_id) return;
-    setIsRerunning(true);
-    try {
-      await rerunApi({
-        agent_id: item.bridge_id,
-        thread_id: item?.thread_id,
-        sub_thread_id: item?.sub_thread_id,
-        message_ids: [item.message_id],
-      });
-      toast.success("Rerun triggered successfully");
-      // Refresh sidebars on both history and analytics pages after a short delay
-      // so the backend has time to create the rerun thread
-      setTimeout(() => {
-        dispatch(getHistoryAction(item.bridge_id, 1, "all", false, "all"));
-        dispatch(getAgentAnalyticsAction(item.bridge_id, { analytics: true }, params?.org_id));
-      }, 2000);
-    } catch {
-    } finally {
-      setIsRerunning(false);
-    }
-  };
-
   const [isVariablesOpen, setIsVariablesOpen] = useState(false);
   const [variablesFilter, _setVariablesFilter] = useState("");
   const [isMoreDetailsExpanded, setIsMoreDetailsExpanded] = useState(false);
@@ -1387,16 +1355,6 @@ const ThreadItem = ({
     const isError = Boolean(item?.error);
     return (
       <div className="mt-2 flex flex-wrap items-center justify-start gap-1.5">
-        <ThreadActionPill
-          testId="thread-item-rerun-button"
-          id="thread-item-rerun-button"
-          icon={RotateCcw}
-          onClick={handleRerun}
-          disabled={isRerunning || !publishedVersionId}
-          title={!publishedVersionId ? "No published version available" : "Rerun this message"}
-        >
-          {isRerunning ? "Running..." : "Rerun"}
-        </ThreadActionPill>
         <ThreadActionPill
           id="thread-item-copy-message-button"
           testId="thread-item-copy-message-button"
