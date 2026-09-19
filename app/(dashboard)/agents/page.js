@@ -438,7 +438,6 @@ function Home({ params, searchParams, isEmbedUser }) {
   const [isUsageFilterSubmitting, setIsUsageFilterSubmitting] = useState(false);
   const usageFilterPopoverRef = useRef(null);
   const [selectedAgentForAccess, setSelectedAgentForAccess] = useState(null);
-  const [shouldSortByMetrics, _setShouldSortByMetrics] = useState(false); // Track if user wants sorting
 
   // Use portal dropdown hook
   const { handlePortalOpen, handlePortalCloseImmediate, PortalDropdown, PortalStyles } = usePortalDropdown({
@@ -471,22 +470,20 @@ function Home({ params, searchParams, isEmbedUser }) {
     return result;
   }, [usageMetrics?.data]);
   const usageFilterIds = useMemo(() => new Set(Object.keys(usageMetricsMap)), [usageMetricsMap]);
+  // Applied only with both dates — the initial all-time fetch also flags filterActive.
   const isUsageFilterActive = useMemo(
-    // Only consider filter active if explicitly set by user action
-    () => Boolean(usageMetrics?.filterActive),
-    [usageMetrics?.filterActive]
+    () => Boolean(usageMetrics?.filterActive && usageMetrics?.filters?.start_date && usageMetrics?.filters?.end_date),
+    [usageMetrics?.filterActive, usageMetrics?.filters]
   );
 
   const usageFilterLabel = useMemo(() => {
     if (!isUsageFilterActive) return "";
     const formatReadableDate = (value) => {
-      if (!value) return "";
       const date = new Date(value);
       return Number.isNaN(date.getTime())
         ? value
         : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
     };
-    if (!usageMetrics?.filters?.start_date && !usageMetrics?.filters?.end_date) return "";
     return `${formatReadableDate(usageMetrics?.filters?.start_date)} → ${formatReadableDate(usageMetrics?.filters?.end_date)}`;
   }, [isUsageFilterActive, usageMetrics?.filters]);
 
@@ -514,30 +511,28 @@ function Home({ params, searchParams, isEmbedUser }) {
     return processedBridges;
   }, [processedBridges]);
 
-  // Show all bridges but only sort when user explicitly requests it
+  // The API also returns zeroed rows, so presence alone is not usage.
+  const hasUsageInWindow = (bridgeId) => {
+    const metrics = usageMetricsMap[bridgeId];
+    if (!metrics) return false;
+    return Number(metrics.total_tokens ?? 0) > 0 || Number(metrics.total_cost ?? 0) > 0;
+  };
+
+  // With a window applied, drop the rangers that did nothing in it.
   const applyUsageFilter = (list) => {
     if (!Array.isArray(list)) return list;
 
-    // Add hasMetrics property to each item
     const listWithMetricsFlag = list.map((item) => ({
       ...item,
       hasMetrics: usageFilterIds.has(item._id),
     }));
 
-    // Only sort if user has explicitly requested sorting
-    if (!shouldSortByMetrics) {
-      return listWithMetricsFlag; // Return unsorted list
+    // Keep everyone while metrics are in flight, else the grid empties and refills.
+    if (!isUsageFilterActive || usageMetrics?.loading) {
+      return listWithMetricsFlag;
     }
 
-    // Sort: prioritize bridges with metrics
-    return [...listWithMetricsFlag].sort((a, b) => {
-      // Put bridges with metrics first
-      if (a.hasMetrics && !b.hasMetrics) return -1;
-      if (!a.hasMetrics && b.hasMetrics) return 1;
-
-      // If both have metrics or both don't have metrics, maintain original order
-      return 0;
-    });
+    return listWithMetricsFlag.filter((item) => hasUsageInWindow(item._id));
   };
 
   // Simplified function to return metrics data for the table
@@ -576,10 +571,13 @@ function Home({ params, searchParams, isEmbedUser }) {
     // Last N days including today
     start.setDate(end.getDate() - (days - 1));
 
-    const toYMD = (d) => d.toISOString().slice(0, 10);
+    // Local Y-M-D — toISOString would roll the date back a day east of UTC.
+    const toYMD = (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     const startDate = toYMD(start);
     const endDate = toYMD(end);
 
+    handlePortalCloseImmediate();
     setUsageFilterError("");
     setUsageFilterDates({ start_date: startDate, end_date: endDate });
     setIsUsageFilterSubmitting(true);
@@ -640,9 +638,9 @@ function Home({ params, searchParams, isEmbedUser }) {
   );
   const filteredDeletedBridges = filterBridges?.filter((item) => item.deletedAt);
 
-  // Apply usage filter to prioritize metrics API agents
   const usageFilteredUnArchived = applyUsageFilter(filteredUnArchivedBridges);
-  const usageFilteredDeleted = applyUsageFilter(filteredDeletedBridges);
+  // Trash stays whole — its count is about what is recoverable, not usage.
+  const usageFilteredDeleted = filteredDeletedBridges;
 
   useEffect(() => {
     if (usageMetrics?.filters) {
@@ -979,7 +977,8 @@ function Home({ params, searchParams, isEmbedUser }) {
     );
   }, [processedBridges]);
 
-  const usageWindowLabel = isUsageFilterActive && usageFilterLabel ? usageFilterLabel : "last 24h";
+  // No window means the all-time fetch.
+  const usageWindowLabel = isUsageFilterActive && usageFilterLabel ? usageFilterLabel : "all time";
 
   const prefetchedRoutes = useRef(new Set());
   const handleRowHover = (row) => {
@@ -1063,6 +1062,7 @@ function Home({ params, searchParams, isEmbedUser }) {
     dispatch(clearBridgeUsageMetricsAction());
     setUsageFilterDates({ start_date: "", end_date: "" });
     setUsageFilterError("");
+    handlePortalCloseImmediate();
     closeUsageFilterPopover();
   };
 
