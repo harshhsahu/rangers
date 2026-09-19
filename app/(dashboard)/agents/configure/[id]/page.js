@@ -821,34 +821,33 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     }
                   }}
                 >
-                  {uiState.isChatCollapsed ? (
-                    <ChatBundle onClick={handleExpandChat} />
-                  ) : (
-                    <div id="parentChatbot" className="h-full flex flex-col">
-                      <ChatPanelTabs
-                        idPrefix="chat"
-                        testPanel={
-                          <div id="chat-content-container" className="flex-1 min-h-0">
-                            <Chat
-                              id="chat-component"
-                              params={resolvedParams}
-                              searchParams={resolvedSearchParams}
-                              draftPrompt={draftPromptForPlayground}
-                            />
-                          </div>
-                        }
-                        helperPanel={
-                          <div id="chat-ranger-update-container" className="flex min-h-0 flex-1 flex-col">
-                            <RangerUpdateChatPanel
-                              idPrefix="chat-ranger-update"
-                              bridgeId={resolvedParams?.id}
-                              versionId={resolvedSearchParams?.version}
-                            />
-                          </div>
-                        }
-                      />
-                    </div>
-                  )}
+                  {uiState.isChatCollapsed && <ChatBundle onClick={handleExpandChat} />}
+                  {/* Hidden, not unmounted: Chat clears its channel on unmount, so a
+                      collapse/expand would otherwise throw away the conversation. */}
+                  <div id="parentChatbot" className={uiState.isChatCollapsed ? "hidden" : "h-full flex flex-col"}>
+                    <ChatPanelTabs
+                      idPrefix="chat"
+                      testPanel={
+                        <div id="chat-content-container" className="flex-1 min-h-0">
+                          <Chat
+                            id="chat-component"
+                            params={resolvedParams}
+                            searchParams={resolvedSearchParams}
+                            draftPrompt={draftPromptForPlayground}
+                          />
+                        </div>
+                      }
+                      helperPanel={
+                        <div id="chat-ranger-update-container" className="flex min-h-0 flex-1 flex-col">
+                          <RangerUpdateChatPanel
+                            idPrefix="chat-ranger-update"
+                            bridgeId={resolvedParams?.id}
+                            versionId={resolvedSearchParams?.version}
+                          />
+                        </div>
+                      }
+                    />
+                  </div>
                 </Panel>
               )
             ) : (
