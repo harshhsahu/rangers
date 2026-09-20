@@ -107,12 +107,43 @@ const SchedulerPanel = () => {
     setDraft((prev) => (prev.timezone ? prev : { ...prev, timezone: defaultTimezone }));
   }, [defaultTimezone]);
 
+  // Telegram only hands us a chatId through a webhook call this tab never
+  // sees, so poll for it briefly after connecting instead of requiring a
+  // manual refresh — stops as soon as one shows up, or after a few minutes.
   useEffect(() => {
     if (!versionId) return;
-    fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`, { headers: authHeaders() })
-      .then((res) => res.json())
-      .then((data) => setTelegramChat(data?.data?.telegram?.chatUser || null))
-      .catch(() => setTelegramChat(null));
+    let cancelled = false;
+    let timer = null;
+    let attempts = 0;
+    const POLL_MS = 4000;
+    const MAX_ATTEMPTS = 90; // ~6 minutes
+
+    const fetchChat = () =>
+      fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`, { headers: authHeaders() })
+        .then((res) => res.json())
+        .then((data) => {
+          const chatUser = data?.data?.telegram?.chatUser || null;
+          if (!cancelled) setTelegramChat(chatUser);
+          return chatUser;
+        })
+        .catch(() => null);
+
+    fetchChat().then((chatUser) => {
+      if (cancelled || chatUser?.chat_id) return;
+      timer = setInterval(async () => {
+        attempts += 1;
+        const polled = await fetchChat();
+        if (cancelled) return;
+        if (polled?.chat_id || attempts >= MAX_ATTEMPTS) {
+          clearInterval(timer);
+        }
+      }, POLL_MS);
+    });
+
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
   }, [versionId]);
 
   const load = useCallback(async () => {

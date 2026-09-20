@@ -346,9 +346,6 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
           if (data?.webhook && !data.webhook.registered && data.webhook.message) {
             warnings.push({ channel: channel.label, message: data.webhook.message });
           }
-          if (data?.gateway && data.gateway.message && data.gateway.connected === false) {
-            warnings.push({ channel: channel.label, message: data.gateway.message });
-          }
         } catch (err) {
           warnings.push({
             channel: channel.label,
@@ -439,9 +436,6 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
         if (data?.webhook && !data.webhook.registered && data.webhook.message) {
           toast.warning(`${channel.label}: ${data.webhook.message}`);
-        }
-        if (data?.gateway && data.gateway.message && data.gateway.connected === false) {
-          toast.warning(`${channel.label}: ${data.gateway.message}`);
         }
 
         toast.success(`${channel.label} connected.`);
