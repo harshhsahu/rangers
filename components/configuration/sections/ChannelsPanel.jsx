@@ -132,9 +132,6 @@ const ChannelsPanel = () => {
         if (data?.webhook && !data.webhook.registered && data.webhook.message) {
           toast.warning(`${channel.label}: ${data.webhook.message}`);
         }
-        if (data?.gateway && data.gateway.connected === false && data.gateway.message) {
-          toast.warning(`${channel.label}: ${data.gateway.message}`);
-        }
 
         setErrors((prev) => ({ ...prev, [channelKey]: "" }));
         setConnectedChannels((prev) => ({ ...prev, [channelKey]: true }));

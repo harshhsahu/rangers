@@ -7,6 +7,19 @@ import { requireAgentAccess, errorResponse } from "@/lib/apiAuth";
 
 export const runtime = "nodejs";
 
+// Turns discord.js Gateway login errors into a message a user can act on,
+// instead of the raw "Used disallowed intents" / "invalid token" text.
+function formatDiscordLoginError(err) {
+  const msg = err?.message || String(err);
+  if (/disallowed intent/i.test(msg)) {
+    return 'This bot doesn\'t have the required Privileged Gateway Intent enabled. Open the Discord Developer Portal → your app → Bot, enable "Message Content Intent" under Privileged Gateway Intents, then try again.';
+  }
+  if (/invalid token/i.test(msg)) {
+    return "Invalid Discord bot token. Copy the token again from the Bot page in the Discord Developer Portal and try again.";
+  }
+  return `Could not connect to Discord: ${msg}`;
+}
+
 function sanitizeChannel(doc) {
   if (!doc) return doc;
   const out = { ...doc };
@@ -51,6 +64,25 @@ export async function POST(request) {
       );
     }
 
+    // Validate the token (and privileged intents) against Discord's Gateway
+    // BEFORE persisting anything. A token that's invalid, revoked, or missing
+    // the "Message Content Intent" must never be written to the DB.
+    let started;
+    try {
+      started = await startDiscordBot(version_id, botToken);
+    } catch (err) {
+      const message = formatDiscordLoginError(err);
+      console.error("[discord] setup validation failed", err?.message || err);
+      return NextResponse.json({ success: false, error: message }, { status: 400 });
+    }
+
+    const gateway = {
+      connected: Boolean(started?.ok),
+      alreadyRunning: Boolean(started?.alreadyRunning),
+      tag: started?.tag || null,
+      message: "Discord Gateway connected",
+    };
+
     const now = new Date();
     const encryptedToken = encryptSecret(botToken);
     const collection = await getChannelDetailsCollection();
@@ -75,20 +107,6 @@ export async function POST(request) {
       },
       { upsert: true }
     );
-
-    let gateway = { connected: false, message: null, tag: null };
-    try {
-      const started = await startDiscordBot(version_id, botToken);
-      gateway = {
-        connected: Boolean(started?.ok),
-        alreadyRunning: Boolean(started?.alreadyRunning),
-        tag: started?.tag || null,
-        message: started?.ok ? "Discord Gateway connected" : "Failed to connect Gateway",
-      };
-    } catch (err) {
-      gateway = { connected: false, message: err?.message || String(err) };
-      console.error("[discord] setup start failed", gateway.message);
-    }
 
     // Best-effort slash-command registration (do not fail setup)
     let commands = { registered: false, message: null };
