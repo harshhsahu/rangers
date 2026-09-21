@@ -915,18 +915,18 @@ const Sidebar = memo(
                                       <div className="w-full h-full flex items-center justify-between relative px-2 py-1.5 gap-2">
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                           <p
-                                            className={`font-mono text-[11.5px] font-bold truncate ${isSidebarThreadActive(item?.thread_id) ? "text-acc-ink" : "text-ink"}`}
+                                            className={`font-mono text-[11.5px] font-bold truncate ${isSidebarThreadActive(item?.thread_id) ? "text-acc-deep" : "text-ink"}`}
                                           >
                                             {truncate(item?.thread_id, 22)}
                                           </p>
                                         </div>
                                         <span
-                                          className={`font-mono text-[10px] whitespace-nowrap group-hover:hidden ${isSidebarThreadActive(item?.thread_id) ? "text-acc-deep/70" : "text-soft"}`}
+                                          className={`font-mono text-[10px] whitespace-nowrap group-hover:hidden ${isSidebarThreadActive(item?.thread_id) ? "text-acc-deep" : "text-soft"}`}
                                         >
                                           {formatRelativeTime(item?.updated_at || item?.created_at)}
                                         </span>
                                         <span
-                                          className={`font-mono text-[10px] whitespace-nowrap hidden group-hover:inline ${isSidebarThreadActive(item?.thread_id) ? "text-acc-deep/70" : "text-soft"}`}
+                                          className={`font-mono text-[10px] whitespace-nowrap hidden group-hover:inline ${isSidebarThreadActive(item?.thread_id) ? "text-acc-deep" : "text-soft"}`}
                                         >
                                           {formatDate(item?.updated_at || item?.created_at)}
                                         </span>
@@ -955,17 +955,17 @@ const Sidebar = memo(
                                             className={`flex items-start gap-1 mb-1 w-full justify-between group ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "" : ""}`}
                                           >
                                             <p
-                                              className={`text-xs truncate ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
+                                              className={`text-xs truncate ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-acc-deep" : "text-base-content"}`}
                                             >
                                               {truncate(item?.thread_id, 22)}
                                             </p>
                                             <span
-                                              className={`text-xs whitespace-nowrap group-hover:hidden ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
+                                              className={`text-xs whitespace-nowrap group-hover:hidden ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-acc-deep" : "text-base-content"}`}
                                             >
                                               {formatRelativeTime(item?.updated_at || item?.created_at)}
                                             </span>
                                             <span
-                                              className={`text-xs whitespace-nowrap font-medium hidden group-hover:inline ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
+                                              className={`text-xs whitespace-nowrap font-medium hidden group-hover:inline ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-acc-deep" : "text-base-content"}`}
                                             >
                                               {formatDate(item?.updated_at || item?.created_at)}
                                             </span>
@@ -975,12 +975,12 @@ const Sidebar = memo(
                                             className={`flex items-start gap-1 mb-1 w-full group ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "" : ""}`}
                                           >
                                             <span
-                                              className={`text-xs whitespace-nowrap group-hover:hidden ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
+                                              className={`text-xs whitespace-nowrap group-hover:hidden ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-acc-deep" : "text-base-content"}`}
                                             >
                                               {formatRelativeTime(item?.updated_at || item?.created_at)}
                                             </span>
                                             <span
-                                              className={`text-xs whitespace-nowrap group-hover:inline ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-base-100" : "text-base-content"}`}
+                                              className={`text-xs whitespace-nowrap group-hover:inline ${decodeURIComponent(searchParams?.thread_id) === item?.thread_id ? "text-acc-deep" : "text-base-content"}`}
                                             >
                                               {formatDate(item?.updated_at || item?.created_at)}
                                             </span>
@@ -1022,7 +1022,7 @@ const Sidebar = memo(
                                                           <div className="w-full h-full flex items-center justify-between relative gap-2">
                                                             <span className="truncate flex-1 text-xs flex items-center min-w-0">
                                                               <MessageCircleIcon
-                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-ink dark:text-acc-ink" : "text-soft dark:text-base-content"}`}
+                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-deep" : "text-soft dark:text-base-content"}`}
                                                               />
                                                               {truncate(
                                                                 subThread?.display_name || subThread?.sub_thread_id,
@@ -1032,12 +1032,12 @@ const Sidebar = memo(
                                                             {(subThread?.updated_at || subThread?.created_at) && (
                                                               <>
                                                                 <span
-                                                                  className={`text-[10px] whitespace-nowrap group-hover:hidden ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-deep/70" : "text-soft"}`}
+                                                                  className={`text-[10px] whitespace-nowrap group-hover:hidden ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-deep" : "text-soft"}`}
                                                                 >
                                                                   {formatRelativeTime(subThread?.updated_at)}
                                                                 </span>
                                                                 <span
-                                                                  className={`text-[10px] whitespace-nowrap hidden group-hover:inline ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-deep/70" : "text-soft"}`}
+                                                                  className={`text-[10px] whitespace-nowrap hidden group-hover:inline ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-deep" : "text-soft"}`}
                                                                 >
                                                                   {formatDate(
                                                                     subThread?.created_at || subThread?.created_at
@@ -1062,7 +1062,7 @@ const Sidebar = memo(
                                                           <a className="w-full h-full flex items-center justify-between relative">
                                                             <span className="truncate flex-1 mr-1.5 text-xs flex items-center">
                                                               <MessageCircleIcon
-                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-base-100" : "text-base-content"}`}
+                                                                className={`w-3 h-3 mr-1.5 flex-shrink-0 ${isSidebarSubThreadActive(subThread?.sub_thread_id) ? "text-acc-deep" : "text-base-content"}`}
                                                               />
                                                               {truncate(
                                                                 subThread?.display_name || subThread?.sub_thread_id,
@@ -1102,7 +1102,7 @@ const Sidebar = memo(
                                                             >
                                                               <div className="flex items-start gap-1.5">
                                                                 <UserIcon
-                                                                  className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${isAnalytics ? (isSidebarMessageActive(msg?.message_id) ? "text-acc-ink dark:text-acc-ink" : "text-soft dark:text-base-content") : "text-base-content"}`}
+                                                                  className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${isAnalytics ? (isSidebarMessageActive(msg?.message_id) ? "text-acc-deep" : "text-soft dark:text-base-content") : "text-base-content"}`}
                                                                 />
                                                                 <span className="leading-snug">
                                                                   {truncate(msg?.message, 35)}
@@ -1135,7 +1135,7 @@ const Sidebar = memo(
                                                 >
                                                   <div className="flex items-start gap-1.5">
                                                     <UserIcon
-                                                      className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${isAnalytics ? (isSidebarMessageActive(msg?.message_id) ? "text-acc-ink dark:text-acc-ink" : "text-soft dark:text-base-content") : "text-base-content"}`}
+                                                      className={`w-2.5 h-2.5 mt-0.5 flex-shrink-0 ${isAnalytics ? (isSidebarMessageActive(msg?.message_id) ? "text-acc-deep" : "text-soft dark:text-base-content") : "text-base-content"}`}
                                                     />
                                                     <span className="leading-snug">{truncate(msg?.message, 32)}</span>
                                                   </div>
