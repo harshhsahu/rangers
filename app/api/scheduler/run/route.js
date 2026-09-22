@@ -1,10 +1,7 @@
-import crypto from "crypto";
 import { NextResponse } from "next/server";
-import { getRangerSchedulesCollection, getChannelDetailsCollection } from "@/lib/mongo";
-import { streamGtwyCompletion, humanizeGtwyError } from "@/lib/gtwyChannelHelpers";
+import { getRangerSchedulesCollection } from "@/lib/mongo";
 import { toObjectId } from "@/lib/rangerSchedules";
-import { decryptSecret } from "@/lib/crypto";
-import { sendLongMessage } from "@/lib/telegramApi";
+import { executeScheduleRun } from "@/lib/schedulerExecute";
 
 export const runtime = "nodejs";
 
@@ -49,82 +46,10 @@ export async function GET(request) {
 
   // Deliberately not awaited — the response goes out first. Node keeps the
   // handler's microtasks running after the response is flushed.
-  executeRun(row).catch((error) => console.error("[cron] run crashed", error?.message || error));
+  executeScheduleRun(row).catch((error) => console.error("[cron] run crashed", error?.message || error));
 
   return NextResponse.json({ success: true, accepted: true, schedule: String(row._id) }, { status: 202 });
 }
 
 /** EasyCron can be configured to POST; same handling either way. */
 export const POST = GET;
-
-/**
- * A scheduled run is an inbound message whose sender happens to be a clock, so
- * it goes through the same completion helper the channel webhooks use.
- */
-async function executeRun(row) {
-  const schedules = await getRangerSchedulesCollection();
-  const startedAt = Date.now();
-
-  const threadId =
-    row.thread_mode === "fresh"
-      ? `cron_${String(row._id)}_${crypto.randomBytes(4).toString("hex")}`
-      : row.thread_id || `cron_${String(row._id)}`;
-
-  try {
-    const { text } = await streamGtwyCompletion({
-      versionId: row.version_id,
-      userText: row.message,
-      threadId,
-      logPrefix: "[cron]",
-    });
-
-    if (row.delivery?.type === "telegram" && row.delivery.chat_id) {
-      try {
-        const channels = await getChannelDetailsCollection();
-        const channel = await channels.findOne({ version_id: row.version_id });
-        const botToken = channel?.telegram?.botToken ? decryptSecret(channel.telegram.botToken) : null;
-        if (botToken) {
-          await sendLongMessage(botToken, row.delivery.chat_id, text || "…");
-        } else {
-          console.error("[cron] telegram delivery skipped: no bot token", { schedule: String(row._id) });
-        }
-      } catch (error) {
-        console.error("[cron] telegram delivery failed", { schedule: String(row._id), error: error?.message || error });
-      }
-    }
-
-    await schedules.updateOne(
-      { _id: row._id },
-      {
-        $set: {
-          last_run: {
-            at: new Date(),
-            ok: true,
-            duration_ms: Date.now() - startedAt,
-            // Kept short: this is a status line in the UI, not a transcript.
-            // The full exchange is in the thread's own history.
-            preview: (text || "").slice(0, 400),
-          },
-          fail_streak: 0,
-        },
-        $inc: { run_count: 1 },
-      }
-    );
-  } catch (error) {
-    console.error("[cron] run failed", { schedule: String(row._id), error: error?.message || error });
-    await schedules.updateOne(
-      { _id: row._id },
-      {
-        $set: {
-          last_run: {
-            at: new Date(),
-            ok: false,
-            duration_ms: Date.now() - startedAt,
-            error: humanizeGtwyError(String(error?.message || error)).slice(0, 500),
-          },
-        },
-        $inc: { run_count: 1, fail_streak: 1 },
-      }
-    );
-  }
-}
