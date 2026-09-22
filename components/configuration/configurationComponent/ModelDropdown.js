@@ -11,123 +11,134 @@ import InfoTooltip from "@/components/InfoTooltip";
 import AddNewModelModal from "@/components/modals/AddNewModal";
 import ConfirmationModal from "@/components/UI/ConfirmationModal";
 
-// Model Preview component to display model specifications
+// Hover card for a model in the picker — name, costs, cutoff, usecase.
 export const ModelPreview = memo(({ hoveredModel, modelSpecs, dropdownRef }) => {
-  if (!hoveredModel || !modelSpecs || !dropdownRef?.current) return null;
+  if (!hoveredModel || !dropdownRef?.current) return null;
 
-  // Calculate position relative to dropdown with viewport constraints
+  const specs = modelSpecs && typeof modelSpecs === "object" ? modelSpecs : {};
+  const hasAnyDetail =
+    specs.description ||
+    specs.input_cost != null ||
+    specs.output_cost != null ||
+    specs.cached_cost != null ||
+    specs.cached_text_input_cost != null ||
+    specs.cache_read_cost != null ||
+    specs.cost?.input_cost != null ||
+    specs.cost?.output_cost != null ||
+    specs.cost?.cached_cost != null ||
+    specs.knowledge_cutoff ||
+    (Array.isArray(specs.usecase) ? specs.usecase.length > 0 : specs.usecase);
+
   const dropdownRect = dropdownRef.current.getBoundingClientRect();
-
-  // Try to get the dropdown menu element instead of trigger
   const dropdownMenu = dropdownRef.current?.querySelector(".dropdown-content");
   const targetRect = dropdownMenu ? dropdownMenu.getBoundingClientRect() : dropdownRect;
   const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
   const shouldOpenUp =
     dropdownRef.current?.classList?.contains("dropdown-top") ||
     dropdownRef.current?.querySelector(".dropdown-top") !== null;
 
-  const modalWidth = 260;
-  const viewportWidth = window.innerWidth;
+  const modalWidth = 320;
   let leftPosition;
-
   const rightPosition = targetRect?.right;
-  if (rightPosition + modalWidth <= viewportWidth) {
-    leftPosition = rightPosition;
+  if (rightPosition + modalWidth + 8 <= viewportWidth) {
+    leftPosition = rightPosition + 8;
   } else {
-    const leftSidePosition = targetRect?.left - modalWidth;
-    if (leftSidePosition >= 0) {
-      leftPosition = leftSidePosition;
-    } else {
-      leftPosition = Math.max(10, targetRect?.left + targetRect?.width / 2 - modalWidth / 2);
-    }
+    const leftSidePosition = targetRect?.left - modalWidth - 8;
+    leftPosition = leftSidePosition >= 0 ? leftSidePosition : Math.max(10, (viewportWidth - modalWidth) / 2);
   }
 
   const previewStyle = {
     position: "fixed",
-    top: shouldOpenUp ? Math.max(20, targetRect?.top) : Math.max(20, dropdownRect?.top - 50),
+    top: shouldOpenUp ? Math.max(20, targetRect?.top) : Math.max(20, targetRect?.top),
     left: leftPosition,
     zIndex: 99999,
-    maxHeight: shouldOpenUp ? `${Math.max(120, viewportHeight - targetRect?.top - 20)}px` : `${viewportHeight}px`,
+    maxHeight: `${Math.max(160, viewportHeight - 40)}px`,
     overflowY: "auto",
   };
 
-  // Use createPortal to render directly to document body
+  const formatCost = (value) => {
+    if (value == null || value === "") return null;
+    if (typeof value === "number") return String(value);
+    return String(value);
+  };
+
+  const inputCost = formatCost(specs.input_cost ?? specs.cost?.input_cost);
+  const outputCost = formatCost(specs.output_cost ?? specs.cost?.output_cost);
+  const cachedCost = formatCost(
+    specs.cached_cost ?? specs.cached_text_input_cost ?? specs.cache_read_cost ?? specs.cost?.cached_cost
+  );
+  const usecases = Array.isArray(specs.usecase)
+    ? specs.usecase.filter(Boolean)
+    : typeof specs.usecase === "string" && specs.usecase.trim()
+      ? [specs.usecase.trim()]
+      : [];
+
   return createPortal(
     <div
       data-testid="model-preview-container"
       id="model-preview-container"
-      className="w-[260px] bg-base-100 border-2 border-stroke rounded-lg shadow-xl p-4 transition-all duration-200 ease-in-out"
+      className="w-[320px] rounded-xl border-2 border-stroke bg-base-100 p-4 shadow-xl"
       style={previewStyle}
     >
       <div className="space-y-3">
         <div className="border-b-2 border-stroke pb-2">
-          <h3 className="text-lg font-semibold text-base-content truncate">{hoveredModel}</h3>
-          {modelSpecs?.description && <p className="text-xs text-base-content/80 mt-1">{modelSpecs.description}</p>}
+          <h3 className="truncate text-base font-bold text-base-content">{hoveredModel}</h3>
+          {specs.description ? (
+            <p className="mt-1.5 text-[12px] leading-relaxed text-base-content/80">{specs.description}</p>
+          ) : !hasAnyDetail ? (
+            <p className="mt-1.5 text-[12px] text-soft">No specification available for this model.</p>
+          ) : null}
         </div>
 
-        {modelSpecs && ["input_cost", "output_cost"].some((type) => modelSpecs[type]) && (
-          <div className="space-y-2">
-            {["input_cost", "output_cost"].map((type) => {
-              const spec = modelSpecs?.[type];
-              const cost = modelSpecs?.cost?.[type];
-              return (
-                spec && (
-                  <div key={type} className="bg-base-200/50 p-2 rounded-md">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-xs font-medium text-base-content capitalize">{type.replace("_", " ")}</h4>
-                      {cost && <span className="text-xs text-base-content/70">{cost}</span>}
-                    </div>
-                    <p className="text-xs text-base-content/80 break-words leading-tight">
-                      {typeof spec === "object" ? JSON.stringify(spec, null, 2) : spec}
-                    </p>
-                  </div>
-                )
-              );
-            })}
+        {(inputCost != null || outputCost != null || cachedCost != null) && (
+          <div className="space-y-1.5 text-[12.5px]">
+            {inputCost != null && (
+              <div>
+                <span className="font-semibold text-base-content">Input Cost: </span>
+                <span className="text-base-content/80">{inputCost}</span>
+              </div>
+            )}
+            {outputCost != null && (
+              <div>
+                <span className="font-semibold text-base-content">Output Cost: </span>
+                <span className="text-base-content/80">{outputCost}</span>
+              </div>
+            )}
+            {cachedCost != null && (
+              <div>
+                <span className="font-semibold text-base-content">Cached Cost: </span>
+                <span className="text-base-content/80">{cachedCost}</span>
+              </div>
+            )}
           </div>
         )}
 
-        {modelSpecs &&
-          Object.entries(modelSpecs).filter(
-            ([key, value]) =>
-              !["input_cost", "output_cost", "description"].includes(key) &&
-              value &&
-              (!Array.isArray(value) || value.length > 0)
-          ).length > 0 && (
-            <div className="space-y-2">
-              {Object.entries(modelSpecs)
-                .filter(
-                  ([key, value]) =>
-                    !["input_cost", "output_cost", "description"].includes(key) &&
-                    value &&
-                    (!Array.isArray(value) || value.length > 0)
-                )
-                .map(([key, value]) => (
-                  <div key={key} className="bg-base-200/50 p-2 rounded-md">
-                    <h4 className="text-xs font-medium text-base-content mb-1 capitalize">{key.replace(/_/g, " ")}</h4>
-                    {Array.isArray(value) ? (
-                      <ul className="space-y-0.5">
-                        {value.slice(0, 3).map(
-                          (item, index) =>
-                            item && (
-                              <li key={index} className="text-xs text-base-content/80 pl-2">
-                                • {item}
-                              </li>
-                            )
-                        )}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-base-content/80 break-words leading-tight">
-                        {typeof value === "object" ? JSON.stringify(value, null, 2) : value}
-                      </p>
-                    )}
-                  </div>
-                ))}
-            </div>
-          )}
+        {specs.knowledge_cutoff && (
+          <div className="text-[12.5px]">
+            <span className="font-semibold text-base-content">Knowledge Cutoff: </span>
+            <span className="text-base-content/80">{specs.knowledge_cutoff}</span>
+          </div>
+        )}
+
+        {usecases.length > 0 && (
+          <div>
+            <div className="mb-1 text-[12.5px] font-semibold text-base-content">Usecase</div>
+            <ul className="space-y-1 pl-1">
+              {usecases.map((item, index) => (
+                <li key={index} className="flex gap-1.5 text-[12px] leading-relaxed text-base-content/80">
+                  <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-base-content/50" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>,
-    document.body
+    // Native <dialog> uses the browser top layer — body portals always render
+    // underneath it. Mount inside the open dialog when the picker lives there.
+    dropdownRef.current.closest("dialog") || document.body
   );
 });
 
@@ -359,9 +370,14 @@ const ModelDropdown = ({
   );
 
   const handleOptionHover = useCallback((opt) => {
-    const name = opt?.meta?.modelName || opt?.label;
-    setHoveredModel(name);
-    setModelSpecs(opt?.meta?.specs);
+    if (!opt) {
+      setHoveredModel(null);
+      setModelSpecs(null);
+      return;
+    }
+    const name = opt?.meta?.modelName || (typeof opt?.label === "string" ? opt.label : opt?.value);
+    setHoveredModel(name || null);
+    setModelSpecs(opt?.meta?.specs || null);
   }, []);
 
   const handleAddModelClick = useCallback(() => {

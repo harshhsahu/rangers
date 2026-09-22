@@ -327,9 +327,14 @@ const FallbackModel = ({
   );
 
   const handleOptionHover = useCallback((opt) => {
-    const name = opt?.meta?.modelName || opt?.label;
-    setHoveredModel(name);
-    setModelSpecs(opt?.meta?.specs);
+    if (!opt) {
+      setHoveredModel(null);
+      setModelSpecs(null);
+      return;
+    }
+    const name = opt?.meta?.modelName || (typeof opt?.label === "string" ? opt.label : opt?.value);
+    setHoveredModel(name || null);
+    setModelSpecs(opt?.meta?.specs || null);
   }, []);
 
   const handleSelect = useCallback(
