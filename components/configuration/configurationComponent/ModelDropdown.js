@@ -10,6 +10,7 @@ import { CircleQuestionMark, Sparkles, CircleAlert, Plus } from "lucide-react";
 import InfoTooltip from "@/components/InfoTooltip";
 import AddNewModelModal from "@/components/modals/AddNewModal";
 import ConfirmationModal from "@/components/UI/ConfirmationModal";
+import sortModelsByNewest from "@/utils/sortModelsByNewest";
 
 // Hover card for a model in the picker — name, costs, cutoff, usecase.
 export const ModelPreview = memo(({ hoveredModel, modelSpecs, dropdownRef }) => {
@@ -290,10 +291,11 @@ const ModelDropdown = ({
           label: displayLabel,
           // pass meta to use in onChange and onOptionHover
           meta: { group, modelName, specs },
+          createdAt: cfg?.created_at,
         });
       });
     });
-    return opts;
+    return sortModelsByNewest(opts);
   }, [modelsList, bridgeType, modelsConfig, service]);
   const [pendingSelection, setPendingSelection] = useState(null);
 

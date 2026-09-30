@@ -11,45 +11,31 @@ const ServiceInitializer = ({ isEmbedUser }) => {
   const dispatch = useDispatch();
   const pathname = usePathname();
   const SERVICES = useCustomSelector((state) => state.serviceReducer.services);
-  const MODELS = useCustomSelector((state) => state.modelReducer.serviceModels);
   const isOrgPage = pathname === "/org" || pathname.endsWith("/org");
 
+  // Services and models are always re-fetched so newly added ones show up
+  // without a hard refresh.
   useEffect(() => {
-    if (isOrgPage && !isEmbedUser) {
-      dispatch(userDetails());
-      dispatch(getServiceAction());
-    } else if (!isOrgPage) {
-      const hasServices = Array.isArray(SERVICES) && SERVICES.length > 0;
-      if (!hasServices) {
-        dispatch(getServiceAction());
-      }
-    }
+    if (isOrgPage && !isEmbedUser) dispatch(userDetails());
+    dispatch(getServiceAction());
   }, [dispatch, isOrgPage]);
 
-  // Fetch models per-service:
-  // - org page: always re-fetch all models
-  // - non-org pages: only fetch if model data is missing from redux
+  // Keyed on the service names rather than the array, so the services
+  // refetch above does not fetch every model a second time.
+  const serviceKeys = Array.isArray(SERVICES)
+    ? SERVICES.map((service) => service?.value)
+        .filter(Boolean)
+        .join(",")
+    : "";
+
   useEffect(() => {
-    if (!Array.isArray(SERVICES) || SERVICES.length === 0) return;
+    if (!serviceKeys) return undefined;
 
-    const getModelData = () => {
-      SERVICES.forEach((service) => {
-        const serviceValue = service?.value;
-        if (!serviceValue) return;
-
-        const serviceModels = MODELS?.[serviceValue];
-        const hasModelData =
-          serviceModels && typeof serviceModels === "object" && Object.keys(serviceModels).length > 0;
-
-        if (isOrgPage || !hasModelData) {
-          dispatch(getModelAction({ service: serviceValue }));
-        }
-      });
-    };
-
-    const timer = setTimeout(getModelData, 1000);
+    const timer = setTimeout(() => {
+      serviceKeys.split(",").forEach((service) => dispatch(getModelAction({ service })));
+    }, 1000);
     return () => clearTimeout(timer);
-  }, [SERVICES, isOrgPage, MODELS]);
+  }, [dispatch, serviceKeys, isOrgPage]);
 
   return null;
 };
