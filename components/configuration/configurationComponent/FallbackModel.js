@@ -8,6 +8,7 @@ import { getIconOfService } from "@/utils/utility";
 import { CircleQuestionMark } from "lucide-react";
 import { ModelPreview } from "./ModelDropdown";
 import Dropdown from "@/components/UI/Dropdown";
+import sortModelsByNewest from "@/utils/sortModelsByNewest";
 
 const FallbackModel = ({
   params,
@@ -288,10 +289,11 @@ const FallbackModel = ({
           value: modelName,
           label: displayName,
           meta: { group, modelName, specs },
+          createdAt: optionConfig?.created_at,
         });
       });
     });
-    return opts;
+    return sortModelsByNewest(opts);
   }, [computedModelsList, embedModelsConfig, fallbackService]);
 
   const fallbackServiceOptions = useMemo(() => {

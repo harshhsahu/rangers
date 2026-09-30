@@ -10,6 +10,7 @@ import { getIconOfService, openModal } from "@/utils/utility";
 import { MODAL_TYPE } from "@/utils/enums";
 import ApiKeyModal from "@/components/modals/ApiKeyModal";
 import { CREATIVITY_LEVELS, resolveTemperature } from "../rangerConstants";
+import sortModelsByNewest from "@/utils/sortModelsByNewest";
 
 const EXCLUDED_GROUPS = new Set(["models", "embedding", "image"]);
 
@@ -85,10 +86,11 @@ const ModelStep = ({ form, update, orgId }) => {
           modelName,
           modelGroup: group,
           additionalParameters: cfg?.configuration?.additional_parameters,
+          createdAt: cfg?.created_at,
         });
       });
     });
-    return result;
+    return sortModelsByNewest(result);
   }, [form.service, serviceModels, modelsConfig]);
 
   const filteredModels = useMemo(() => {

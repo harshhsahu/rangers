@@ -7,6 +7,7 @@ import { getModelAction } from "@/store/action/modelAction";
 import { getIconOfService } from "@/utils/utility";
 import { CREATIVITY_LEVELS, resolveTemperature } from "../rangerConstants";
 import { MODEL_STEP_DEFAULT_SERVICES } from "./onboardingConstants";
+import sortModelsByNewest from "@/utils/sortModelsByNewest";
 
 /** Same exclusions the wizard's model step uses — chat models only. */
 const EXCLUDED_GROUPS = new Set(["models", "embedding", "image"]);
@@ -82,12 +83,13 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
             modelGroup: group,
             keyed: keyedServices.has(service),
             temperature: cfg?.configuration?.additional_parameters?.temperature || null,
+            createdAt: cfg?.created_at,
           });
         });
       });
     });
-    // Keyed providers first; everything else keeps catalogue order.
-    return rows.sort((a, b) => Number(b.keyed) - Number(a.keyed));
+    // Keyed providers first, then newest first within each.
+    return sortModelsByNewest(rows).sort((a, b) => Number(b.keyed) - Number(a.keyed));
   }, [keyedServices, modelsConfig, serviceModels, targetServices]);
 
   const selectedId = form.service && form.model ? `${form.service}::${form.model}` : null;
