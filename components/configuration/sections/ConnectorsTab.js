@@ -8,37 +8,12 @@ import KnowledgebaseList from "../configurationComponent/KnowledgebaseList";
 import McpServerList from "../configurationComponent/McpServerList";
 import { useConfigurationContext } from "../ConfigurationContext";
 import UnsupportedFeatureOverlay from "../UnsupportedFeatureOverlay";
+import useConnectorEmbed from "@/components/rangers/useConnectorEmbed";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getAllFunctions, updateBridgeVersionAction } from "@/store/action/bridgeAction";
 
-/** The box the builder is docked into; also the script's configured parentId. */
-const EMBED_PARENT_ID = "alert-embed-parent";
-/** Wrapper the embed injects — this is the node that gets moved into the box. */
-const EMBED_WRAPPER_ID = "iframe-viasocket-embed-parent-container";
-
-/** The embed hides itself on close; this is the only way to dismiss it. */
-const closeEmbed = () => {
-  try {
-    if (typeof window.handleclose === "function") window.handleclose();
-  } catch (err) {
-    console.warn("Closing the connector builder failed", err);
-  }
-};
-
-/**
- * The builder mounts itself fixed-position on the body, which leaves it behind
- * any dialog, so docking it into the box means overriding that positioning
- * before re-parenting the node.
- */
-const dockWrapper = (wrapper, target) => {
-  wrapper.style.setProperty("position", "relative", "important");
-  wrapper.style.setProperty("top", "auto", "important");
-  wrapper.style.setProperty("left", "auto", "important");
-  wrapper.style.setProperty("z-index", "auto", "important");
-  wrapper.style.setProperty("width", "100%", "important");
-  wrapper.style.setProperty("height", "100%", "important");
-  target.appendChild(wrapper);
-};
+/** Stable, so the builder is not torn down and reopened on every render. */
+const EMBED_META = { type: "tool", createFrom: "Agent Connectors" };
 
 const ConnectorsTab = ({ isPublished }) => {
   const dispatch = useDispatch();
@@ -50,12 +25,9 @@ const ConnectorsTab = ({ isPublished }) => {
    * builder open blank, which is why an existing tool could not be reopened before.
    */
   const [editScriptId, setEditScriptId] = useState(null);
-  /** The embed's own inline styles, restored when the builder is closed. */
-  const wrapperStyleRef = useRef(null);
-  const wrapperRef = useRef(null);
   const rootRef = useRef(null);
-  /** Pending close retries, dropped when the builder is reopened. */
-  const closeRetriesRef = useRef([]);
+  /** The box the builder fills; state so the embed mounts once it is on screen. */
+  const [embedHost, setEmbedHost] = useState(null);
   const { shouldToolsShow, params, searchParams, isEditor, isEmbedUser, showMcp } = useConfigurationContext();
   const { embedToken, functionData, integrationData, connectedFunctionIds } = useCustomSelector((state) => {
     const orgData = state?.bridgeReducer?.org?.[params?.org_id] || {};
@@ -91,68 +63,17 @@ const ConnectorsTab = ({ isPublished }) => {
     [functionData, integrationData]
   );
 
-  // Opening is driven by the box being on screen: the embed renders wherever it
-  // wants first, then gets moved in once its wrapper exists.
-  useEffect(() => {
-    if (!showBuilder || !embedToken) return undefined;
-
-    closeRetriesRef.current.forEach(window.clearTimeout);
-    closeRetriesRef.current = [];
-
-    const target = document.getElementById(EMBED_PARENT_ID);
-    if (!target) return undefined;
-
-    if (typeof window.openViasocket !== "function") {
-      toast.error("Connector builder is still loading. Please try again in a moment.");
-      setShowBuilder(false);
-      return undefined;
-    }
-
-    window.openViasocket(editScriptId || undefined, {
-      embedToken,
-      meta: { type: "tool", createFrom: "Agent Connectors" },
-    });
-
-    let attempts = 0;
-    const dockTimer = window.setInterval(() => {
-      attempts += 1;
-      const wrapper = document.getElementById(EMBED_WRAPPER_ID);
-      if (wrapper) {
-        if (wrapperStyleRef.current === null) wrapperStyleRef.current = wrapper.style.cssText;
-        wrapperRef.current = wrapper;
-        dockWrapper(wrapper, target);
-        window.clearInterval(dockTimer);
-      } else if (attempts > 20) {
-        window.clearInterval(dockTimer);
-      }
-    }, 150);
-
-    return () => {
-      window.clearInterval(dockTimer);
-
-      // Park the builder back on the body with its own styles so the next page
-      // that opens it is unaffected. This has to happen before handleclose:
-      // the embed hides itself on close, and restoring the docked-time styles
-      // afterwards would put it back on screen.
-      const wrapper = wrapperRef.current || document.getElementById(EMBED_WRAPPER_ID);
-      if (wrapper) {
-        wrapper.style.cssText = wrapperStyleRef.current ?? "";
-        document.body.appendChild(wrapper);
-      }
-      wrapperStyleRef.current = null;
-      wrapperRef.current = null;
-
-      closeEmbed();
-      // Closing while the builder is still mounting leaves it to appear a beat
-      // later, so keep asking it to close until it has settled.
-      closeRetriesRef.current = [400, 1000, 2000].map((delay) => window.setTimeout(closeEmbed, delay));
-    };
-  }, [showBuilder, embedToken, editScriptId]);
+  const { error: embedError } = useConnectorEmbed({
+    embedToken,
+    host: embedHost,
+    enabled: showBuilder,
+    meta: EMBED_META,
+    scriptId: editScriptId,
+  });
 
   /**
-   * Expanding grows the box in place. The embed node is never re-parented and
-   * `openViasocket` is never called again: moving an iframe reloads it, which
-   * would throw away whatever the user had built.
+   * Expanding grows the box in place. The embed fills its box, so it follows
+   * the new size without remounting and keeps whatever the user had built.
    *
    * Inside the setup modal the box can only grow as far as the dialog allows,
    * so the surrounding modal is stretched to the viewport for as long as the
@@ -185,7 +106,7 @@ const ConnectorsTab = ({ isPublished }) => {
     setShowBuilder(true);
   };
 
-  // Tearing the builder down is the effect's cleanup, so closing is just state.
+  // Tearing the builder down is the hook's cleanup, so closing is just state.
   const closeBuilder = () => {
     setShowBuilder(false);
     setIsExpanded(false);
@@ -287,12 +208,18 @@ const ConnectorsTab = ({ isPublished }) => {
           {showBuilder && (
             <div className="p-3">
               <div
-                id={EMBED_PARENT_ID}
+                ref={setEmbedHost}
                 data-testid="connectors-viasocket-parent"
-                className={`w-full overflow-hidden rounded-lg bg-base-100 ${
+                className={`relative w-full overflow-hidden rounded-lg bg-base-100 ${
                   isExpanded ? "h-[calc(100vh-13rem)]" : "h-[32rem]"
                 }`}
-              />
+              >
+                {embedError && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-base-100 p-4">
+                    <p className="text-center text-xs text-error">{embedError}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
