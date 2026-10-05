@@ -83,6 +83,16 @@ export const SmsIcon = ({ size = 28, ...props }) => (
   </svg>
 );
 
+export const MobileIcon = ({ size = 28, ...props }) => (
+  <svg {...svgProps(size)} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#0EA5E9" />
+    <path
+      fill="#fff"
+      d="M15.5 5h-7A1.5 1.5 0 0 0 7 6.5v11A1.5 1.5 0 0 0 8.5 19h7a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 15.5 5ZM12 18a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Zm3-3H9V7.5h6V15Z"
+    />
+  </svg>
+);
+
 export const VoiceIcon = ({ size = 28, ...props }) => (
   <svg {...svgProps(size)} {...props}>
     <circle cx="12" cy="12" r="12" fill="#F2540B" />

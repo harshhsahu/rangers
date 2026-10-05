@@ -1,4 +1,4 @@
-import { TelegramIcon, DiscordIcon, WhatsappIcon, SlackIcon, SmsIcon, VoiceIcon } from "./ChannelIcons";
+import { TelegramIcon, DiscordIcon, WhatsappIcon, SlackIcon, SmsIcon, MobileIcon, VoiceIcon } from "./ChannelIcons";
 
 /**
  * Ranger swatches.
@@ -29,8 +29,9 @@ export const DEFAULT_RANGER_COLOR = RANGER_COLORS[5].hex;
 /**
  * Channels shown in the Command Center and the wizard's channel step.
  *
- * Only telegram and discord are actually implemented (app/api/telegram/setup,
- * app/api/discord/setup). The rest are rendered as "Coming soon" and cannot be
+ * Telegram and discord are token channels (app/api/telegram/setup,
+ * app/api/discord/setup). Mobile is a link channel: it can be toggled on but has
+ * nothing to connect. The rest are rendered as "Coming soon" and cannot be
  * toggled on.
  */
 export const RANGER_CHANNELS = [
@@ -85,6 +86,16 @@ export const RANGER_CHANNELS = [
     },
   },
   {
+    key: "mobile",
+    label: "Continue as Mobile",
+    icon: MobileIcon,
+    brand: "#0EA5E9",
+    enabled: true,
+    // Link channel: no bot token and no setup route, so it is left out of CONNECTABLE_CHANNELS.
+    kind: "link",
+    blurb: "Continue the conversation on your phone.",
+  },
+  {
     key: "whatsapp",
     label: "WhatsApp",
     icon: WhatsappIcon,
@@ -97,7 +108,7 @@ export const RANGER_CHANNELS = [
   { key: "voice", label: "Voice", icon: VoiceIcon, brand: "#F2540B", enabled: false, blurb: "Inbound call handling." },
 ];
 
-export const CONNECTABLE_CHANNELS = RANGER_CHANNELS.filter((channel) => channel.enabled);
+export const CONNECTABLE_CHANNELS = RANGER_CHANNELS.filter((channel) => channel.enabled && channel.setupEndpoint);
 
 /**
  * Creativity presets. The concrete number is derived at render time from the

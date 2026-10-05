@@ -5,6 +5,7 @@ import { GoogleTagManager } from "@next/third-parties/google";
 import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import NetworkStatus from "@/components/NetworkStatus";
 import PaletteFocusGuard from "@/components/PaletteFocusGuard";
+import RegisterSW from "@/components/RegisterSW";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -76,6 +77,7 @@ export default function RootLayout({ children }) {
         <PaletteFocusGuard />
         <Wrapper>{children}</Wrapper>
         <NetworkStatus />
+        <RegisterSW />
       </body>
     </html>
   );

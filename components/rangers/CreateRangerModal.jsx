@@ -489,6 +489,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               toggleReveal={toggleReveal}
               errors={channelErrors}
               deferred
+              agentId={created?.agentId}
               footnote="Channels are validated now and connected automatically when you publish."
             />
           )}

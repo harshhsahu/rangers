@@ -188,6 +188,7 @@ const ChannelsPanel = () => {
   return (
     <ChannelsStep
       form={{ channels }}
+      agentId={params?.id}
       setChannel={setChannel}
       revealed={revealed}
       toggleReveal={toggleReveal}

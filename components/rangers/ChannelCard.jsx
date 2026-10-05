@@ -11,6 +11,7 @@ import React from "react";
  */
 const ChannelCard = ({ channel, connectedCount = 0, agentNames = [], isLoading = false }) => {
   const Icon = channel.icon;
+  const isLink = channel.kind === "link";
   const isLive = channel.enabled && connectedCount > 0;
 
   return (
@@ -31,16 +32,22 @@ const ChannelCard = ({ channel, connectedCount = 0, agentNames = [], isLoading =
         </div>
         <span
           className={`flex-none rounded-full px-[9px] py-[3px] text-[9.5px] font-bold uppercase tracking-[.08em] ${
-            !channel.enabled ? "bg-paper text-soft" : isLive ? "bg-acc-tint text-acc-deep" : "bg-cool text-ink"
+            !channel.enabled
+              ? "bg-paper text-soft"
+              : isLive || isLink
+                ? "bg-acc-tint text-acc-deep"
+                : "bg-cool text-ink"
           }`}
         >
-          {!channel.enabled ? "Coming soon" : isLive ? "Live" : "Standby"}
+          {!channel.enabled ? "Coming soon" : isLink ? "Available" : isLive ? "Live" : "Standby"}
         </span>
       </div>
 
       <div className="mt-auto border-t border-card-line bg-card-band px-4 py-3">
         {!channel.enabled ? (
           <p className="text-[12px] text-soft">Not available yet.</p>
+        ) : isLink ? (
+          <p className="text-[12px] text-soft">Toggle it on in a ranger's Channels step to get a phone link.</p>
         ) : isLoading ? (
           <div className="h-4 w-24 animate-pulse rounded bg-base-300" />
         ) : (
