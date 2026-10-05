@@ -2,13 +2,18 @@
 
 import React, { useState } from "react";
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { useCustomSelector } from "@/customHooks/customSelector";
 import { RANGER_CHANNELS } from "../rangerConstants";
 
 const appOrigin = () =>
   process.env.NEXT_PUBLIC_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin : "");
 
 /** Link channels open the ranger's own page; without an agent yet there is nothing to open. */
-const agentUrl = (agentId) => (agentId ? `${appOrigin()}/agents/chatbot/${agentId}` : "");
+const agentUrl = (agentId, versionId) => {
+  if (!agentId) return "";
+  const query = versionId ? `?versionId=${encodeURIComponent(versionId)}` : "";
+  return `${appOrigin()}/agents/chatbot/${agentId}${query}`;
+};
 
 /**
  * Channel selection. After Identity creates the agent, each connectable channel
@@ -30,10 +35,13 @@ const ChannelsStep = ({
   deferred = false,
   // Agent the link-type channels (mobile) open in a new tab.
   agentId,
+  versionId,
   title = "Channel Connection",
   subtitle = "Toggle on where this ranger should listen, enter its token, then continue setup for that channel.",
   footnote = "Channels bind to the version created on Identity. You can skip a channel and add it later.",
 }) => {
+  // bridge_status 0 = paused (same check as RangerCard); a paused ranger can't be chatted with.
+  const isPaused = useCustomSelector((state) => state.bridgeReducer.allBridgesMap?.[agentId]?.bridge_status === 0);
   const [connectingKey, setConnectingKey] = useState(null);
   const [disconnectingKey, setDisconnectingKey] = useState(null);
 
@@ -108,9 +116,15 @@ const ChannelsStep = ({
                     type="button"
                     data-testid={`ranger-channel-continue-${channel.key}`}
                     className="btn btn-primary btn-sm"
-                    disabled={!agentUrl(agentId)}
-                    title={agentUrl(agentId) ? undefined : "Available once the ranger is created."}
-                    onClick={() => window.open(agentUrl(agentId), "_blank", "noopener,noreferrer")}
+                    disabled={!agentUrl(agentId, versionId) || isPaused}
+                    title={
+                      isPaused
+                        ? "This ranger is paused. Resume it to continue."
+                        : agentUrl(agentId, versionId)
+                          ? undefined
+                          : "Available once the ranger is created."
+                    }
+                    onClick={() => window.open(agentUrl(agentId, versionId), "_blank", "noopener,noreferrer")}
                   >
                     Continue
                   </button>

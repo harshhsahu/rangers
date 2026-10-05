@@ -12,21 +12,29 @@ export const runtime = "edge";
 const SCRIPT_ID = "chatbot-main-script";
 const CONTAINER_ID = "chatbot-container";
 
-const Page = ({ params }) => {
-  const { id } = use(params);
+const toTitleCase = (text = "") =>
+  text
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 
-  const { chatbotToken, slugName } = useCustomSelector((state) => ({
-    chatbotToken: state?.bridgeReducer?.org?.[ORG_ID]?.history_page_chatbot_token,
+const Page = ({ params, searchParams }) => {
+  const { id } = use(params);
+  const versionId = searchParams?.versionId;
+  const { historyToken, slugName } = useCustomSelector((state) => ({
+    historyToken: state?.bridgeReducer?.org?.[ORG_ID]?.history_page_chatbot_token,
     slugName: state?.bridgeReducer?.allBridgesMap?.[id]?.slugName,
   }));
 
-  // Remembered so the installed app, which launches at "/", can reopen this chat.
+  // Token of the chatbot created in chatbotConfig > integration, which includes the user's agents.
+  // The history token belongs to the Debug Agent chatbot and only works as a fallback.
+  const chatbotToken = historyToken;
   useEffect(() => {
     try {
       localStorage.setItem(LAST_CHATBOT_KEY, `/agents/chatbot/${id}`);
     } catch {}
   }, [id]);
-
 
   // Same embed script and token the history page uses. The token lands after mount on a hard load.
   useEffect(() => {
@@ -42,12 +50,15 @@ const Page = ({ params }) => {
     script.setAttribute("hideIcon", "true");
     script.onload = () => {
       window.SendDataToChatbot?.({
+        chatbotTitle: `${toTitleCase(slugName)} agent`,
+        chatbotSubtitle: "",
         bridgeName: slugName,
         threadId: `mobile-${id}`,
         parentId: CONTAINER_ID,
         fullScreen: true,
         hideCloseButton: "true",
         variables: {},
+        version_id: versionId || "null",
       });
       window.openChatbot?.();
     };
@@ -59,7 +70,6 @@ const Page = ({ params }) => {
     };
   }, [chatbotToken, slugName, id]);
 
-  
   // The embed sets position: relative on its parent element, which would undo "fixed" on that same element,
   // so the fixed full-viewport layer is a separate wrapper and the embed gets the element inside it.
   // The embed also sizes its frame from the chatbot config (e.g. 80%), so the frame is pinned to 100%.
@@ -67,7 +77,7 @@ const Page = ({ params }) => {
     <>
       <InstallButton />
       <style>{`#iframe-parent-container{height:100% !important;width:100% !important;max-height:none !important}`}</style>
-      <div className="fixed inset-0 z-[9999] h-dvh w-screen bg-base-100">
+      <div className="fixed inset-y-0 right-0 left-[56px] z-[9999] h-dvh bg-base-100">
         <div id={CONTAINER_ID} className="h-full w-full" />
       </div>
     </>
