@@ -124,7 +124,7 @@ const ChannelsStep = ({
                           ? undefined
                           : "Available once the ranger is created."
                     }
-                    onClick={() => window.open(agentUrl(agentId, versionId), "_blank", "noopener,noreferrer")}
+                    onClick={() => window.open(agentUrl(agentId, versionId))}
                   >
                     Continue
                   </button>

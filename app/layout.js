@@ -71,6 +71,7 @@ export default function RootLayout({ children }) {
       <head>
         <GoogleTagManager gtmId="GTM-PXRN8T45" />
         <script src={`https://main.d2f49esifpcbwh.amplifyapp.com/tracker.js`} async />
+        <link rel="manifest" href="/api/manifest" crossOrigin="use-credentials" />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body suppressHydrationWarning className="font-sans">

@@ -851,6 +851,12 @@ export const setInCookies = (key, value) => {
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
 
   document.cookie = `${fullKey}=${value || ""}${expires}; domain=${domain}; path=/;${secure}`;
+
+  // Browsers reject a parent-domain cookie when that domain is a public suffix (IP hosts, tunnel hosts
+  // like *.trycloudflare.com / *.ngrok-free.dev). Fall back to a host-only cookie so the login is kept.
+  if (value && getFromCookies(key) === null) {
+    document.cookie = `${fullKey}=${value}${expires}; path=/;${secure}`;
+  }
 };
 
 export const getFromCookies = (key) => {
@@ -872,6 +878,7 @@ export const removeCookie = (key) => {
   const fullKey = getCookieKey(key);
 
   document.cookie = `${fullKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
+  document.cookie = `${fullKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 };
 
 export const clearCookie = () => {
@@ -883,6 +890,7 @@ export const clearCookie = () => {
     const [key] = splitFromFirstEqual(cookies[i]);
     if (key.startsWith(envPrefix)) {
       document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
+      document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     }
   }
 };
