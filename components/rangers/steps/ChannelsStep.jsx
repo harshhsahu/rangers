@@ -2,7 +2,18 @@
 
 import React, { useState } from "react";
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { useCustomSelector } from "@/customHooks/customSelector";
 import { RANGER_CHANNELS } from "../rangerConstants";
+
+const appOrigin = () =>
+  process.env.NEXT_PUBLIC_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin : "");
+
+/** Link channels open the ranger's own page; without an agent yet there is nothing to open. */
+const agentUrl = (agentId, versionId) => {
+  if (!agentId) return "";
+  const query = versionId ? `?versionId=${encodeURIComponent(versionId)}` : "";
+  return `${appOrigin()}/agents/chatbot/${agentId}${query}`;
+};
 
 /**
  * Channel selection. After Identity creates the agent, each connectable channel
@@ -22,10 +33,15 @@ const ChannelsStep = ({
   onDisconnectChannel,
   // When true, hides the per-channel connect button — the wizard just stores credentials and connects them all at publish.
   deferred = false,
+  // Agent the link-type channels (mobile) open in a new tab.
+  agentId,
+  versionId,
   title = "Channel Connection",
   subtitle = "Toggle on where this ranger should listen, enter its token, then continue setup for that channel.",
   footnote = "Channels bind to the version created on Identity. You can skip a channel and add it later.",
 }) => {
+  // bridge_status 0 = paused (same check as RangerCard); a paused ranger can't be chatted with.
+  const isPaused = useCustomSelector((state) => state.bridgeReducer.allBridgesMap?.[agentId]?.bridge_status === 0);
   const [connectingKey, setConnectingKey] = useState(null);
   const [disconnectingKey, setDisconnectingKey] = useState(null);
 
@@ -61,7 +77,7 @@ const ChannelsStep = ({
         {RANGER_CHANNELS.map((channel) => {
           const Icon = channel.icon;
           const state = form.channels?.[channel.key] || { enabled: false, credentials: {} };
-          const isOn = channel.enabled && state.enabled;
+          const isOn = channel.enabled && channel.kind !== "link" && state.enabled;
           const error = errors?.[channel.key];
           const isConnected = Boolean(connectedChannels?.[channel.key]);
           const hasToken = Boolean((state.credentials?.botToken || "").trim());
@@ -95,7 +111,24 @@ const ChannelsStep = ({
                   <div className="text-[11px] text-soft">{channel.blurb}</div>
                 </div>
 
-                {channel.enabled ? (
+                {channel.kind === "link" ? (
+                  <button
+                    type="button"
+                    data-testid={`ranger-channel-continue-${channel.key}`}
+                    className="btn btn-primary btn-sm"
+                    disabled={!agentUrl(agentId, versionId) || isPaused}
+                    title={
+                      isPaused
+                        ? "This ranger is paused. Resume it to continue."
+                        : agentUrl(agentId, versionId)
+                          ? undefined
+                          : "Available once the ranger is created."
+                    }
+                    onClick={() => window.open(agentUrl(agentId, versionId))}
+                  >
+                    Continue
+                  </button>
+                ) : channel.enabled ? (
                   <input
                     type="checkbox"
                     aria-label={`Enable ${channel.label}`}
@@ -112,7 +145,7 @@ const ChannelsStep = ({
                 )}
               </div>
 
-              {isOn && (
+              {isOn && channel.kind !== "link" && (
                 <div className="border-t-2 border-line px-3 pb-3 pt-3">
                   {isConnected ? (
                     <p className="text-[11.5px] leading-relaxed text-soft">

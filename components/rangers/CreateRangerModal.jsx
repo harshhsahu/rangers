@@ -126,7 +126,6 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
     folderId,
     onDeployed,
   });
-
   const isAiMode = form.mode === "ai";
   const steps = isAiMode ? AI_STEPS : GUIDED_STEPS;
   const currentStep = steps[stepIndex];
@@ -489,6 +488,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               toggleReveal={toggleReveal}
               errors={channelErrors}
               deferred
+              agentId={created?.agentId}
+              versionId={created?.versionId}
               footnote="Channels are validated now and connected automatically when you publish."
             />
           )}

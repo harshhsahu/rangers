@@ -2,7 +2,7 @@
 "use client";
 
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { getFromCookies } from "@/utils/utility";
+import { getFromCookies, setInCookies } from "@/utils/utility";
 import { isCurrentRoutePublic } from "@/utils/publicRoutes";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -31,6 +31,8 @@ const Protected = (WrappedComponent) => {
           if (isEmbedContext) {
             router.replace("/session-expired");
           } else {
+            // Come back to this page after signing in (Withauth reads previous_url).
+            setInCookies("previous_url", `${window.location.pathname}${window.location.search}`);
             router.replace("/login");
           }
         }

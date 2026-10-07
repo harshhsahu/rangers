@@ -21,7 +21,6 @@ const ChannelsPanel = () => {
   const { params, searchParams, isPublished, isEditor } = useConfigurationContext();
   const versionId = searchParams?.version;
   const isReadOnly = isPublished || !isEditor;
-
   const [channels, setChannels] = useState(emptyChannels);
   const [connectedChannels, setConnectedChannels] = useState({});
   const [revealed, setRevealed] = useState({});
@@ -188,6 +187,8 @@ const ChannelsPanel = () => {
   return (
     <ChannelsStep
       form={{ channels }}
+      agentId={params?.id}
+      versionId={versionId}
       setChannel={setChannel}
       revealed={revealed}
       toggleReveal={toggleReveal}
