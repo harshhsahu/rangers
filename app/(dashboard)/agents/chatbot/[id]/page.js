@@ -45,6 +45,11 @@ const Page = ({ params, searchParams }) => {
   // Bumped when the installed app comes back from the background (or from the back/forward cache) with the
   // chat frame gone, so the embed below is mounted again instead of leaving a blank page.
   const [embedKey, setEmbedKey] = useState(0);
+  // Installed app: the app's own navbar rail is hidden so the chat gets the whole window.
+  const [isInstalledApp, setIsInstalledApp] = useState(false);
+  useEffect(() => {
+    setIsInstalledApp(window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true);
+  }, []);
   const path = `/agents/chatbot/${id}${versionId ? `?versionId=${versionId}` : ""}`;
 
   // Installing from here should launch the app straight into this chatbot (start_url comes from the manifest
@@ -121,8 +126,12 @@ const Page = ({ params, searchParams }) => {
   return (
     <>
       <InstallButton />
-      <style>{`#iframe-parent-container{height:100% !important;width:100% !important;max-height:none !important}`}</style>
-      <div className="fixed inset-y-0 right-0 left-[56px] z-[9999] h-dvh bg-base-100">
+      <style>{`#iframe-parent-container{height:100% !important;width:100% !important;max-height:none !important}
+        ${isInstalledApp ? "#main-slider-mobile-menu-toggle{display:none !important}" : ""}`}</style>
+      {/* Installed app: full width, no navbar rail gap or hamburger. Any browser (desktop or phone) keeps the 56px rail. */}
+      <div
+        className={`fixed inset-y-0 right-0 z-[9999] h-dvh bg-base-100 ${isInstalledApp ? "left-0 ml-4" : "left-[56px]"}`}
+      >
         <div id={CONTAINER_ID} className="h-full w-full" />
       </div>
     </>
