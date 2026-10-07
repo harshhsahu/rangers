@@ -52,6 +52,8 @@
     "@cloudflare/next-on-pages": "^1.13.16",
     "@commitlint/cli": "^20.3.1",
     "@commitlint/config-conventional": "^20.3.1",
+    "@typescript-eslint/eslint-plugin": "8.71.0",
+    "@typescript-eslint/parser": "8.71.0",
     "autoprefixer": "^10.0.1",
     "daisyui": "^4.12.24",
     "eslint": "^8.57.1",
@@ -68,7 +70,13 @@
     "prettier": "^3.8.0",
     "tailwindcss": "3.4.19",
     "turbo": "^2.10.9",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "^3.114.17"
+  },
+  "overrides": {
+    "vercel": {
+      "esbuild": "0.15.18"
+    }
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
