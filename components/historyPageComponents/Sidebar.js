@@ -618,7 +618,7 @@ const Sidebar = memo(
                     type="checkbox"
                     className="peer"
                   />
-                  <div className="collapse-title font-semibold min-h-0 py-3 flex items-center">
+                  <div className="collapse-title font-semibold min-h-0 py-3 flex items-center after:!top-1/2 after:!end-4">
                     <span className="text-xs">Advance Filter</span>
                   </div>
                   <div className="collapse-content !p-0 w-full min-w-0">

@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  XCircle,
 } from "lucide-react";
 import { extractErrorMessage } from "@/utils/utility";
 import { DEFAULT_STARTER_QUESTIONS } from "@/utils/enums";
@@ -32,6 +33,7 @@ import {
   clearChatMessages,
   clearChatChannelData,
 } from "@/store/action/chatAction";
+import { sendRangerUpdateMessage } from "@/store/action/rangerUpdateChatAction";
 import RenderNode from "../richUI/RenderNode";
 import ReasoningAccordion from "./ReasoningAccordion";
 import ReviewPhaseAccordion from "./ReviewPhaseAccordion";
@@ -173,6 +175,17 @@ function StreamingMessage({ content, isStreaming }) {
   );
 }
 
+/**
+ * Offered beside the playground's starters so the empty window shows both things it can do. These are
+ * known update requests, so they go straight to the update flow without the intent check. The last one
+ * is a read-only question the helper answers from the ranger's own configuration.
+ */
+const UPDATE_STARTER_QUESTIONS = [
+  "Rename it to Support Ranger",
+  "Give it a shorter name",
+  "What is this ranger called?",
+];
+
 function ToolCallItem({ toolCall, isMessageComplete }) {
   const [open, setOpen] = useState(false);
 
@@ -210,6 +223,8 @@ function ToolCallItem({ toolCall, isMessageComplete }) {
       >
         {toolCall.status === "calling" ? (
           <span className="loading loading-spinner loading-xs text-primary" />
+        ) : toolCall.failed ? (
+          <XCircle className="h-3.5 w-3.5 text-error shrink-0" aria-label="failed" />
         ) : (
           <Wrench className="h-3.5 w-3.5 text-success shrink-0" />
         )}
@@ -434,6 +449,9 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
   // Handle userMessage prop - automatically send message and create Redux entry
   const handleSendMessageRef = useRef(null);
 
+  // The update helper edits one ranger's config; the orchestral flow chat has no such thing to edit.
+  const canUpdateRanger = !isOrchestralModel && searchParams?.isPublished !== "true" && Boolean(searchParams?.version);
+
   useEffect(() => {
     if (userMessage && userMessage.trim() !== "") {
       if (handleSendMessageRef.current && inputRef.current) {
@@ -582,7 +600,6 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
             </div>
           </div>
         )}
-
         {hasYoutube && (
           <div className="bg-base-200 p-3 rounded-lg border-2 border-stroke">
             <div className="flex items-center gap-2 mb-2">
@@ -732,6 +749,39 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                       <div className="pt-3 text-[11.5px] leading-relaxed text-soft">
                         Runs against your unsaved prompt, so the live version stays untouched.
                       </div>
+
+                      {canUpdateRanger && (
+                        <div data-testid="chat-update-starter-questions" id="chat-update-starter-questions">
+                          <div className="rg-chat-eyebrow pb-2.5 pt-5">Or change the ranger</div>
+                          <div className="flex flex-col gap-1.5">
+                            {UPDATE_STARTER_QUESTIONS.map((question, i) => (
+                              <button
+                                key={question}
+                                type="button"
+                                data-testid={`chat-update-starter-question-${i}`}
+                                id={`chat-update-starter-question-${i}`}
+                                className="rg-chat-starter transition-colors duration-150"
+                                onClick={() =>
+                                  dispatch(
+                                    sendRangerUpdateMessage({
+                                      channelId: channelIdentifier,
+                                      message: question,
+                                      bridgeId: params?.id,
+                                      versionId: searchParams?.version,
+                                    })
+                                  )
+                                }
+                              >
+                                <ChevronRight size={14} className="flex-none opacity-40" />
+                                <span className="min-w-0 flex-1">{question}</span>
+                              </button>
+                            ))}
+                          </div>
+                          <div className="pt-3 text-[11.5px] leading-relaxed text-soft">
+                            Changes here are written to this draft version straight away.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -763,8 +813,19 @@ function Chat({ params, userMessage, isOrchestralModel = false, searchParams, is
                             ? "error"
                             : message.sender === "user"
                               ? "you"
-                              : bridgeName || message.sender}
+                              : message.flow === "update"
+                                ? "ranger helper"
+                                : bridgeName || message.sender}
                         </span>
+                        {/* The update turns share this thread with test runs, so say which is which. */}
+                        {message.flow === "update" && (
+                          <span
+                            data-testid="chat-flow-badge"
+                            className="rounded-full border border-stroke px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-soft"
+                          >
+                            update
+                          </span>
+                        )}
                         {message.isEdited && <span className="text-warning">(edited)</span>}
                         {!(message.sender === "assistant" && message.isLoading && !message.content) && (
                           <time className="whitespace-nowrap opacity-70">{message.time}</time>
