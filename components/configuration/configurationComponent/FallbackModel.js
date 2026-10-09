@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { AlertIcon, ChevronDownIcon, ChevronUpIcon } from "@/components/Icons";
+import { AlertIcon } from "@/components/Icons";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { updateBridgeVersionAction } from "@/store/action/bridgeAction";
 import InfoTooltip from "@/components/InfoTooltip";
@@ -10,19 +10,9 @@ import { ModelPreview } from "./ModelDropdown";
 import Dropdown from "@/components/UI/Dropdown";
 import sortModelsByNewest from "@/utils/sortModelsByNewest";
 
-const FallbackModel = ({
-  params,
-  searchParams,
-  bridgeType,
-  isPublished,
-  shouldRenderApiKey,
-  isEditor = true,
-  isEmbedUser,
-}) => {
+const FallbackModel = ({ params, searchParams, bridgeType, isPublished, isEditor = true, isEmbedUser }) => {
   // Determine if content is read-only (either published or user is not an editor)
   const isReadOnly = isPublished || !isEditor;
-  const [showApiKeysToggle, setShowApiKeysToggle] = useState(false);
-  const [selectedApiKeys, setSelectedApiKeys] = useState({});
   const dropdownContainerRef = useRef(null);
   const fallbackModelDropdownRef = useRef(null);
   const [hoveredModel, setHoveredModel] = useState(null);
@@ -31,9 +21,6 @@ const FallbackModel = ({
   const dispatch = useDispatch();
 
   const {
-    bridge,
-    apikeydata,
-    bridgeApikey_object_id,
     SERVICES,
     serviceModels,
     currentService,
@@ -46,18 +33,12 @@ const FallbackModel = ({
   } = useCustomSelector((state) => {
     const versionData = state?.bridgeReducer?.bridgeVersionMapping?.[params?.id]?.[searchParams?.version];
     const bridgeDataFromState = state?.bridgeReducer?.allBridgesMap?.[params?.id];
-    const apikeys = state?.apiKeysReducer?.apikeys || {};
 
     // Use bridgeData when isPublished=true, otherwise use versionData
     const activeData = isPublished ? bridgeDataFromState : versionData;
     const service = activeData?.service;
 
     return {
-      bridge: activeData || {},
-      apikeydata: apikeys[params?.org_id] || [],
-      bridgeApikey_object_id: isPublished
-        ? bridgeDataFromState?.apikey_object_id || {}
-        : versionData?.apikey_object_id || {},
       SERVICES: state?.serviceReducer?.services,
       serviceModels: state?.modelReducer?.serviceModels || {},
       currentService: service,
@@ -82,60 +63,6 @@ const FallbackModel = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (bridgeApikey_object_id && typeof bridgeApikey_object_id === "object") {
-      setSelectedApiKeys(bridgeApikey_object_id);
-    }
-  }, [bridgeApikey_object_id]);
-
-  // Check if a service has available API keys
-  const hasApiKeysForService = (service) => {
-    const regularApiKeys = Object.keys(bridgeApikey_object_id).filter((key) => key === service);
-
-    // For embed users with showDefaultApikeys, also check embedDefaultApiKeys
-    if (showDefaultApikeys && embedDefaultApiKeys && embedDefaultApiKeys[service]) {
-      return regularApiKeys.length > 0 || !!embedDefaultApiKeys[service];
-    }
-
-    return regularApiKeys.length > 0;
-  };
-
-  const filterApiKeysByService = (service) => {
-    const regularApiKeys = apikeydata.filter((apiKey) => apiKey?.service === service);
-    return regularApiKeys;
-  };
-
-  const handleSelectionChange = useCallback(
-    (service, apiKeyId) => {
-      if (isReadOnly) return;
-      setSelectedApiKeys((prev) => {
-        const updated = { ...prev };
-        if (prev[service] === apiKeyId) {
-          delete updated[service];
-        } else {
-          updated[service] = apiKeyId;
-        }
-        dispatch(
-          updateBridgeVersionAction({
-            bridgeId: params?.id,
-            versionId: searchParams?.version,
-            dataToSend: { apikey_object_id: updated },
-          })
-        );
-        return updated;
-      });
-    },
-    [dispatch, params?.id, searchParams?.version]
-  );
-
-  const toggleApiKeys = () => {
-    setShowApiKeysToggle((prev) => !prev);
-  };
-
-  const truncateText = (text, maxLength) => {
-    return text?.length > maxLength ? text.slice(0, maxLength) + "..." : text;
-  };
 
   const getServiceDefaultFallbackModel = useCallback(
     (service) => {
@@ -304,7 +231,6 @@ const FallbackModel = ({
       }
       return true;
     }).map((svc) => {
-      const hasApiKeys = hasApiKeysForService(svc.value);
       const serviceIcon = getIconOfService(svc.value, 16, 16);
 
       return {
@@ -315,11 +241,9 @@ const FallbackModel = ({
             <span>{svc.displayName || svc.value}</span>
           </div>
         ),
-        disabled: !hasApiKeys,
-        description: !hasApiKeys ? "No API Key Available" : undefined,
       };
     });
-  }, [SERVICES, showDefaultApikeys, embedDefaultApiKeys, bridgeApikey_object_id, apikeydata]);
+  }, [SERVICES, showDefaultApikeys, embedDefaultApiKeys]);
 
   const handleServiceSelect = useCallback(
     (val) => {
@@ -451,73 +375,6 @@ const FallbackModel = ({
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {isFallbackEnabled && shouldRenderApiKey && (
-        <div className="mt-4">
-          <div className="flex flex-col gap-3 w-full">
-            {/* Multiple API Keys Label */}
-            <div className="flex items-center gap-1">
-              <span className="label-text font-medium">Multiple API Keys</span>
-              <InfoTooltip tooltipContent="Add API keys for different models/services. This ensures your agent continues working when switching models in runtime or using fallback options.">
-                <CircleQuestionMark size={14} className="text-soft hover:text-ink cursor-help" />
-              </InfoTooltip>
-            </div>
-
-            <div className="w-full">
-              <div className="relative">
-                <div
-                  className={`flex items-center gap-2 input input-sm w-full min-h-[2.5rem] cursor-pointer ${showApiKeysToggle ? "rounded-x-md rounded-b-none rounded-t-md" : "rounded-md"}`}
-                  onClick={toggleApiKeys}
-                >
-                  <span className="text-base-content">Configure API keys...</span>
-                  <div className="ml-auto">
-                    {showApiKeysToggle ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
-                  </div>
-                </div>
-
-                {showApiKeysToggle && (
-                  <div
-                    className={`bg-base-100 z-low max-h-80 overflow-y-auto p-2 transition-all ${showApiKeysToggle ? "rounded-x-lg border-stroke border-t-0 rounded-t-none rounded-b-lg duration-300 ease-in-out" : ""}`}
-                  >
-                    {SERVICES?.filter((service) => service?.value !== bridge?.service).map((service) => (
-                      <div key={service?.value} className="p-2 border-b last:border-b-0">
-                        <div className="font-semibold capitalize mb-2 text-sm">{service?.displayName}</div>
-
-                        {filterApiKeysByService(service?.value)?.length > 0 ? (
-                          filterApiKeysByService(service?.value).map((apiKey) => (
-                            <div key={apiKey?._id} className="p-2 hover:bg-base-200 cursor-pointer rounded">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  autoComplete="off"
-                                  disabled={isReadOnly}
-                                  type="radio"
-                                  name={`apiKey-${service?.value}`}
-                                  value={apiKey?._id}
-                                  checked={selectedApiKeys[service?.value] === apiKey?._id}
-                                  onClick={() => handleSelectionChange(service?.value, apiKey?._id)}
-                                  onChange={() => {}}
-                                  className="radio radio-sm h-4 w-4"
-                                />
-                                <span
-                                  className={`text-sm flex items-center gap-2 ${apiKey?.isDefaultEmbedKey ? "font-medium text-primary" : ""}`}
-                                >
-                                  {truncateText(apiKey?.name, 25)}
-                                </span>
-                              </label>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-2 text-sm text-soft">No API keys available for {service?.displayName}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

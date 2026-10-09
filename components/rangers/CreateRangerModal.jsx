@@ -493,7 +493,7 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
               footnote="Channels are validated now and connected automatically when you publish."
             />
           )}
-          {currentStep?.key === "model" && <ModelStep form={form} update={update} orgId={orgId} />}
+          {currentStep?.key === "model" && <ModelStep form={form} update={update} />}
           {currentStep?.key === "prompt" && (
             <PromptStep form={form} update={update} isAiMode={isAiMode} onToneChange={handleToneChange} />
           )}

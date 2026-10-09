@@ -194,7 +194,8 @@ const AdvancedParameters = ({
   };
 
   const level1Parameters = getParametersByLevel(1); // Regular parameters (not in accordion)
-  const level2Parameters = getParametersByLevel(2); // Outside accordion parameters
+  // Shown under the prompt. Response type is left out of the prompt section.
+  const level2Parameters = getParametersByLevel(2).filter(([key]) => key !== "response_type");
 
   useEffect(() => {
     const schema = configuration?.response_type?.json_schema;

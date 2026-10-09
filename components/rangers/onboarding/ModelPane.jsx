@@ -13,51 +13,39 @@ import sortModelsByNewest from "@/utils/sortModelsByNewest";
 const EXCLUDED_GROUPS = new Set(["models", "embedding", "image"]);
 
 /**
- * One flat model list across providers, keyed providers first.
+ * One flat model list across providers.
  *
- * Catalogues are per service (GET /api/service/:service), so only the services
- * worth showing are fetched: the ones this org has a key for, plus a small
- * default set so a brand new org never sees an empty list.
+ * Catalogues are per service (GET /api/service/:service), so only the provider
+ * on screen is fetched, with a small default set shown until the service list
+ * lands so a brand new org never sees an empty list.
  */
-const ModelPane = ({ form, update, orgId, onAddKey }) => {
+const ModelPane = ({ form, update }) => {
   const dispatch = useDispatch();
   const requestedRef = useRef(new Set());
 
-  const { services, serviceModels, modelsConfig, apikeys } = useCustomSelector((state) => ({
+  const { services, serviceModels, modelsConfig } = useCustomSelector((state) => ({
     services: state?.serviceReducer?.services || [],
     serviceModels: state?.modelReducer?.serviceModels || {},
     modelsConfig: state?.appInfoReducer?.embedUserDetails?.models || {},
-    apikeys: state?.apiKeysReducer?.apikeys?.[orgId] || [],
   }));
-
-  const keyedServices = useMemo(() => {
-    const set = new Set();
-    apikeys.forEach((apiKey) => apiKey?.service && set.add(apiKey.service));
-    return set;
-  }, [apikeys]);
 
   /**
    * Every provider the org can use, not a hardcoded shortlist — this used to be
-   * openai/anthropic/gemini plus whatever was keyed, so the other ten providers
-   * simply never appeared in onboarding.
+   * openai/anthropic/gemini, so the other ten providers simply never appeared
+   * in onboarding.
    *
-   * Ordered keyed-first, then the common three, then the rest of the catalogue,
-   * so the provider you already have a key for is the one that opens.
+   * Ordered the common three first, then the rest of the catalogue.
    */
   const targetServices = useMemo(() => {
     const known = services.map((service) => service?.value).filter(Boolean);
     if (!known.length) {
       // GET /api/service has not landed yet; show the common three meanwhile.
-      const fallback = [...keyedServices, ...MODEL_STEP_DEFAULT_SERVICES, form.service].filter(Boolean);
+      const fallback = [...MODEL_STEP_DEFAULT_SERVICES, form.service].filter(Boolean);
       return [...new Set(fallback)];
     }
-    const rank = (service) => {
-      if (keyedServices.has(service)) return 0;
-      if (MODEL_STEP_DEFAULT_SERVICES.includes(service)) return 1;
-      return 2;
-    };
+    const rank = (service) => (MODEL_STEP_DEFAULT_SERVICES.includes(service) ? 0 : 1);
     return [...new Set(known)].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
-  }, [form.service, keyedServices, services]);
+  }, [form.service, services]);
 
   const serviceLabel = useMemo(() => {
     const map = {};
@@ -81,25 +69,21 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
             service,
             modelName,
             modelGroup: group,
-            keyed: keyedServices.has(service),
             temperature: cfg?.configuration?.additional_parameters?.temperature || null,
             createdAt: cfg?.created_at,
           });
         });
       });
     });
-    // Keyed providers first, then newest first within each.
-    return sortModelsByNewest(rows).sort((a, b) => Number(b.keyed) - Number(a.keyed));
-  }, [keyedServices, modelsConfig, serviceModels, targetServices]);
+    // Newest first.
+    return sortModelsByNewest(rows);
+  }, [modelsConfig, serviceModels, targetServices]);
 
   const selectedId = form.service && form.model ? `${form.service}::${form.model}` : null;
   const temperature = resolveTemperature(form.creativity, form.temperatureParam);
 
   /** One tab per provider, whether or not its catalogue has loaded yet. */
-  const providerTabs = useMemo(
-    () => targetServices.map((service) => ({ service, keyed: keyedServices.has(service) })),
-    [keyedServices, targetServices]
-  );
+  const providerTabs = useMemo(() => targetServices.map((service) => ({ service })), [targetServices]);
 
   const [activeService, setActiveService] = useState(null);
   // Follows the catalogue until the user picks a tab: whichever provider the
@@ -137,14 +121,7 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
     <div data-testid="onboarding-pane-model" id="onboarding-pane-model">
       {/* Discrete chips rather than a segmented track: with thirteen providers a
           shared sunken bar ran them together into one unreadable wall. Each chip
-          carries its own border and gap, and a keyed provider gets a dot rather
-          than a second word competing with the name. */}
-      {providerTabs.length > 1 && keyedServices.size > 0 && (
-        <div className="flex items-center gap-[7px] pb-2.5 text-[11.5px] text-soft">
-          <span aria-hidden="true" className="h-1.5 w-1.5 flex-none rounded-full bg-acc" />
-          <span>Your own key — these run on your quota and billing</span>
-        </div>
-      )}
+          carries its own border and gap. */}
 
       {providerTabs.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
@@ -156,7 +133,6 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
                 type="button"
                 data-testid={`onboarding-model-service-${tab.service}`}
                 aria-pressed={isActive}
-                title={tab.keyed ? "You have a key for this provider" : "Runs on the free tier"}
                 onClick={() => setActiveService(tab.service)}
                 className={`flex shrink-0 items-center gap-[7px] rounded-[9px] border px-[11px] py-[6px] text-[12.5px] font-semibold transition-colors ${
                   isActive
@@ -166,12 +142,6 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
               >
                 {getIconOfService(tab.service, 14, 14)}
                 <span>{serviceLabel[tab.service] || tab.service}</span>
-                {tab.keyed && (
-                  <span
-                    aria-hidden="true"
-                    className={`h-1.5 w-1.5 flex-none rounded-full ${isActive ? "bg-acc-deep" : "bg-acc"}`}
-                  />
-                )}
               </button>
             );
           })}
@@ -184,7 +154,7 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
 
         {!isLoading && visibleModels.length === 0 && (
           <p className="rounded-[12px] border border-dashed border-line-strong p-5 text-center text-[12.5px] text-soft">
-            No models available yet. Add a provider key and they will show up here.
+            No models available for this provider yet.
           </p>
         )}
 
@@ -221,31 +191,6 @@ const ModelPane = ({ form, update, orgId, onAddKey }) => {
                 <span className="block truncate font-mono text-[13px] font-semibold text-ink">{model.label}</span>
                 <span className="block text-[11.5px] text-soft">{serviceLabel[model.service] || model.service}</span>
               </span>
-              {model.keyed ? (
-                <span className="flex-none rounded-full bg-cool px-2 py-[3px] text-[10.5px] font-semibold text-ink">
-                  keyed
-                </span>
-              ) : (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  data-testid={`onboarding-model-add-key-${model.service}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onAddKey();
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      onAddKey();
-                    }
-                  }}
-                  className="flex-none text-[11.5px] font-semibold text-acc-deep"
-                >
-                  add key
-                </span>
-              )}
             </button>
           );
         })}

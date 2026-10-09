@@ -20,8 +20,7 @@ const tint = (hex, alpha) => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 
-const ReviewPane = ({ form, orgId, mcpServers, toolCount, kbCount, phase, error, warnings = [] }) => {
-  const apikeys = useCustomSelector((state) => state?.apiKeysReducer?.apikeys?.[orgId] || []);
+const ReviewPane = ({ form, mcpServers, toolCount, kbCount, phase, error, warnings = [] }) => {
   const services = useCustomSelector((state) => state?.serviceReducer?.services || []);
 
   const providerLabel = useMemo(() => {
@@ -29,7 +28,6 @@ const ReviewPane = ({ form, orgId, mcpServers, toolCount, kbCount, phase, error,
     return service?.displayName || service?.label || form.service;
   }, [form.service, services]);
 
-  const hasKey = apikeys.some((apiKey) => apiKey?.service === form.service);
   const channel = CONNECTABLE_CHANNELS.find((item) => item.key === form.channel);
   const creativity = CREATIVITY_LEVELS.find((level) => level.key === form.creativity);
   const connectorSummary = useMemo(() => {
@@ -43,7 +41,6 @@ const ReviewPane = ({ form, orgId, mcpServers, toolCount, kbCount, phase, error,
   const rows = [
     { label: "Role", value: form.role || "—" },
     { label: "Model", value: `${form.model || "—"} · ${providerLabel || "—"}`, mono: true },
-    { label: "Provider key", value: hasKey ? "Your key" : "Free tier" },
     { label: "Creativity", value: creativity?.label || "—" },
     { label: "Connectors", value: connectorSummary },
     { label: "Channel", value: channel ? `${channel.label}${form.token ? " · token added" : ""}` : "None yet" },

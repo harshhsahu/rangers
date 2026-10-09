@@ -119,7 +119,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
   const resolvedParams = { ...use(params), org_id: ORG_ID };
   const resolvedSearchParams = use(searchParams);
   const promptTextAreaRef = useRef(null);
-  const apiKeySectionRef = useRef(null);
   const router = useRouter();
   const { setParam } = useQueryParams();
   const dispatch = useDispatch();
@@ -144,8 +143,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
     isPromptHelperCollapsed: false,
     isNotesCollapsed: false,
   }));
-
-  const [apiKeyError, setApiKeyError] = useState(false);
 
   // Ref for the main container to calculate percentage-based width
   const containerRef = useRef(null);
@@ -712,7 +709,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               <ConfigurationPage
                 id="agent-flow-configuration-page"
                 promptTextAreaRef={promptTextAreaRef}
-                apiKeySectionRef={apiKeySectionRef}
                 params={resolvedParams}
                 searchParams={resolvedSearchParams}
                 isEmbedUser={isEmbedUser}
@@ -766,7 +762,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   <ConfigurationPage
                     id="configuration-page"
                     promptTextAreaRef={promptTextAreaRef}
-                    apiKeySectionRef={apiKeySectionRef}
                     params={resolvedParams}
                     searchParams={resolvedSearchParams}
                     isEmbedUser={isEmbedUser}
@@ -781,8 +776,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                     bridgeName={bridgeName}
                     onViewChange={handleViewChange}
                     viewOverride={isAgentFlowView ? "agent-flow" : undefined}
-                    apiKeyError={apiKeyError}
-                    setApiKeyError={setApiKeyError}
                   />
                 </div>
               </div>
@@ -946,7 +939,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               <ConfigurationPage
                 id="mobile-agent-flow-configuration-page"
                 promptTextAreaRef={promptTextAreaRef}
-                apiKeySectionRef={apiKeySectionRef}
                 params={resolvedParams}
                 searchParams={resolvedSearchParams}
                 isEmbedUser={isEmbedUser}
@@ -974,7 +966,6 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
               <ConfigurationPage
                 id="mobile-configuration-page"
                 promptTextAreaRef={promptTextAreaRef}
-                apiKeySectionRef={apiKeySectionRef}
                 params={resolvedParams}
                 searchParams={resolvedSearchParams}
                 isEmbedUser={isEmbedUser}

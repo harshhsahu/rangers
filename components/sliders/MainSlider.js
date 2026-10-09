@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { ChevronDown, LogOut, ChevronRight, ChevronLeft, User, AlignJustify, Plus, Users } from "lucide-react";
+import { ChevronDown, LogOut, ChevronRight, ChevronLeft, User, AlignJustify, Plus } from "lucide-react";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { logoutUserFromMsg91 } from "@/config/index";
@@ -40,10 +40,9 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
   const pathParts = pathname.split("?")[0].split("/");
   const orgId = orgIdFromHeader || ORG_ID;
 
-  const { userdetails, organizations, currrentOrgDetail, allBridges } = useCustomSelector((state) => ({
+  const { userdetails, organizations, allBridges } = useCustomSelector((state) => ({
     userdetails: state.userDetailsReducer.userDetails,
     organizations: state.userDetailsReducer.organizations,
-    currrentOrgDetail: state?.userDetailsReducer?.organizations?.[orgId],
     allBridges: state.bridgeReducer?.org?.[orgId]?.orgs || [],
   }));
   // When on org list page, orgId can be undefined; use first org for menu links
@@ -646,51 +645,8 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
               </div>
             </div>
 
-            {/* Footer Actions Section — canvas order: nav-ish rows, the
-                lifetime chip, the theme switcher, then the account row. */}
+            {/* Footer Actions Section — the theme switcher, then the account row. */}
             <div className="flex flex-col gap-0.5 border-t border-line pt-[10px]">
-              {/* Refer & Earn */}
-              <button
-                id="main-slider-refer-earn-button"
-                onClick={() => {
-                  if (targetOrgId) guardedNavigate(`/referAndEarn`);
-                  if (isMobile) setIsMobileVisible(false);
-                }}
-                onMouseEnter={(e) => onItemEnter("refer-earn", e)}
-                onMouseLeave={onItemLeave}
-                aria-label="Refer and earn"
-                className={
-                  showSidebarContent
-                    ? "w-full flex items-center gap-[10px] rounded-[9px] border border-line bg-card px-[10px] py-2 text-[13px] font-medium text-soft transition-colors hover:bg-paper hover:text-ink"
-                    : `${COLLAPSED_TILE} border-line bg-card text-soft hover:bg-paper hover:text-ink`
-                }
-              >
-                <Users size={16} className="shrink-0 opacity-60" />
-                {showSidebarContent && <span className="truncate">Refer &amp; Earn</span>}
-              </button>
-
-              {/* Free lifetime access */}
-              {!currrentOrgDetail?.meta?.unlimited_access && (
-                <button
-                  id="main-slider-lifetime-access-button"
-                  onClick={() => {
-                    guardedNavigate(`/lifetime-access`);
-                    if (isMobile) setIsMobileVisible(false);
-                  }}
-                  onMouseEnter={(e) => onItemEnter("lifetimeAccess", e)}
-                  onMouseLeave={onItemLeave}
-                  aria-label="Free Lifetime Access"
-                  className={
-                    showSidebarContent
-                      ? "my-2 w-full flex items-center gap-[9px] rounded-[9px] border border-acc-line bg-acc-soft px-[10px] py-2 text-[12.5px] font-semibold text-acc-deep transition-colors hover:bg-acc-tint"
-                      : `${COLLAPSED_TILE} my-2 border-acc-line bg-acc-soft text-acc-deep hover:bg-acc-tint`
-                  }
-                >
-                  <span className="shrink-0 opacity-80">{ITEM_ICONS.lifetimeAccess}</span>
-                  {showSidebarContent && <span className="truncate">Free Lifetime Access</span>}
-                </button>
-              )}
-
               {/* Theme switcher — segmented when expanded, cycling icon when collapsed */}
               <div className="mb-[10px]">
                 <ThemeToggle compact={!showSidebarContent} />

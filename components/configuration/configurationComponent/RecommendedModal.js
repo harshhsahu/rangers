@@ -3,14 +3,11 @@ import { useCustomSelector } from "@/customHooks/customSelector";
 import React, { useState, useCallback } from "react";
 
 const RecommendedModal = ({
-  apiKeySectionRef,
   promptTextAreaRef,
   searchParams,
-  bridgeApiKey,
   params,
   shouldPromptShow,
   service,
-  deafultApiKeys,
   isPublished,
   isEditor,
 }) => {
@@ -59,7 +56,7 @@ const RecommendedModal = ({
               .join("\n\n") ||
             "";
       const currentPrompt = promptTextAreaRef.current?.querySelector("textarea")?.value?.trim() || promptText.trim();
-      if (((bridgeApiKey || deafultApiKeys) && currentPrompt !== "") || service === "ai_ml") {
+      if (currentPrompt !== "" || service === "ai_ml") {
         const response = await modelSuggestionApi({ versionId: searchParams?.version });
         if (response?.success) {
           setModelRecommendations({
@@ -71,13 +68,8 @@ const RecommendedModal = ({
           setModelRecommendations({ error: "Failed to get model recommendations." });
         }
       } else {
-        if (currentPrompt === "") {
-          setModelRecommendations({ error: "Prompt is missing. Please enter a prompt" });
-          setErrorBorder(promptTextAreaRef, "textarea", true);
-        } else {
-          setModelRecommendations({ error: "API key is missing. Please add an API key" });
-          setErrorBorder(apiKeySectionRef, "select", true);
-        }
+        setModelRecommendations({ error: "Prompt is missing. Please enter a prompt" });
+        setErrorBorder(promptTextAreaRef, "textarea", true);
       }
     } catch (error) {
       console.error("Error fetching recommended model:", error);
@@ -85,7 +77,7 @@ const RecommendedModal = ({
     } finally {
       setIsLoadingRecommendations(false);
     }
-  }, [bridgeApiKey, params?.version, promptTextAreaRef, apiKeySectionRef]);
+  }, [params?.version, promptTextAreaRef]);
   return (
     <div>
       <div className="flex flex-col gap-3">

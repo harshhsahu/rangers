@@ -268,12 +268,6 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
 
       const dataToSend = {
         ...(form.service && form.service !== createdService ? { service: form.service } : {}),
-        // Binds the version to the org API key for its own service, so the
-        // ranger runs on the user's quota instead of silently falling back.
-        // Same shape ApiKeyModal writes. Omitted when there is no key.
-        ...(form.apikeyObjectId && Object.keys(form.apikeyObjectId).length
-          ? { apikey_object_id: form.apikeyObjectId }
-          : {}),
         // Knowledge bases picked before the version existed. Same doc_ids shape
         // KnowledgebaseList writes on the configure page.
         ...(Array.isArray(form.docIds) && form.docIds.length ? { doc_ids: form.docIds } : {}),
