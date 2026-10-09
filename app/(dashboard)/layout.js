@@ -17,9 +17,9 @@ import {
   updateBridgeVersionAction,
 } from "@/store/action/bridgeAction";
 import { getAllKnowBaseDataAction } from "@/store/action/knowledgeBaseAction";
-import { updateUserMetaOnboarding, updateOrgMetaAction } from "@/store/action/orgAction";
+import { updateUserMetaOnboarding } from "@/store/action/orgAction";
 import { getServiceAction } from "@/store/action/serviceAction";
-import { getFromCookies, removeCookie } from "@/utils/utility";
+import { getFromCookies } from "@/utils/utility";
 import { createAndStoreInternalJwt, getStoredGtwyOrgId } from "@/utils/internalAuth";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, use } from "react";
@@ -70,7 +70,6 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
     SERVICES,
     currentUser,
     doctstar_embed_token,
-    currrentOrgDetail,
     themeMode,
     functionData,
     tools,
@@ -89,7 +88,6 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
       state?.bridgeReducer?.bridgeVersionMapping?.[path[3]]?.[resolvedSearchParams?.get("version")]?.function_ids || [],
     currentUser: state.userDetailsReducer.userDetails,
     doctstar_embed_token: state?.bridgeReducer?.org?.[ORG_ID]?.doctstar_embed_token || "",
-    currrentOrgDetail: state?.userDetailsReducer?.organizations?.[ORG_ID],
     themeMode: state.appInfoReducer?.embedUserDetails?.themeMode || "system",
     functionData: state?.bridgeReducer?.org?.[ORG_ID]?.functionData || {},
     historyEmbed: state?.appInfoReducer?.embedUserDetails?.historyEmbed || false,
@@ -125,7 +123,6 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
       // Skip user meta updates for embed users
       if (isEmbedUser) return;
 
-      const unlimited_access = getFromCookies("unlimited_access");
       const utmSource = getFromCookies("utm_source");
       const utmMedium = getFromCookies("utm_medium");
       const utmCampaign = getFromCookies("utm_campaign");
@@ -135,14 +132,11 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
 
       // Build UTM object with only present values from URL that are NOT already in user meta
       const utmParams = {};
-      const paramsUpdate = {};
       if (utmSource && !currentUser?.meta?.utm_source) utmParams.utm_source = utmSource;
       if (utmMedium && !currentUser?.meta?.utm_medium) utmParams.utm_medium = utmMedium;
       if (utmCampaign && !currentUser?.meta?.utm_campaign) utmParams.utm_campaign = utmCampaign;
       if (utmTerm && !currentUser?.meta?.utm_term) utmParams.utm_term = utmTerm;
       if (utmContent && !currentUser?.meta?.utm_content) utmParams.utm_content = utmContent;
-      if (unlimited_access && !currrentOrgDetail?.meta?.unlimited_access)
-        paramsUpdate.unlimited_access = unlimited_access;
 
       // Check if we need to update user meta (either null meta or new UTM params
       try {
@@ -166,23 +160,11 @@ function layoutOrgPage({ children, params, searchParams, isEmbedUser, isFocus })
             ...(currentUserMeta || {}),
             // Add UTM params if they exist
             ...utmParams,
-            ...paramsUpdate,
           },
         };
-        if (paramsUpdate?.unlimited_access && !currrentOrgDetail?.meta?.unlimited_access) {
-          const updatedOrgDetails = {
-            ...currrentOrgDetail,
-            meta: {
-              ...currrentOrgDetail?.meta,
-              unlimited_access: true,
-            },
-          };
-          dispatch(updateOrgMetaAction(ORG_ID, updatedOrgDetails));
-          removeCookie("unlimited_access");
-        }
 
         const data =
-          Object.keys(utmParams).length > 0 || Object.keys(paramsUpdate).length > 0
+          Object.keys(utmParams).length > 0
             ? await dispatch(updateUserMetaOnboarding(currentUser.id, updatedUser))
             : null;
         if (data?.data?.status) {

@@ -27,35 +27,11 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
   const [convertToTemplate, setConvertToTemplate] = useState(false);
 
-  const {
-    versionData,
-    bridgeData,
-    agentList,
-    allBridgesMap,
-    activeService,
-    hasApiKeyForActiveService,
-    activeServiceDisplayName,
-    showDefaultApikeys,
-    bridgeType,
-    modelName,
-  } = useCustomSelector((state) => {
-    const isPublished = searchParams?.get("isPublished") === "true";
+  const { versionData, bridgeData, agentList, allBridgesMap } = useCustomSelector((state) => {
     const bridgeDataFromState = state.bridgeReducer.allBridgesMap?.[params?.id];
     const versionDataFromState = state.bridgeReducer.bridgeVersionMapping?.[params?.id]?.[searchParams?.get("version")];
-    const activeData = isPublished ? bridgeDataFromState : versionDataFromState;
-    const rawService = activeData?.service || bridgeDataFromState?.service || "";
-    const serviceKey = typeof rawService === "string" ? rawService.toLowerCase() : "";
-    const serviceApiKeyMap = activeData?.apikey_object_id || bridgeDataFromState?.apikey_object_id || {};
-    const hasApiKey = !!(serviceKey && serviceApiKeyMap?.[serviceKey]);
-    const services = state?.serviceReducer?.services || [];
-    const serviceLabel =
-      (Array.isArray(services) ? services.find((s) => s?.value === serviceKey)?.displayName : "") || serviceKey;
 
     // Any logged-in org user can edit/publish
-
-    // Get embed user API key and default API keys flag if available
-    const embedApiKey = state?.appInfoReducer?.embedUserDetails?.apikey_object_id;
-    const defaultApiKeysEnabled = state?.appInfoReducer?.embedUserDetails?.addDefaultApiKeys;
 
     return {
       bridge: state.bridgeReducer.allBridgesMap?.[params?.id]?.page_config,
@@ -63,26 +39,12 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
       bridgeData: bridgeDataFromState,
       agentList: state.bridgeReducer.org[params.org_id]?.orgs || [],
       allBridgesMap: state.bridgeReducer.allBridgesMap || {},
-      activeService: serviceKey,
-      hasApiKeyForActiveService: hasApiKey,
-      activeServiceDisplayName: serviceLabel,
-      embedUserApiKey: embedApiKey,
-      showDefaultApikeys: defaultApiKeysEnabled,
-      bridgeType: bridgeDataFromState?.bridgeType,
-      modelName: activeData?.configuration?.model,
     };
   });
 
   // Flag to determine if the UI should be in read-only mode
   const isReadOnly = false;
 
-  const isChatbotWithGpt5Nano = bridgeType === "chatbot" && modelName === "gpt-5-nano";
-
-  const showApiKeyWarning =
-    Boolean(activeService) &&
-    !hasApiKeyForActiveService &&
-    !(isEmbedUser && showDefaultApikeys) &&
-    !isChatbotWithGpt5Nano;
   const getAllConnectedAgents = useCallback(
     async (
       agentId,
@@ -797,25 +759,6 @@ function PublishBridgeVersionModal({ params, searchParams, agent_name, agent_des
                 </div>
               </div>
             </div>
-
-            {showApiKeyWarning && (
-              <div
-                data-testid="publish-apikey-missing-warning"
-                id="publish-apikey-missing-warning"
-                className="alert alert-warning border border-warning/30 bg-warning/10"
-              >
-                <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="font-medium text-base-content">API Key Not Configured</h3>
-                  <p className="text-sm text-base-content/40">
-                    No API key is configured for{" "}
-                    <span className="font-medium text-base-content/40">{activeServiceDisplayName}</span> in this
-                    version.
-                  </p>
-                </div>
-                <span className="badge badge-warning badge-sm">API Key Not Configured</span>
-              </div>
-            )}
           </div>
         )}
 

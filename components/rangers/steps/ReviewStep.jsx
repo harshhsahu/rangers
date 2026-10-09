@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, CircleAlert } from "lucide-react";
+import { Check, CircleAlert } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import {
   CONNECTABLE_CHANNELS,
@@ -31,7 +31,6 @@ const Row = ({ label, children }) => (
 );
 
 const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, connectedTools = {}, isAiMode }) => {
-  const apikeys = useCustomSelector((state) => state?.apiKeysReducer?.apikeys?.[orgId] || []);
   const functionData = useCustomSelector((state) => state?.bridgeReducer?.org?.[orgId]?.functionData || {});
 
   const connectorNames = useMemo(
@@ -40,11 +39,6 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
         (id) => functionData?.[id]?.title || functionData?.[id]?.script_id || "Connector"
       ),
     [connectedTools, functionData]
-  );
-
-  const hasApiKeyForService = useMemo(
-    () => apikeys.some((apiKey) => apiKey?.service === form.service),
-    [apikeys, form.service]
   );
 
   const enabledChannels = CONNECTABLE_CHANNELS.filter((channel) => form.channels?.[channel.key]?.enabled);
@@ -145,20 +139,6 @@ const ReviewStep = ({ form, orgId, phase, error, channelWarnings, created, conne
           </pre>
         </Row>
       </div>
-
-      {form.service && !hasApiKeyForService && (
-        <div className="mt-3 flex items-start gap-2 rounded-[12px] border-2 border-warning/40 bg-warning/10 p-3">
-          <AlertTriangle size={15} className="mt-[2px] shrink-0 text-warning" />
-          <div className="text-[11.5px] leading-relaxed text-base-content">
-            No <span className="font-semibold">{form.service}</span> API key exists in this workspace. The ranger will
-            publish, but it cannot answer until a key is added.{" "}
-            <Link href={`/apikeys`} className="font-semibold text-primary underline">
-              Add one
-            </Link>
-            .
-          </div>
-        </div>
-      )}
 
       {(isRunning || isDone || phase === DEPLOY_PHASES.FAILED) && (
         <ul className="mt-4 flex flex-col gap-1.5" aria-live="polite">

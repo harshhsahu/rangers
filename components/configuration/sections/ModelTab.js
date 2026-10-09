@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import ServiceDropdown from "../configurationComponent/ServiceDropdown";
 import ModelDropdown from "../configurationComponent/ModelDropdown";
-import ApiKeyInput from "../configurationComponent/ApiKeyInput";
 import { useConfigurationContext } from "../ConfigurationContext";
 import RecommendedModal from "../configurationComponent/RecommendedModal";
 import AdvancedParameters from "../configurationComponent/AdvancedParamenter";
@@ -13,25 +12,17 @@ const ModelTab = () => {
   const {
     params,
     searchParams,
-    apiKeySectionRef,
     promptTextAreaRef,
-    bridgeApiKey,
     shouldPromptShow,
     service,
-    showDefaultApikeys,
     isEmbedUser,
     showAdvancedParameters,
     showAdvancedConfigurations,
     bridgeType,
     isPublished,
     isEditor,
-    apiKeyError,
     modelType,
   } = useConfigurationContext();
-  const shouldRenderApiKey = useMemo(
-    () => (!showDefaultApikeys && isEmbedUser) || !isEmbedUser,
-    [isEmbedUser, showDefaultApikeys]
-  );
   return (
     <div data-testid="model-tab-container" id="model-tab-container" className="flex flex-col mt-4 w-full">
       {/* LLM Configuration Header */}
@@ -43,12 +34,9 @@ const ModelTab = () => {
         <RecommendedModal
           params={params}
           searchParams={searchParams}
-          apiKeySectionRef={apiKeySectionRef}
           promptTextAreaRef={promptTextAreaRef}
-          bridgeApiKey={bridgeApiKey}
           shouldPromptShow={shouldPromptShow}
           service={service}
-          deafultApiKeys={showDefaultApikeys}
           isPublished={isPublished}
           isEditor={isEditor}
         />
@@ -62,7 +50,6 @@ const ModelTab = () => {
             <ServiceDropdown
               params={params}
               searchParams={searchParams}
-              apiKeySectionRef={apiKeySectionRef}
               promptTextAreaRef={promptTextAreaRef}
               isEmbedUser={isEmbedUser}
               isPublished={isPublished}
@@ -81,24 +68,6 @@ const ModelTab = () => {
             />
           </div>
         </div>
-
-        {/* API Key Section */}
-        {shouldRenderApiKey && (
-          <div className="space-y-2">
-            <label className="block text-base-content/70 text-sm font-medium">API Key</label>
-            <ApiKeyInput
-              apiKeySectionRef={apiKeySectionRef}
-              params={params}
-              searchParams={searchParams}
-              isEmbedUser={isEmbedUser}
-              showAdvancedParameters={showAdvancedParameters}
-              isPublished={isPublished}
-              isEditor={isEditor}
-              hasError={apiKeyError}
-            />
-            <p className="text-xs text-base-content/50 mt-2">Your API key is encrypted and stored securely</p>
-          </div>
-        )}
 
         {/* Parameters Section with Border */}
         {((showAdvancedParameters && isEmbedUser) || !isEmbedUser) && (
@@ -134,7 +103,6 @@ const ModelTab = () => {
               params={params}
               searchParams={searchParams}
               bridgeType={bridgeType}
-              shouldRenderApiKey={shouldRenderApiKey}
               isPublished={isPublished}
               isEditor={isEditor}
             />

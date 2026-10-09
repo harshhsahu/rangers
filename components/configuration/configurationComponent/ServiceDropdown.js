@@ -15,7 +15,6 @@ import ConfirmationModal from "@/components/UI/ConfirmationModal";
 const ServiceDropdown = ({
   params,
   searchParams,
-  apiKeySectionRef,
   promptTextAreaRef,
   isEmbedUser,
   isPublished = false,
@@ -30,7 +29,6 @@ const ServiceDropdown = ({
     DEFAULT_MODEL,
     bridgeApikeyObjectId,
     prompt,
-    bridgeApiKey,
     shouldPromptShow,
     showDefaultApikeys,
     apiKeyObjectIdData,
@@ -56,9 +54,6 @@ const ServiceDropdown = ({
       service: service,
       bridgeApikeyObjectId: activeData?.apikey_object_id || {},
       prompt: isPublished ? bridgeDataFromState?.configuration?.prompt || "" : versionData?.configuration?.prompt || "",
-      bridgeApiKey: isPublished
-        ? bridgeDataFromState?.apikey_object_id?.[service]
-        : versionData?.apikey_object_id?.[service],
       shouldPromptShow: modelReducer?.[serviceName]?.[modelTypeName]?.[modelName]?.validationConfig?.system_prompt,
       apiKeyObjectIdData,
       showDefaultApikeys,
@@ -84,16 +79,11 @@ const ServiceDropdown = ({
       !shouldPromptShow ||
       prompt !== "" ||
       (promptTextAreaRef.current && promptTextAreaRef.current.querySelector("textarea").value.trim() !== "");
-    const hasApiKey = !!bridgeApiKey;
 
     if (hasPrompt) {
       resetBorder(promptTextAreaRef, "textarea");
     }
-
-    if (hasApiKey) {
-      resetBorder(apiKeySectionRef, "select");
-    }
-  }, [bridgeApiKey, prompt, apiKeySectionRef, promptTextAreaRef]);
+  }, [prompt, promptTextAreaRef]);
   useEffect(() => {
     if (service) {
       setSelectedService(service);

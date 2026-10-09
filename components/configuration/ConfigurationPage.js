@@ -11,7 +11,6 @@ import useRtLayerEventHandler from "@/customHooks/useRtLayerEventHandler";
 const ConfigurationPage = ({
   params,
   isEmbedUser,
-  apiKeySectionRef,
   promptTextAreaRef,
   searchParams,
   uiState,
@@ -24,8 +23,6 @@ const ConfigurationPage = ({
   closeHelperButtonLocation,
   onViewChange,
   viewOverride,
-  apiKeyError,
-  setApiKeyError,
 }) => {
   const router = useRouter();
   const view = searchParams?.view || "config";
@@ -89,7 +86,6 @@ const ConfigurationPage = ({
       params,
       searchParams,
       isEmbedUser,
-      apiKeySectionRef,
       promptTextAreaRef,
       uiState,
       updateUiState,
@@ -103,8 +99,6 @@ const ConfigurationPage = ({
       switchView: handleNavigation,
       isPublished,
       isEditor,
-      apiKeyError,
-      setApiKeyError,
       promptResetKey,
       discardPromptDraft,
     }),
@@ -113,7 +107,6 @@ const ConfigurationPage = ({
       params,
       searchParams,
       isEmbedUser,
-      apiKeySectionRef,
       promptTextAreaRef,
       uiState,
       updateUiState,
@@ -127,7 +120,6 @@ const ConfigurationPage = ({
       isEditor,
       currentView,
       handleNavigation,
-      apiKeyError,
       promptResetKey,
       discardPromptDraft,
     ]

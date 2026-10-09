@@ -19,7 +19,6 @@ import {
 import OnboardingRail from "@/components/rangers/onboarding/OnboardingRail";
 import IdentityPane from "@/components/rangers/onboarding/IdentityPane";
 import PromptPane from "@/components/rangers/onboarding/PromptPane";
-import KeysPane from "@/components/rangers/onboarding/KeysPane";
 import ModelPane from "@/components/rangers/onboarding/ModelPane";
 import ConnectorsPane from "@/components/rangers/onboarding/ConnectorsPane";
 import ChannelPane from "@/components/rangers/onboarding/ChannelPane";
@@ -27,11 +26,6 @@ import ReviewPane from "@/components/rangers/onboarding/ReviewPane";
 import { ONBOARDING_COPY, ONBOARDING_STEPS } from "@/components/rangers/onboarding/onboardingConstants";
 
 export const runtime = "edge";
-
-const STEP_INDEX = ONBOARDING_STEPS.reduce((acc, step, index) => {
-  acc[step.key] = index;
-  return acc;
-}, {});
 
 const buildInitialForm = () => ({
   name: "",
@@ -64,12 +58,11 @@ function OnboardingPage({ params }) {
   const [isWriting, setIsWriting] = useState(false);
   const [promptStatus, setPromptStatus] = useState("");
 
-  const { existingNames, agentCount, apikeys, knowledgeBases } = useCustomSelector((state) => ({
+  const { existingNames, agentCount, knowledgeBases } = useCustomSelector((state) => ({
     existingNames: (state?.bridgeReducer?.org?.[orgId]?.orgs || []).map((bridge) =>
       (bridge?.name || "").trim().toLowerCase()
     ),
     agentCount: (state?.bridgeReducer?.org?.[orgId]?.orgs || []).length,
-    apikeys: state?.apiKeysReducer?.apikeys?.[orgId] || [],
     knowledgeBases: state?.knowledgeBaseReducer?.knowledgeBaseData?.[orgId] || [],
   }));
 
@@ -132,14 +125,7 @@ function OnboardingPage({ params }) {
     go(stepIndex + 1);
   };
 
-  const skipLabel =
-    stepKey === "keys"
-      ? "Skip for now"
-      : stepKey === "connectors"
-        ? "No connectors yet"
-        : stepKey === "channel"
-          ? "Connect later"
-          : "";
+  const skipLabel = stepKey === "connectors" ? "No connectors yet" : stepKey === "channel" ? "Connect later" : "";
 
   const go = useCallback((index) => setStepIndex(Math.max(0, Math.min(ONBOARDING_STEPS.length - 1, index))), []);
 
@@ -179,7 +165,6 @@ function OnboardingPage({ params }) {
 
   /** Wizard state -> the shape useCreateRanger's deploy expects. */
   const buildDeployPayload = () => {
-    const key = apikeys.find((apiKey) => apiKey?.service === form.service);
     return {
       ...form,
       channels: RANGER_CHANNELS.reduce((acc, channel) => {
@@ -202,7 +187,6 @@ function OnboardingPage({ params }) {
           description: kb.description,
           name: kb.title,
         })),
-      ...(key?._id ? { apikeyObjectId: { [form.service]: key._id } } : {}),
     };
   };
 
@@ -257,10 +241,8 @@ function OnboardingPage({ params }) {
                   promptStatus={promptStatus}
                   isWriting={isWriting}
                 />
-              ) : stepKey === "keys" ? (
-                <KeysPane orgId={orgId} />
               ) : stepKey === "model" ? (
-                <ModelPane form={form} update={update} orgId={orgId} onAddKey={() => go(STEP_INDEX.keys)} />
+                <ModelPane form={form} update={update} />
               ) : stepKey === "connectors" ? (
                 <ConnectorsPane
                   orgId={orgId}
@@ -280,7 +262,6 @@ function OnboardingPage({ params }) {
               ) : (
                 <ReviewPane
                   form={form}
-                  orgId={orgId}
                   mcpServers={mcpServers}
                   toolCount={selectedToolIds.length}
                   kbCount={selectedKbIds.length}

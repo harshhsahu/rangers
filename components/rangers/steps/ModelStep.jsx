@@ -2,13 +2,11 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { AlertTriangle, Check, ChevronDown, KeyRound, Plus, Search, ShieldCheck } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { getModelAction } from "@/store/action/modelAction";
 import { getServiceAction } from "@/store/action/serviceAction";
-import { getIconOfService, openModal } from "@/utils/utility";
-import { MODAL_TYPE } from "@/utils/enums";
-import ApiKeyModal from "@/components/modals/ApiKeyModal";
+import { getIconOfService } from "@/utils/utility";
 import { CREATIVITY_LEVELS, resolveTemperature } from "../rangerConstants";
 import sortModelsByNewest from "@/utils/sortModelsByNewest";
 
@@ -23,17 +21,16 @@ const EXCLUDED_GROUPS = new Set(["models", "embedding", "image"]);
  * clipped by the modal's scroll container and spills past the footer. The
  * prototype's three big model cards and its reply-length cap are not ported.
  */
-const ModelStep = ({ form, update, orgId }) => {
+const ModelStep = ({ form, update }) => {
   const dispatch = useDispatch();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef(null);
   const requestedServicesRef = useRef(new Set());
-  const { services, serviceModels, modelsConfig, apikeys } = useCustomSelector((state) => ({
+  const { services, serviceModels, modelsConfig } = useCustomSelector((state) => ({
     services: state?.serviceReducer?.services || [],
     serviceModels: state?.modelReducer?.serviceModels || {},
     modelsConfig: state?.appInfoReducer?.embedUserDetails?.models || {},
-    apikeys: state?.apiKeysReducer?.apikeys?.[orgId] || [],
   }));
 
   useEffect(() => {
@@ -113,13 +110,6 @@ const ModelStep = ({ form, update, orgId }) => {
 
   const temperatureParam = form.temperatureParam;
   const supportsTemperature = Boolean(temperatureParam);
-
-  /** Keys are per-service, so the check follows whichever provider is selected. */
-  const serviceKeys = useMemo(
-    () => apikeys.filter((apiKey) => apiKey?.service === form.service),
-    [apikeys, form.service]
-  );
-  const hasServiceKey = serviceKeys.length > 0;
 
   const handleServiceSelect = (service) => {
     if (!service?.value || service.value === form.service) return;
@@ -311,44 +301,6 @@ const ModelStep = ({ form, update, orgId }) => {
             )}
           </>
         )}
-
-        {/* API key for the selected provider. Publishing succeeds without one,
-            but the ranger then silently never answers — so surface it here. */}
-        {form.service && !servicesLoading && (
-          <div
-            className={`mt-2.5 flex items-center gap-2 rounded-[10px] border-2 px-3 py-2 ${
-              hasServiceKey ? "border-stroke bg-card" : "border-warning/40 bg-warning/10"
-            }`}
-          >
-            {hasServiceKey ? (
-              <ShieldCheck size={14} className="flex-none text-success" />
-            ) : (
-              <AlertTriangle size={14} className="flex-none text-warning" />
-            )}
-            <span className="min-w-0 flex-1 text-[11.5px] leading-snug text-base-content">
-              {hasServiceKey ? (
-                <>
-                  <span className="font-semibold capitalize">{form.service}</span> key configured
-                  {serviceKeys.length > 1 ? ` (${serviceKeys.length})` : ""}.
-                </>
-              ) : (
-                <>
-                  No <span className="font-semibold capitalize">{form.service}</span> API key in this workspace. The
-                  ranger cannot answer without one.
-                </>
-              )}
-            </span>
-            <button
-              type="button"
-              data-testid="ranger-add-apikey-button"
-              onClick={() => openModal(MODAL_TYPE.API_KEY_MODAL)}
-              className="btn btn-xs flex-none gap-1"
-            >
-              {hasServiceKey ? <Plus size={11} /> : <KeyRound size={11} />}
-              {hasServiceKey ? "Add another" : "Add API key"}
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="form-control mt-5">
@@ -390,10 +342,6 @@ const ModelStep = ({ form, update, orgId }) => {
           </p>
         )}
       </div>
-
-      {/* `selectedService` locks the service field without triggering the
-          modal's bridge-version update — there is no agent or version yet. */}
-      <ApiKeyModal selectedService={form.service} apikeyData={apikeys} />
     </div>
   );
 };
