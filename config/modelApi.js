@@ -1,8 +1,22 @@
 import axios from "@/utils/interceptor";
 import { toast } from "@/utils/toast";
+import { authHeaders } from "@/utils/internalAuth";
 
 const URL = process.env.NEXT_PUBLIC_SERVER_URL;
 const PYTHON_URL = process.env.NEXT_PUBLIC_PYTHON_SERVER_URL;
+
+/** The agent's viaSocket app tools as GTWY `extra_tools`; none when the lookup fails. */
+const getViaSocketExtraTools = async (agentId, versionId) => {
+  if (!agentId) return [];
+  try {
+    const query = new URLSearchParams({ agent_id: agentId, ...(versionId ? { version_id: versionId } : {}) });
+    const res = await fetch(`/api/viasocket/app-tools?${query}`, { headers: authHeaders() });
+    const data = await res.json().catch(() => ({}));
+    return Array.isArray(data?.extra_tools) ? data.extra_tools : [];
+  } catch {
+    return [];
+  }
+};
 
 export const getAllModels = async (service) => {
   try {
@@ -111,6 +125,10 @@ export const dryRun = async ({ localDataToSend, bridge_id }) => {
 
     if (!payload?.version_id) {
       payload.agent_id = bridge_id;
+    }
+    if (isChat) {
+      const appTools = await getViaSocketExtraTools(bridge_id, payload.version_id);
+      if (appTools.length) payload.extra_tools = [...(payload.extra_tools || []), ...appTools];
     }
     let dryRun;
     const axiosConfig = isStream ? { responseType: "stream", adapter: "fetch" } : {};

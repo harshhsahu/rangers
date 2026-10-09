@@ -2,18 +2,14 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Database, FilePlus, Link2, Pencil, Plus, Server } from "lucide-react";
+import { Database, FilePlus, Link2, Plus, Server } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { getAllFunctions } from "@/store/action/bridgeAction";
+import { deleteFunctionAction, getAllFunctions } from "@/store/action/bridgeAction";
 import KnowledgeBaseModal from "@/components/modals/KnowledgeBaseModal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
 import { toast } from "@/utils/toast";
-import useEmbedToolCreated from "@/customHooks/useEmbedToolCreated";
-import useConnectorEmbed from "../useConnectorEmbed";
-
-/** The box the builder is docked into on this step. */
-const EMBED_PARENT_ID = "onboarding-connector-embed-parent";
+import ViaSocketCatalog, { forgetCatalogAdded } from "@/components/configuration/sections/ViaSocketCatalog";
 
 // Fallback tile colours for tools with no service icon, keyed off the name so a
 // given tool always gets the same swatch.
@@ -41,6 +37,8 @@ const DASHED_CTA =
  */
 const ConnectorsPane = ({
   orgId,
+  agentId,
+  versionId,
   mcpServers,
   onMcpServersChange,
   selectedToolIds,
@@ -52,16 +50,12 @@ const ConnectorsPane = ({
   onDisconnectTool,
 }) => {
   const dispatch = useDispatch();
-  const [builderOpen, setBuilderOpen] = useState(false);
-  const [reloadKey, setReloadKey] = useState(0);
-  // script_id of the tool the builder is editing, or null while building a new one.
-  const [editScriptId, setEditScriptId] = useState(null);
-  const [embedHost, setEmbedHost] = useState(null);
   const [mcpFormOpen, setMcpFormOpen] = useState(false);
   const [mcpName, setMcpName] = useState("");
   const [mcpUrl, setMcpUrl] = useState("");
   // The tool whose attach/detach call is in flight, so only its row shows it.
   const [busyToolId, setBusyToolId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const { embedToken, functionData, integrationData, knowledgeBases } = useCustomSelector((state) => {
     const orgData = state?.bridgeReducer?.org?.[orgId] || {};
@@ -76,15 +70,6 @@ const ConnectorsPane = ({
   useEffect(() => {
     if (Object.keys(functionData).length === 0) dispatch(getAllFunctions());
   }, [dispatch, functionData]);
-
-  const { error: embedError, clearError: clearEmbedError } = useConnectorEmbed({
-    embedToken,
-    host: embedHost,
-    reloadKey,
-    scriptId: editScriptId,
-    enabled: builderOpen,
-    meta: { type: "tool", createFrom: "Ranger Onboarding" },
-  });
 
   const tools = useMemo(
     () =>
@@ -139,32 +124,6 @@ const ConnectorsPane = ({
     }
   };
 
-  /**
-   * A tool built in the builder above is connected to this ranger straight away
-   * — the user already said what they wanted by creating it here, so making
-   * them press Connect on the row as well is a step for nothing.
-   */
-  useEmbedToolCreated(async ({ functionId, title, connected }) => {
-    if (!functionId || connected) return;
-    // The new tool only shows up in the list below after a refetch.
-    dispatch(getAllFunctions());
-    if (selectedToolIds.includes(functionId)) return;
-
-    const label = title || "Tool";
-    const result = await applyTool(functionId, true, label);
-    if (result?.success) toast.success(`${label} connected to this ranger`);
-  });
-
-  /** `scriptId` reopens an existing tool; omitted, the builder starts blank. */
-  const openBuilder = (scriptId = null) => {
-    clearEmbedError();
-    // A tool built in the embed only shows up in the list after a refetch.
-    dispatch(getAllFunctions());
-    setEditScriptId(scriptId);
-    setReloadKey((key) => key + 1);
-    setBuilderOpen(true);
-  };
-
   const saveMcp = () => {
     const name = mcpName.trim();
     const url = mcpUrl.trim();
@@ -182,66 +141,39 @@ const ConnectorsPane = ({
 
   const toggleTool = (tool) => applyTool(tool.id, !selectedToolIds.includes(tool.id), tool.name);
 
+  const handleDelete = async (tool) => {
+    if (busyToolId || deletingId) return;
+    if (!window.confirm(`Delete ${tool.name}? You can add it again from the catalog.`)) return;
+    setDeletingId(tool.id);
+    try {
+      if (selectedToolIds.includes(tool.id) && onDisconnectTool) await applyTool(tool.id, false, tool.name);
+      const result = await dispatch(
+        deleteFunctionAction({ script_id: tool.scriptId || tool.id, functionId: tool.id, orgId })
+      );
+      if (result?.isAxiosError || result?.response?.status) {
+        throw new Error(result?.response?.data?.error || result?.message || "Could not delete the tool");
+      }
+      onSelectedToolIdsChange(selectedToolIds.filter((id) => id !== tool.id));
+      forgetCatalogAdded(orgId);
+      toast.success(`${tool.name} deleted`);
+    } catch (error) {
+      toast.error(error?.message || "Could not delete the tool");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const canSaveMcp = Boolean(mcpName.trim() && mcpUrl.trim());
 
   return (
     <div data-testid="onboarding-pane-connectors" id="onboarding-pane-connectors">
-      <div className="flex items-center gap-[14px] rounded-[14px] border border-line bg-card px-4 py-[15px]">
-        <div className="min-w-0 flex-1">
-          <div className="text-[13.5px] font-semibold text-ink">Connector builder</div>
-          <div className="pt-[2px] text-[12px] text-soft">
-            Create and authenticate a ViaSocket tool for this organization.
-          </div>
-        </div>
-        <button
-          type="button"
-          data-testid="onboarding-new-connector-button"
-          id="onboarding-new-connector-button"
-          disabled={!embedToken}
-          onClick={() => openBuilder()}
-          className="inline-flex flex-none items-center gap-[6px] rounded-[10px] bg-acc px-[14px] py-[9px] text-[12.5px] font-bold text-acc-ink disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Plus size={14} />
-          New connector
-        </button>
-      </div>
-
-      {builderOpen && (
-        <div className="mt-[10px] overflow-hidden rounded-[14px] border border-line bg-card">
-          <div className="flex items-center justify-between gap-[10px] border-b border-card-line px-[14px] py-[10px]">
-            <span className="text-[12px] text-soft">Add apps to power smarter workflows</span>
-            <button
-              type="button"
-              data-testid="onboarding-close-builder-button"
-              onClick={() => setBuilderOpen(false)}
-              className="text-[12px] font-semibold text-soft"
-            >
-              Close
-            </button>
-          </div>
-          {embedToken ? (
-            <div
-              id={EMBED_PARENT_ID}
-              ref={setEmbedHost}
-              data-testid="onboarding-connector-embed-parent"
-              className="relative h-[26rem] w-full overflow-hidden bg-paper"
-            >
-              {embedError && (
-                <div className="absolute inset-0 grid place-items-center gap-2 px-4 text-center">
-                  <p className="text-[12px] text-error">{embedError}</p>
-                  <button type="button" className="btn btn-xs" onClick={() => openBuilder()}>
-                    Retry
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="grid h-[26rem] place-items-center px-5 text-center text-[12.5px] text-soft">
-              The connector builder is still loading for this organization.
-            </div>
-          )}
-        </div>
-      )}
+      <ViaSocketCatalog
+        orgId={orgId}
+        agentId={agentId}
+        versionId={versionId}
+        embedToken={embedToken}
+        disabled={!hasAgent}
+      />
 
       <div className="pt-[22px]">
         <div className="pb-2 text-[13px] font-semibold text-ink">MCP servers</div>
@@ -354,25 +286,23 @@ const ConnectorsPane = ({
                     </span>
                     <button
                       type="button"
-                      title="Edit this connector"
-                      data-testid={`onboarding-tool-edit-${tool.id}`}
-                      disabled={!embedToken || !tool.scriptId}
-                      onClick={() => openBuilder(tool.scriptId)}
-                      className="grid h-[26px] w-[26px] flex-none place-items-center rounded-[8px] border border-line text-soft transition-colors hover:text-ink disabled:opacity-40"
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      type="button"
                       aria-pressed={isPicked}
                       data-testid={`onboarding-tool-toggle-${tool.id}`}
-                      disabled={Boolean(busyToolId)}
+                      disabled={Boolean(busyToolId) || deletingId === tool.id}
                       onClick={() => toggleTool(tool)}
                       className={`flex-none rounded-[8px] px-[11px] py-[6px] text-[12px] font-semibold disabled:opacity-60 ${
                         isPicked ? "border border-acc-line text-acc-deep" : "bg-acc text-acc-ink"
                       }`}
                     >
                       {busyToolId === tool.id ? "Saving…" : isPicked ? "Disconnect" : "Connect"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={Boolean(busyToolId) || deletingId === tool.id}
+                      onClick={() => handleDelete(tool)}
+                      className="flex-none text-[12px] font-semibold text-error disabled:opacity-60"
+                    >
+                      {deletingId === tool.id ? "Deleting…" : "Delete"}
                     </button>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { getChannelDetailsCollection } from "@/lib/mongo";
 import { decryptSecret, maskSecret } from "@/lib/crypto";
 import { TelegramStreamUpdater } from "@/lib/telegramStreamUpdater";
 import { humanizeGtwyError } from "@/lib/gtwyChannelHelpers";
+import { getViaSocketExtraTools, redactExtraTools } from "@/lib/viasocketAppTools";
 
 export const runtime = "nodejs";
 
@@ -597,8 +598,10 @@ async function streamGtwyCompletion({ versionId, userText, threadId, extraFields
     ...(extraFields || {}),
   };
   if (threadId) payload.thread_id = String(threadId);
+  const appTools = await getViaSocketExtraTools({ versionId });
+  if (appTools.length) payload.extra_tools = [...(payload.extra_tools || []), ...appTools];
 
-  console.log("[tg] GTWY payload", JSON.stringify(maskGtwyPayloadForLog(payload, botToken)));
+  console.log("[tg] GTWY payload", JSON.stringify(redactExtraTools(maskGtwyPayloadForLog(payload, botToken))));
 
   const response = await fetch(`${pythonUrl}/api/v2/model/chat/completion`, {
     method: "POST",

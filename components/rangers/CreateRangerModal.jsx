@@ -499,6 +499,8 @@ const CreateRangerModal = ({ orgId, onDeployed }) => {
           {currentStep?.key === "connectors" && (
             <ConnectorsStep
               orgId={orgId}
+              agentId={created?.agentId}
+              versionId={created?.versionId}
               connectedTools={connectedTools}
               onConnectTool={connectTool}
               onDisconnectTool={disconnectTool}
