@@ -553,15 +553,18 @@ function MainSlider({ isEmbedUser, openDetails, userdetailsfromOrg, orgIdFromHea
           <div className="flex flex-col h-full">
             {/* Brand lockup — the canvas puts the wordmark at the top and the
                 account row at the bottom of the rail. */}
-            <div
-              className={`flex items-center gap-[10px] pb-4 ${showSidebarContent ? "px-1.5 pt-1" : "justify-center pt-1"}`}
-            >
+            <div className={`flex items-center pb-4 ${showSidebarContent ? "px-1.5 pt-1" : "justify-center pt-1"}`}>
               <div className="grid h-7 w-7 flex-none place-items-center rounded-[8px] bg-acc font-mono text-[13px] font-bold text-acc-ink">
                 R
               </div>
-              {showSidebarContent && (
-                <span className="text-[17px] font-bold tracking-[-0.025em] text-ink">rangers</span>
-              )}
+              {/* Always mounted so the wordmark shrinks and fades with the 300ms width animation, not 300ms after it. */}
+              <span
+                className={`overflow-hidden whitespace-nowrap text-[17px] font-bold tracking-[-0.025em] text-ink transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                  !isMobile && railExpanded ? "ml-[10px] max-w-[140px] opacity-100" : "ml-0 max-w-0 opacity-0"
+                }`}
+              >
+                rangers
+              </span>
             </div>
 
             {/* Create new Ranger. One element across both rail states, so the label squeezes with the 300ms width animation instead of wrapping mid-collapse. */}

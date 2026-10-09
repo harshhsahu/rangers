@@ -10,8 +10,10 @@ import {
   sendMessageWithRtLayer,
   sendMessageWithApiStreaming,
 } from "@/store/action/chatAction";
+import { sendRangerUpdateMessage } from "@/store/action/rangerUpdateChatAction";
+import { classifyRangerMessage, lastFlowOf, replyRoute, routeFromClassification, ROUTE } from "@/utils/rangerIntent";
 import Image from "next/image";
-import React, { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "@/utils/toast";
 import { SendHorizontalIcon, UploadIcon, LinkIcon, PlayIcon, CloseCircleIcon } from "@/components/Icons";
@@ -61,6 +63,10 @@ function ChatTextInput({
     }
   }, [inputRef]);
   const [uploading, setUploading] = useState(false);
+  // True while the intent check for a typed message is in flight. The ref is what guards a second send:
+  // state read inside the send handler would be a render behind.
+  const [routing, setRouting] = useState(false);
+  const routingRef = useRef(false);
   const [mediaUrls, setMediaUrls] = useState(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlInput, setUrlInput] = useState("");
@@ -112,8 +118,10 @@ function ChatTextInput({
   });
 
   // Redux selectors for chat state
-  const { threadId, loading, uploadedFiles, uploadedImages } = useCustomSelector((state) => ({
+  const { threadId, loading, uploadedFiles, uploadedImages, lastFlow } = useCustomSelector((state) => ({
     threadId: state?.chatReducer?.threadIdByChannel?.[channelIdentifier] || null,
+    // A string, so a streaming reply does not re-render this on every chunk.
+    lastFlow: lastFlowOf(state?.chatReducer?.messagesByChannel?.[channelIdentifier]),
     loading: state?.chatReducer?.loadingByChannel?.[channelIdentifier] || false,
     uploadedFiles: state?.chatReducer?.uploadedFilesByChannel?.[channelIdentifier] || [],
     uploadedImages: state?.chatReducer?.uploadedImagesByChannel?.[channelIdentifier] || [],
@@ -233,11 +241,62 @@ function ChatTextInput({
   }, [activePrompt, variablesKeyValue]);
 
   const handleSendMessage = async (e, forceRun = false) => {
-    if (showApiKeyWarning) {
-      toast.error("API key is not configured yet");
+    if (loading || uploading || routingRef.current) {
       return;
     }
-    if (loading || uploading) {
+
+    /**
+     * One window serves both the playground and the "update the ranger" chat, so a typed message is
+     * checked first. Only plain typed text is checked: attachments only make sense for a test run, a
+     * forced run (starter questions, "run anyway", rich-UI replies) is already a test, a published
+     * ranger has no draft to update, completion/embedding rangers take their input from config
+     * rather than from this box, and the orchestral flow chat is a test-only surface.
+     *
+     * Runs before the API-key and unsaved-prompt guards below because those protect the test run —
+     * an update needs neither the ranger's key nor a saved prompt.
+     */
+    const draft = (inputRef?.current?.value || "").trim();
+    const hasAttachments = uploadedImages.length > 0 || uploadedFiles.length > 0 || Boolean(mediaUrls);
+    const shouldCheckIntent =
+      !forceRun &&
+      !isOrchestralModel &&
+      !isPublished &&
+      Boolean(versionId) &&
+      Boolean(draft) &&
+      !hasAttachments &&
+      modelType !== "completion" &&
+      modelType !== "embedding";
+
+    if (shouldCheckIntent) {
+      // An answer to the helper's question needs no check; anything else is checked on its own.
+      let route = replyRoute(draft, lastFlow);
+      if (!route) {
+        routingRef.current = true;
+        setRouting(true);
+        try {
+          route = routeFromClassification(
+            await classifyRangerMessage({ message: draft, agentId: params?.id, versionId }),
+            lastFlow
+          );
+        } finally {
+          routingRef.current = false;
+          setRouting(false);
+        }
+      }
+
+      if (route === ROUTE.UPDATE) {
+        inputRef.current.value = "";
+        inputRef.current.style.height = "40px";
+        dispatch(setChatError(channelIdentifier, ""));
+        dispatch(
+          sendRangerUpdateMessage({ channelId: channelIdentifier, message: draft, bridgeId: params?.id, versionId })
+        );
+        return;
+      }
+    }
+
+    if (showApiKeyWarning) {
+      toast.error("API key is not configured yet");
       return;
     }
     if (unsavedPromptGuard.hasUnsavedChanges) {
@@ -458,17 +517,16 @@ function ChatTextInput({
         if (event.shiftKey) {
           // Do nothing, let the default behavior create a new line
         } else {
-          if (hasUnsavedPrompt) {
-            event.preventDefault();
-            openModal(MODAL_TYPE.UNSAVED_PROMPT_CHAT_MODAL);
-          } else if (!loading && !uploading) {
-            event.preventDefault();
+          // The unsaved-prompt modal is raised by handleSendMessage itself, after the intent check: an
+          // update to the ranger must not be blocked by edits that only a test run would use.
+          event.preventDefault();
+          if (!loading && !uploading && !routing) {
             handleSendMessage(event);
           }
         }
       }
     },
-    [loading, uploading, hasUnsavedPrompt, handleSendMessage]
+    [loading, uploading, routing, handleSendMessage]
   );
 
   const handlePaste = useCallback(
@@ -1039,7 +1097,8 @@ function ChatTextInput({
             data-testid="chat-message-textarea"
             id="chat-message-textarea"
             ref={inputRef}
-            placeholder="Type here"
+            placeholder="Test the ranger, or tell it what to change"
+            readOnly={routing}
             className={`rg-chat-input max-h-[200px] w-full overflow-y-auto ${validationError || attachmentError ? "!border-error" : ""}`}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
@@ -1054,13 +1113,13 @@ function ChatTextInput({
         <div className="tooltip tooltip-top" data-tip={hasUnsavedPrompt ? "Save your prompt first" : "Send message"}>
           <button
             id="chat-send-button"
-            className={`rg-chat-send transition-opacity duration-200 ${loading || uploading || showApiKeyWarning ? "cursor-not-allowed" : "hover:opacity-90"}`}
+            className={`rg-chat-send transition-opacity duration-200 ${loading || uploading || routing || showApiKeyWarning ? "cursor-not-allowed" : "hover:opacity-90"}`}
             onClick={() => {
               handleSendMessage();
             }}
-            disabled={loading || uploading}
+            disabled={loading || uploading || routing}
           >
-            {loading || uploading ? <span className="rg-spinner" /> : <SendHorizontalIcon size={15} />}
+            {loading || uploading || routing ? <span className="rg-spinner" /> : <SendHorizontalIcon size={15} />}
           </button>
         </div>
       </div>

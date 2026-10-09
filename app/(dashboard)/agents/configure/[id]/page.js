@@ -21,10 +21,7 @@ const ConfigurationPage = dynamic(() => import("@/components/configuration/Confi
 const Chat = dynamic(() => import("@/components/configuration/Chat"), { loading: () => null });
 const PromptHelper = dynamic(() => import("@/components/PromptHelper"), { ssr: false });
 const NotesPanel = dynamic(() => import("@/components/NotesPanel"), { ssr: false });
-const ChatPanelTabs = dynamic(() => import("@/components/configuration/ChatPanelTabs"), { ssr: false });
-const RangerUpdateChatPanel = dynamic(() => import("@/components/configuration/RangerUpdateChatPanel"), {
-  ssr: false,
-});
+const RangerChatWindow = dynamic(() => import("@/components/configuration/RangerChatWindow"), { ssr: false });
 const ConfigurationSkeleton = dynamic(() => import("@/components/skeletons/ConfigurationSkeleton"), { ssr: false });
 
 export const runtime = "edge";
@@ -825,28 +822,16 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
                   {/* Hidden, not unmounted: Chat clears its channel on unmount, so a
                       collapse/expand would otherwise throw away the conversation. */}
                   <div id="parentChatbot" className={uiState.isChatCollapsed ? "hidden" : "h-full flex flex-col"}>
-                    <ChatPanelTabs
-                      idPrefix="chat"
-                      testPanel={
-                        <div id="chat-content-container" className="flex-1 min-h-0">
-                          <Chat
-                            id="chat-component"
-                            params={resolvedParams}
-                            searchParams={resolvedSearchParams}
-                            draftPrompt={draftPromptForPlayground}
-                          />
-                        </div>
-                      }
-                      helperPanel={
-                        <div id="chat-ranger-update-container" className="flex min-h-0 flex-1 flex-col">
-                          <RangerUpdateChatPanel
-                            idPrefix="chat-ranger-update"
-                            bridgeId={resolvedParams?.id}
-                            versionId={resolvedSearchParams?.version}
-                          />
-                        </div>
-                      }
-                    />
+                    <RangerChatWindow idPrefix="chat">
+                      <div id="chat-content-container" className="flex-1 min-h-0">
+                        <Chat
+                          id="chat-component"
+                          params={resolvedParams}
+                          searchParams={resolvedSearchParams}
+                          draftPrompt={draftPromptForPlayground}
+                        />
+                      </div>
+                    </RangerChatWindow>
                   </div>
                 </Panel>
               )
@@ -997,28 +982,16 @@ const Page = ({ params, searchParams, isEmbedUser }) => {
           {(!isEmbedUser || (isEmbedUser && showPlayground)) && (
             <div id="parentChatbot" className="min-h-screen">
               <div id="mobile-chat-container" className="h-full flex flex-col">
-                <ChatPanelTabs
-                  idPrefix="mobile-chat"
-                  testPanel={
-                    <div id="mobile-chat-content-container" className="flex-1 min-h-0">
-                      <Chat
-                        id="mobile-chat-component"
-                        params={resolvedParams}
-                        searchParams={resolvedSearchParams}
-                        draftPrompt={draftPromptForPlayground}
-                      />
-                    </div>
-                  }
-                  helperPanel={
-                    <div id="mobile-chat-ranger-update-container" className="flex min-h-0 flex-1 flex-col">
-                      <RangerUpdateChatPanel
-                        idPrefix="mobile-chat-ranger-update"
-                        bridgeId={resolvedParams?.id}
-                        versionId={resolvedSearchParams?.version}
-                      />
-                    </div>
-                  }
-                />
+                <RangerChatWindow idPrefix="mobile-chat">
+                  <div id="mobile-chat-content-container" className="flex-1 min-h-0">
+                    <Chat
+                      id="mobile-chat-component"
+                      params={resolvedParams}
+                      searchParams={resolvedSearchParams}
+                      draftPrompt={draftPromptForPlayground}
+                    />
+                  </div>
+                </RangerChatWindow>
               </div>
             </div>
           )}
