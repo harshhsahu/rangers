@@ -2,15 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Link2, Maximize2, Minimize2, Pencil, Plus } from "lucide-react";
+import { Link2, Trash2 } from "lucide-react";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { getAllFunctions } from "@/store/action/bridgeAction";
-import useEmbedToolCreated from "@/customHooks/useEmbedToolCreated";
+import { deleteFunctionAction, getAllFunctions } from "@/store/action/bridgeAction";
 import { toast } from "@/utils/toast";
-import useConnectorEmbed from "../useConnectorEmbed";
-
-/** The box in this step that the builder is docked into. */
-const EMBED_PARENT_ID = "ranger-connector-embed-parent";
+import ViaSocketCatalog, { forgetCatalogAdded } from "@/components/configuration/sections/ViaSocketCatalog";
 
 // Fallback tile colours for tools with no service icon, keyed off the name so a
 // given tool always gets the same swatch.
@@ -18,19 +14,19 @@ const MONOGRAM_COLORS = ["#ff7a59", "#2684ff", "#0f9d58", "#635bff", "#5e6ad2", 
 const monogramColor = (seed = "") =>
   MONOGRAM_COLORS[Math.abs([...seed].reduce((acc, char) => acc + char.charCodeAt(0), 0)) % MONOGRAM_COLORS.length];
 
-const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnectTool, canConnect }) => {
+const ConnectorsStep = ({
+  orgId,
+  agentId,
+  versionId,
+  connectedTools = {},
+  onConnectTool,
+  onDisconnectTool,
+  canConnect,
+}) => {
   const dispatch = useDispatch();
-  // The tool whose connect/disconnect call is in flight, so only its own row shows a spinner.
   const [busyId, setBusyId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [errors, setErrors] = useState({});
-  // Bumping this tears the builder down and opens a fresh one in the box.
-  const [reloadKey, setReloadKey] = useState(0);
-  // script_id of the tool the builder is editing, or null while building a new one.
-  const [editScriptId, setEditScriptId] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  // Set by the ref callback below, so the open effect runs only once the target
-  // box is actually in the DOM (it is rendered conditionally).
-  const [embedHost, setEmbedHost] = useState(null);
 
   const { embedToken, functionData, integrationData } = useCustomSelector((state) => {
     const orgData = state?.bridgeReducer?.org?.[orgId] || {};
@@ -44,31 +40,6 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnec
   useEffect(() => {
     if (Object.keys(functionData).length === 0) dispatch(getAllFunctions());
   }, [dispatch, functionData]);
-
-  // The builder opens with the step — no button.
-  const { error: embedError, clearError: clearEmbedError } = useConnectorEmbed({
-    embedToken,
-    host: embedHost,
-    reloadKey,
-    scriptId: editScriptId,
-    meta: { type: "tool", createFrom: "Ranger Connectors" },
-  });
-
-  // A connector built in the embed only shows up in the list after a refetch.
-  const reloadBuilder = () => {
-    clearEmbedError();
-    dispatch(getAllFunctions());
-    setEditScriptId(null);
-    setReloadKey((key) => key + 1);
-  };
-
-  /** Reopens an existing tool in the same box. reloadKey forces the embed to remount. */
-  const editTool = (scriptId) => {
-    if (!scriptId) return;
-    clearEmbedError();
-    setEditScriptId(scriptId);
-    setReloadKey((key) => key + 1);
-  };
 
   const tools = useMemo(
     () =>
@@ -108,32 +79,30 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnec
     }
   };
 
-  /**
-   * A tool built in the builder above is attached to this ranger straight away
-   * — the user already said what they wanted by creating it here, so making
-   * them press Connect on the row as well is a step for nothing. `connected`
-   * means the org layout already attached it, so this would double up.
-   */
-  useEmbedToolCreated(async ({ functionId, title, connected }) => {
-    if (!functionId || connected) return;
-    // The new tool only shows up in the list below after a refetch.
-    dispatch(getAllFunctions());
-
-    const label = title || "Tool";
-    if (connectedTools?.[functionId]) return;
-    if (!onConnectTool || !canConnect) return;
-
-    const result = await runToggle(functionId, true);
-    if (result?.success) {
-      toast.success(`${label} connected to this ranger`);
-    } else {
-      toast.error(`${label} was created but not connected — ${result?.message || "Failed to connect."}`);
-    }
-  });
-
   const handleToggle = (tool, connect) => {
-    if (busyId) return;
+    if (busyId || deletingId) return;
     runToggle(tool.id, connect);
+  };
+
+  const handleDelete = async (tool) => {
+    if (busyId || deletingId) return;
+    if (!window.confirm(`Delete ${tool.name}? You can add it again from the catalog.`)) return;
+    setDeletingId(tool.id);
+    try {
+      if (connectedTools?.[tool.id] && onDisconnectTool) await onDisconnectTool(tool.id);
+      const result = await dispatch(
+        deleteFunctionAction({ script_id: tool.scriptId || tool.id, functionId: tool.id, orgId })
+      );
+      if (result?.isAxiosError || result?.response?.status) {
+        throw new Error(result?.response?.data?.error || result?.message || "Could not delete the tool");
+      }
+      forgetCatalogAdded(orgId);
+      toast.success(`${tool.name} deleted`);
+    } catch (error) {
+      toast.error(error?.message || "Could not delete the tool");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -142,68 +111,16 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnec
         Connectors <span className="text-[11px] font-semibold text-soft">— optional</span>
       </h3>
       <p className="mb-3 mt-1 text-[12.5px] text-soft">
-        Build a new connector below, then attach any authenticated tool to this ranger.
+        Search an app, connect it, and add an action as a tool for this ranger.
       </p>
 
-      {/* Expanding only resizes this box — the embed node stays put, so the
-          builder keeps its state. */}
-      <div
-        className={`flex flex-col overflow-hidden rounded-[12px] border-2 border-stroke bg-card ${
-          isExpanded ? "fixed inset-3 z-high shadow-2xl" : ""
-        }`}
-      >
-        <div className="flex flex-none items-center justify-between gap-3 border-b-2 border-stroke px-3 py-2">
-          <span className="text-[11.5px] text-soft">Connector builder</span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              data-testid="ranger-connector-add-new"
-              className="btn btn-xs gap-1"
-              disabled={!embedToken}
-              onClick={reloadBuilder}
-            >
-              <Plus size={12} />
-              Add New Connection
-            </button>
-            <button
-              type="button"
-              data-testid="ranger-connector-expand"
-              title={isExpanded ? "Collapse builder" : "Expand builder"}
-              className="btn btn-xs gap-1"
-              onClick={() => setIsExpanded((expanded) => !expanded)}
-            >
-              {isExpanded ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-              {isExpanded ? "Collapse" : "Expand"}
-            </button>
-          </div>
-        </div>
-
-        {embedToken ? (
-          <div
-            id={EMBED_PARENT_ID}
-            ref={setEmbedHost}
-            data-testid="ranger-connector-embed-parent"
-            className={`relative w-full overflow-hidden bg-base-100 ${isExpanded ? "min-h-0 flex-1" : "h-[26rem]"}`}
-          >
-            {embedError ? (
-              <div className="absolute inset-0 grid place-items-center gap-2 px-4 text-center">
-                <p className="text-[12px] text-error">{embedError}</p>
-                <button type="button" className="btn btn-xs" onClick={reloadBuilder}>
-                  Retry
-                </button>
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <div
-            className={`grid place-items-center px-4 text-center text-[12px] text-soft ${
-              isExpanded ? "min-h-0 flex-1" : "h-[26rem]"
-            }`}
-          >
-            The connector builder is still loading for this organization.
-          </div>
-        )}
-      </div>
+      <ViaSocketCatalog
+        orgId={orgId}
+        agentId={agentId}
+        versionId={versionId}
+        embedToken={embedToken}
+        disabled={!canConnect}
+      />
 
       <div className="mb-2 mt-5">
         <h4 className="text-[13px] font-bold text-base-content">Organization tools</h4>
@@ -246,17 +163,6 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnec
                     <div className="truncate text-[11px] text-soft">{tool.description}</div>
                   </div>
 
-                  <button
-                    type="button"
-                    data-testid={`ranger-connector-edit-${tool.id}`}
-                    title="Edit this connector"
-                    className="btn btn-ghost btn-xs btn-square"
-                    disabled={!embedToken || !tool.scriptId}
-                    onClick={() => editTool(tool.scriptId)}
-                  >
-                    <Pencil size={12} />
-                  </button>
-
                   {isConnected && !isBusy && (
                     <span className="flex-none text-[11px] font-semibold text-success">Connected</span>
                   )}
@@ -265,7 +171,7 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnec
                     type="button"
                     data-testid={`ranger-connector-${isConnected ? "disconnect" : "connect"}-${tool.id}`}
                     className={`btn btn-xs ${isConnected ? "btn-ghost text-error" : "btn-outline"}`}
-                    disabled={isBusy || !canConnect || (isConnected && !onDisconnectTool)}
+                    disabled={isBusy || deletingId === tool.id || !canConnect || (isConnected && !onDisconnectTool)}
                     onClick={() => handleToggle(tool, !isConnected)}
                   >
                     {isBusy ? (
@@ -278,6 +184,15 @@ const ConnectorsStep = ({ orgId, connectedTools = {}, onConnectTool, onDisconnec
                     ) : (
                       "Connect"
                     )}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-xs text-error"
+                    disabled={isBusy || deletingId === tool.id}
+                    onClick={() => handleDelete(tool)}
+                  >
+                    <Trash2 size={12} />
+                    {deletingId === tool.id ? "Deleting…" : "Delete"}
                   </button>
                 </div>
 

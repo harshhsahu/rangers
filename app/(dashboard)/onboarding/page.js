@@ -246,6 +246,8 @@ function OnboardingPage({ params }) {
               ) : stepKey === "connectors" ? (
                 <ConnectorsPane
                   orgId={orgId}
+                  agentId={created?.agentId}
+                  versionId={created?.versionId}
                   mcpServers={mcpServers}
                   onMcpServersChange={setMcpServers}
                   selectedToolIds={selectedToolIds}

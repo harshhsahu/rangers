@@ -1,33 +1,19 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link2, Maximize2, Minimize2, Pencil, Plus, X } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link2, Trash2 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { toast } from "@/utils/toast";
 import KnowledgebaseList from "../configurationComponent/KnowledgebaseList";
 import McpServerList from "../configurationComponent/McpServerList";
 import { useConfigurationContext } from "../ConfigurationContext";
 import UnsupportedFeatureOverlay from "../UnsupportedFeatureOverlay";
-import useConnectorEmbed from "@/components/rangers/useConnectorEmbed";
+import ViaSocketCatalog, { forgetCatalogAdded } from "./ViaSocketCatalog";
 import { useCustomSelector } from "@/customHooks/customSelector";
-import { getAllFunctions, updateBridgeVersionAction } from "@/store/action/bridgeAction";
-
-/** Stable, so the builder is not torn down and reopened on every render. */
-const EMBED_META = { type: "tool", createFrom: "Agent Connectors" };
+import { deleteFunctionAction, getAllFunctions, updateBridgeVersionAction } from "@/store/action/bridgeAction";
+import { toast } from "@/utils/toast";
 
 const ConnectorsTab = ({ isPublished }) => {
   const dispatch = useDispatch();
-  const [showBuilder, setShowBuilder] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  /**
-   * script_id of the tool being edited, or null to build a new one. The embed takes it
-   * as openViasocket's first argument — passing undefined there is what makes the
-   * builder open blank, which is why an existing tool could not be reopened before.
-   */
-  const [editScriptId, setEditScriptId] = useState(null);
-  const rootRef = useRef(null);
-  /** The box the builder fills; state so the embed mounts once it is on screen. */
-  const [embedHost, setEmbedHost] = useState(null);
   const { shouldToolsShow, params, searchParams, isEditor, isEmbedUser, showMcp } = useConfigurationContext();
   const { embedToken, functionData, integrationData, connectedFunctionIds } = useCustomSelector((state) => {
     const orgData = state?.bridgeReducer?.org?.[params?.org_id] || {};
@@ -63,56 +49,6 @@ const ConnectorsTab = ({ isPublished }) => {
     [functionData, integrationData]
   );
 
-  const { error: embedError } = useConnectorEmbed({
-    embedToken,
-    host: embedHost,
-    enabled: showBuilder,
-    meta: EMBED_META,
-    scriptId: editScriptId,
-  });
-
-  /**
-   * Expanding grows the box in place. The embed fills its box, so it follows
-   * the new size without remounting and keeps whatever the user had built.
-   *
-   * Inside the setup modal the box can only grow as far as the dialog allows,
-   * so the surrounding modal is stretched to the viewport for as long as the
-   * builder is expanded.
-   */
-  useEffect(() => {
-    if (!isExpanded) return undefined;
-
-    const container = rootRef.current?.closest("[data-modal-container]");
-    if (!container) return undefined;
-
-    const previousStyle = container.style.cssText;
-    container.style.setProperty("width", "100vw", "important");
-    container.style.setProperty("height", "100vh", "important");
-    container.style.setProperty("max-height", "100vh", "important");
-    container.style.setProperty("border-radius", "0", "important");
-
-    return () => {
-      container.style.cssText = previousStyle;
-    };
-  }, [isExpanded]);
-
-  /** `scriptId` reopens an existing tool; omitted, the builder starts blank. */
-  const openBuilder = (scriptId = null) => {
-    if (!embedToken) {
-      toast.error("Connector builder is still loading. Please try again in a moment.");
-      return;
-    }
-    setEditScriptId(scriptId);
-    setShowBuilder(true);
-  };
-
-  // Tearing the builder down is the hook's cleanup, so closing is just state.
-  const closeBuilder = () => {
-    setShowBuilder(false);
-    setIsExpanded(false);
-    setEditScriptId(null);
-  };
-
   const connectTool = (functionId) => {
     if (!functionId || isPublished || !isEditor) return;
     dispatch(
@@ -147,9 +83,31 @@ const ConnectorsTab = ({ isPublished }) => {
     );
   };
 
+  const [deletingId, setDeletingId] = useState(null);
+  const deleteTool = async (tool) => {
+    if (!tool?._id || isPublished || !isEditor || deletingId) return;
+    if (!window.confirm(`Delete ${tool.displayName}? You can add it again from the catalog.`)) return;
+    setDeletingId(tool._id);
+    try {
+      if (connectedFunctionIds.includes(tool._id)) disconnectTool(tool);
+      const scriptId = tool.script_id || tool._id;
+      const result = await dispatch(
+        deleteFunctionAction({ script_id: scriptId, functionId: tool._id, orgId: params?.org_id })
+      );
+      if (result?.isAxiosError || result?.response?.status) {
+        throw new Error(result?.response?.data?.error || result?.message || "Could not delete the tool");
+      }
+      forgetCatalogAdded(params?.org_id);
+      toast.success(`${tool.displayName} deleted`);
+    } catch (error) {
+      toast.error(error?.message || "Could not delete the tool");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div
-      ref={rootRef}
       data-testid="connectors-tab-container"
       id="connectors-tab-container"
       className={`w-full relative ${shouldToolsShow ? "" : "overflow-hidden max-h-[46rem]"}`}
@@ -157,72 +115,13 @@ const ConnectorsTab = ({ isPublished }) => {
       {!shouldToolsShow && <UnsupportedFeatureOverlay featureName="Connectors" />}
 
       <div className="mt-4 space-y-5 px-2">
-        <div className="flex flex-col rounded-xl border-2 border-stroke bg-card">
-          <div className="flex flex-none items-center justify-between gap-3 border-b-2 border-stroke p-4">
-            <div>
-              <h3 className="text-sm font-semibold text-base-content">
-                {editScriptId ? "Edit connector" : "Connector builder"}
-              </h3>
-              <p className="mt-1 text-xs text-soft">
-                {editScriptId
-                  ? `Editing ${editScriptId}. Changes apply everywhere this tool is used.`
-                  : "Create and authenticate a ViaSocket tool for this organization."}
-              </p>
-            </div>
-            {showBuilder ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm gap-1"
-                  title={isExpanded ? "Collapse builder" : "Expand builder"}
-                  onClick={() => setIsExpanded((expanded) => !expanded)}
-                  data-testid="connectors-expand-builder"
-                >
-                  {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                  {isExpanded ? "Collapse" : "Expand"}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-sm gap-1"
-                  onClick={closeBuilder}
-                  data-testid="connectors-close-builder"
-                >
-                  <X size={14} />
-                  Close
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm gap-1"
-                onClick={() => openBuilder()}
-                disabled={!shouldToolsShow || isPublished || !isEditor}
-                data-testid="connectors-open-builder"
-              >
-                <Plus size={14} />
-                New connector
-              </button>
-            )}
-          </div>
-
-          {showBuilder && (
-            <div className="p-3">
-              <div
-                ref={setEmbedHost}
-                data-testid="connectors-viasocket-parent"
-                className={`relative w-full overflow-hidden rounded-lg bg-base-100 ${
-                  isExpanded ? "h-[calc(100vh-13rem)]" : "h-[32rem]"
-                }`}
-              >
-                {embedError && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-base-100 p-4">
-                    <p className="text-center text-xs text-error">{embedError}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <ViaSocketCatalog
+          orgId={params?.org_id}
+          agentId={params?.id}
+          versionId={searchParams?.version}
+          embedToken={embedToken}
+          disabled={!shouldToolsShow || isPublished || !isEditor}
+        />
 
         {/* MCP servers and the knowledge base are peers — two columns on a wide
             screen, stacked below it. The tool list stays full width underneath. */}
@@ -242,7 +141,7 @@ const ConnectorsTab = ({ isPublished }) => {
           <div className="mb-3">
             <h3 className="text-sm font-semibold text-base-content">Organization tools</h3>
             <p className="mt-1 text-xs text-soft">
-              Connect or disconnect an authenticated organization tool for this agent.
+              Connect a tool to this agent, or delete it to add it again from the catalog.
             </p>
           </div>
 
@@ -273,25 +172,27 @@ const ConnectorsTab = ({ isPublished }) => {
                       <p className="truncate text-sm font-medium text-base-content">{tool.displayName}</p>
                       <p className="truncate text-xs text-soft">{tool.script_id}</p>
                     </div>
-                    <button
-                      type="button"
-                      data-testid={`org-connector-edit-${tool._id}`}
-                      title="Edit this connector"
-                      className="btn btn-ghost btn-xs btn-square"
-                      disabled={!embedToken || !tool.script_id}
-                      onClick={() => openBuilder(tool.script_id)}
-                    >
-                      <Pencil size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      data-testid={`org-connector-toggle-${tool._id}`}
-                      className={`btn btn-xs ${isConnected ? "btn-ghost text-error" : "btn-outline"}`}
-                      disabled={isPublished || !isEditor}
-                      onClick={() => (isConnected ? disconnectTool(tool) : connectTool(tool._id))}
-                    >
-                      {isConnected ? "Disconnect" : "Connect"}
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        data-testid={`org-connector-toggle-${tool._id}`}
+                        className={`btn btn-xs ${isConnected ? "btn-ghost text-error" : "btn-outline"}`}
+                        disabled={isPublished || !isEditor}
+                        onClick={() => (isConnected ? disconnectTool(tool) : connectTool(tool._id))}
+                      >
+                        {isConnected ? "Disconnect" : "Connect"}
+                      </button>
+                      <button
+                        type="button"
+                        data-testid={`org-connector-delete-${tool._id}`}
+                        className="btn btn-ghost btn-xs text-error"
+                        disabled={isPublished || !isEditor || deletingId === tool._id}
+                        onClick={() => deleteTool(tool)}
+                      >
+                        <Trash2 size={12} />
+                        {deletingId === tool._id ? "Deleting…" : "Delete"}
+                      </button>
+                    </div>
                   </div>
                 );
               })}

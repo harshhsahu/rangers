@@ -11,7 +11,11 @@ module.exports = {
   // reaches the import on edge anyway.
   webpack: (config, { nextRuntime, webpack }) => {
     if (nextRuntime !== "nodejs") {
-      config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /(^|[\\/])discordBotManager/ }));
+      config.plugins.push(
+        new webpack.IgnorePlugin({ resourceRegExp: /(^|[\\/])discordBotManager/ }),
+        new webpack.IgnorePlugin({ resourceRegExp: /(^|[\\/])instrumentation\.node/ }),
+        new webpack.IgnorePlugin({ resourceRegExp: /^dns$/ })
+      );
     }
     return config;
   },
