@@ -6,6 +6,7 @@ import { Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 import NetworkStatus from "@/components/NetworkStatus";
 import PaletteFocusGuard from "@/components/PaletteFocusGuard";
 import RegisterSW from "@/components/RegisterSW";
+import { rangersApiUrl } from "@/utils/rangersApiUrl";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -71,7 +72,7 @@ export default function RootLayout({ children }) {
       <head>
         <GoogleTagManager gtmId="GTM-PXRN8T45" />
         <script src={`https://main.d2f49esifpcbwh.amplifyapp.com/tracker.js`} async />
-        <link rel="manifest" href="/api/manifest" crossOrigin="use-credentials" />
+        <link rel="manifest" href={rangersApiUrl("/api/manifest")} />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body suppressHydrationWarning className="font-sans">

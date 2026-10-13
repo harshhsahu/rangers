@@ -1,6 +1,6 @@
 import axios from "@/utils/interceptor";
 import { toast } from "@/utils/toast";
-import { authHeaders } from "@/utils/internalAuth";
+import { rangersFetch } from "@/utils/rangersApi";
 
 const URL = process.env.NEXT_PUBLIC_SERVER_URL;
 const PYTHON_URL = process.env.NEXT_PUBLIC_PYTHON_SERVER_URL;
@@ -10,7 +10,7 @@ const getViaSocketExtraTools = async (agentId, versionId) => {
   if (!agentId) return [];
   try {
     const query = new URLSearchParams({ agent_id: agentId, ...(versionId ? { version_id: versionId } : {}) });
-    const res = await fetch(`/api/viasocket/app-tools?${query}`, { headers: authHeaders() });
+    const res = await rangersFetch(`/api/viasocket/app-tools?${query}`);
     const data = await res.json().catch(() => ({}));
     return Array.isArray(data?.extra_tools) ? data.extra_tools : [];
   } catch {

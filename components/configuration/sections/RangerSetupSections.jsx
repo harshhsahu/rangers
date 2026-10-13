@@ -6,7 +6,6 @@ import { SparklesIcon, BotIcon, LinkIcon } from "@/components/Icons";
 import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { openModal } from "@/utils/utility";
-import { authHeaders } from "@/utils/internalAuth";
 import { CONNECTABLE_CHANNELS } from "@/components/rangers/rangerConstants";
 import { useConfigurationContext } from "../ConfigurationContext";
 import { UPDATE_TARGET } from "../chatUpdateTargets";
@@ -15,6 +14,7 @@ import ModelTab from "./ModelTab";
 import ConnectorsTab from "./ConnectorsTab";
 import ChannelsPanel from "./ChannelsPanel";
 import SchedulerPanel from "./SchedulerPanel";
+import { rangersFetch } from "@/utils/rangersApi";
 
 const MODAL_WIDTH = "w-[min(1040px,95vw)]";
 /** These panels are tall, so the scrollbar has to be visible to hint at it. */
@@ -108,7 +108,7 @@ const useConnectedChannels = (versionId) => {
   const load = useCallback(async () => {
     if (!versionId) return;
     try {
-      const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+      const res = await rangersFetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
       const data = await res.json();
       if (!data?.success) return;
       setConnected(CONNECTABLE_CHANNELS.filter((channel) => data.data?.[channel.key]?.botToken));
@@ -140,9 +140,8 @@ const useScheduleSummary = (versionId, agentId) => {
   const load = useCallback(async () => {
     if (!versionId) return;
     try {
-      const res = await fetch(
-        `/api/scheduler?version_id=${encodeURIComponent(versionId)}&agent_id=${encodeURIComponent(agentId || "")}`,
-        { headers: authHeaders() }
+      const res = await rangersFetch(
+        `/api/scheduler?version_id=${encodeURIComponent(versionId)}&agent_id=${encodeURIComponent(agentId || "")}`
       );
       const data = await res.json();
       if (data?.success) setSchedules(data.schedules || []);

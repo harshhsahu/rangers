@@ -53,8 +53,7 @@
           "customHooks/**/*",
           "store/**/*",
           "utils/**/*",
-          "lib/**/*",
-          "instrumentation.js"
+          "lib/**/*"
         ]
       }
     ],

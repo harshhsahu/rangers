@@ -1,3 +1,4 @@
+import { rangersApiUrl } from "@/utils/rangersApiUrl";
 import { getFromCookies, setInCookies } from "@/utils/utility";
 
 /**
@@ -12,24 +13,6 @@ export function storeAuthToken(token, { orgId, folderId, userId } = {}) {
     if (folderId) sessionStorage.setItem("gtwy_folder_id", String(folderId));
     if (userId) sessionStorage.setItem("gtwy_user_id", String(userId));
   }
-}
-
-/**
- * GTWY session token used as `Authorization` for GTWY APIs and for our own
- * authenticated routes (channel setup). Same lookup order as the axios interceptor.
- */
-export function getStoredAuthToken() {
-  if (typeof sessionStorage !== "undefined") {
-    const fromSession = sessionStorage.getItem("local_token");
-    if (fromSession) return fromSession;
-  }
-  return getFromCookies("local_token");
-}
-
-/** Authorization header for our own authenticated routes; omitted when unknown. */
-export function authHeaders() {
-  const token = getStoredAuthToken();
-  return token ? { Authorization: token } : {};
 }
 
 function getStoredProxyToken() {
@@ -47,7 +30,7 @@ function getStoredProxyToken() {
 export async function loginWithProxyAuthToken(proxyAuthToken, { userOrgId } = {}) {
   if (!proxyAuthToken) return null;
 
-  const res = await fetch("/api/auth/internal-login", {
+  const res = await fetch(rangersApiUrl("/api/auth/internal-login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

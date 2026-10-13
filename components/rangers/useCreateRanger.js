@@ -20,6 +20,7 @@ import {
   resolveTemperature,
 } from "./rangerConstants";
 import { buildRangerMeta, mergeRangerMeta } from "./rangerMeta";
+import { rangersFetch } from "@/utils/rangersApi";
 
 /** Falls back to a plain string when the response prompt is not the structured object. */
 const resolvePromptText = (prompt) => {
@@ -313,7 +314,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
         // reporting the rejection back as a warning they never asked for.
         if (!(creds.botToken || "").trim()) continue;
         try {
-          const res = await fetch(channel.setupEndpoint, {
+          const res = await rangersFetch(channel.setupEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -410,7 +411,7 @@ const useCreateRanger = ({ orgId, folderId, onDeployed }) => {
       if (message) return { success: false, message };
 
       try {
-        const res = await fetch(channel.setupEndpoint, {
+        const res = await rangersFetch(channel.setupEndpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

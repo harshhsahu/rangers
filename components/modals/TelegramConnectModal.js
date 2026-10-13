@@ -6,7 +6,7 @@ import Modal from "@/components/UI/Modal";
 import { MODAL_TYPE } from "@/utils/enums";
 import { closeModal, RequiredItem } from "@/utils/utility";
 import { toast } from "@/utils/toast";
-import { authHeaders } from "@/utils/internalAuth";
+import { rangersFetch } from "@/utils/rangersApi";
 
 /**
  * Connect / manage Telegram bot for an agent version.
@@ -44,9 +44,9 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
 
     setIsSaving(true);
     try {
-      const res = await fetch("/api/telegram/setup", {
+      const res = await rangersFetch("/api/telegram/setup", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           botToken: token,
           version_id: versionId,
@@ -83,11 +83,10 @@ const TelegramConnectModal = ({ versionId, agentId, orgId, channel, onSaved, onD
 
     setIsDeleting(true);
     try {
-      const res = await fetch(
+      const res = await rangersFetch(
         `/api/telegram/setup?version_id=${encodeURIComponent(versionId)}${agentId ? `&agent_id=${encodeURIComponent(agentId)}` : ""}`,
         {
           method: "DELETE",
-          headers: authHeaders(),
         }
       );
       const data = await res.json();

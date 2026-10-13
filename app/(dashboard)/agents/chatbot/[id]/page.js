@@ -8,6 +8,7 @@ import { LAST_CHATBOT_KEY } from "@/components/RegisterSW";
 import InstallButton from "@/components/common/installButton";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import { ORG_ID } from "@/utils/enums";
+import { rangersApiUrl } from "@/utils/rangersApiUrl";
 
 export const runtime = "edge";
 
@@ -53,18 +54,17 @@ const Page = ({ params, searchParams }) => {
   const path = `/agents/chatbot/${id}${versionId ? `?versionId=${versionId}` : ""}`;
 
   // Installing from here should launch the app straight into this chatbot (start_url comes from the manifest
-  // route). A new <link> is inserted instead of editing href: browsers re-read the manifest for a new element.
+  // route on rangers-backend). A new <link> is inserted instead of editing href: browsers re-read the manifest for a new element.
   useEffect(() => {
     const setManifest = (href) => {
       document.querySelectorAll('link[rel="manifest"]').forEach((el) => el.remove());
       const link = document.createElement("link");
       link.rel = "manifest";
       link.href = href;
-      link.crossOrigin = "use-credentials";
       document.head.appendChild(link);
     };
-    setManifest(`/api/manifest?start=${encodeURIComponent(path)}`);
-    return () => setManifest("/api/manifest");
+    setManifest(rangersApiUrl(`/api/manifest?start=${encodeURIComponent(path)}`));
+    return () => setManifest(rangersApiUrl("/api/manifest"));
   }, [path]);
 
   useEffect(() => {

@@ -6,6 +6,36 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "rangers-backend-isolated",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "MONGODB_URI=",
+        "PORT=4917",
+        "FRONTEND_URL=http://localhost:3917",
+        "CORS_ORIGIN=http://localhost:3917",
+        "npm",
+        "--prefix",
+        "../rangers-backend",
+        "run",
+        "dev"
+      ],
+      "port": 4917
+    },
+    {
+      "name": "rangers-frontend-split",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "NEXT_PUBLIC_RANGERS_API_URL=http://localhost:4917",
+        "npx",
+        "next",
+        "dev",
+        "--turbopack",
+        "-p",
+        "3917"
+      ],
+      "port": 3917
     }
   ]
 }

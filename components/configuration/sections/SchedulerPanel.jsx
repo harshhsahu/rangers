@@ -4,11 +4,11 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Pause, Play, Plus, Sparkles, Trash2, Wand2, X } from "lucide-react";
 import { toast } from "@/utils/toast";
-import { authHeaders } from "@/utils/internalAuth";
 import { useCustomSelector } from "@/customHooks/customSelector";
 import timezoneData, { getLocalTimezone } from "@/utils/timezoneData";
 import { describeCron, nextCronRuns } from "@/lib/cronExpression";
 import { useConfigurationContext } from "../ConfigurationContext";
+import { rangersFetch } from "@/utils/rangersApi";
 
 /**
  * Scheduled runs for an existing ranger.
@@ -121,7 +121,7 @@ const SchedulerPanel = () => {
     const MAX_ATTEMPTS = 90;
 
     const fetchChat = () =>
-      fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`, { headers: authHeaders() })
+      rangersFetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`)
         .then((res) => res.json())
         .then((data) => {
           const chatUser = data?.data?.telegram?.chatUser || null;
@@ -152,9 +152,8 @@ const SchedulerPanel = () => {
     if (!versionId) return;
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/scheduler?version_id=${encodeURIComponent(versionId)}&agent_id=${encodeURIComponent(agentId || "")}`,
-        { headers: authHeaders() }
+      const res = await rangersFetch(
+        `/api/scheduler?version_id=${encodeURIComponent(versionId)}&agent_id=${encodeURIComponent(agentId || "")}`
       );
       const data = await res.json();
       if (!data?.success) throw new Error(data?.error || "Could not load schedules");
@@ -212,9 +211,9 @@ const SchedulerPanel = () => {
     if (!text || aiBusy) return;
     setAiBusy(true);
     try {
-      const res = await fetch("/api/scheduler/cron-ai", {
+      const res = await rangersFetch("/api/scheduler/cron-ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agent_id: agentId, version_id: versionId, text, timezone: draft.timezone }),
       });
       const data = await res.json();
@@ -302,9 +301,9 @@ const SchedulerPanel = () => {
     try {
       const delivery = buildDeliveryPayload();
       if (editingId) {
-        const res = await fetch(`/api/scheduler/${editingId}`, {
+        const res = await rangersFetch(`/api/scheduler/${editingId}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json", ...authHeaders() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             label: draft.label.trim() || undefined,
             message: draft.message.trim(),
@@ -320,9 +319,9 @@ const SchedulerPanel = () => {
         setFormOpen(false);
         toast.success(`Updated — ${data.schedule.description}`);
       } else {
-        const res = await fetch("/api/scheduler", {
+        const res = await rangersFetch("/api/scheduler", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...authHeaders() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             agent_id: agentId,
             version_id: versionId,
@@ -351,9 +350,9 @@ const SchedulerPanel = () => {
     setBusyId(schedule._id);
     setBusyAction(schedule.enabled ? "Pausing" : "Resuming");
     try {
-      const res = await fetch(`/api/scheduler/${schedule._id}`, {
+      const res = await rangersFetch(`/api/scheduler/${schedule._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: !schedule.enabled }),
       });
       const data = await res.json();
@@ -372,7 +371,7 @@ const SchedulerPanel = () => {
     setBusyId(schedule._id);
     setBusyAction("Deleting");
     try {
-      const res = await fetch(`/api/scheduler/${schedule._id}`, { method: "DELETE", headers: authHeaders() });
+      const res = await rangersFetch(`/api/scheduler/${schedule._id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.error || "Could not delete the schedule");
       setSchedules((prev) => {
@@ -399,9 +398,8 @@ const SchedulerPanel = () => {
     setBusyAction("Running");
     setTestStatus((prev) => ({ ...prev, [schedule._id]: "running" }));
     try {
-      const res = await fetch(`/api/scheduler/${schedule._id}/run`, {
+      const res = await rangersFetch(`/api/scheduler/${schedule._id}/run`, {
         method: "POST",
-        headers: authHeaders(),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.success) throw new Error(data?.error || "Could not start the run");

@@ -7,10 +7,10 @@ import { useCustomSelector } from "@/customHooks/customSelector";
 import { getLocalTimezone } from "@/utils/timezoneData";
 import { toast } from "@/utils/toast";
 import unsavedPromptGuard from "@/utils/unsavedPromptGuard";
-import { getAuthToken } from "@/utils/interceptor";
 import ReactMarkdown from "../LazyMarkdown";
 import { mdComponentsDark, mdProseClass, mdRemarkPlugins } from "@/utils/markdownComponents";
 import { applyRangerUpdates, isReadOnlyTool, targetForTool, TARGET_LABEL, UPDATE_TARGET } from "./chatUpdateTargets";
+import { rangersFetch } from "@/utils/rangersApi";
 
 const STARTERS = ["Rename it to Support Ranger", "Give it a shorter name", "What is this ranger called?"];
 
@@ -272,10 +272,9 @@ const RangerUpdateChatPanel = ({ bridgeId, versionId, onChannelsChanged, idPrefi
       let raw = "";
 
       try {
-        const token = getAuthToken();
-        const res = await fetch("/api/ranger-ai/update", {
+        const res = await rangersFetch("/api/ranger-ai/update", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...(token ? { Authorization: token } : {}) },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: trimmed,
             thread_id: threadId,

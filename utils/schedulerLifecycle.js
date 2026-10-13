@@ -1,4 +1,4 @@
-import { authHeaders } from "@/utils/internalAuth";
+import { rangersFetch } from "@/utils/rangersApi";
 
 /**
  * Keep a ranger's schedules in step with the ranger itself.
@@ -13,9 +13,9 @@ import { authHeaders } from "@/utils/internalAuth";
 export async function syncSchedulesForAgent(agentId, action, { versionId } = {}) {
   if (!agentId) return { success: false };
   try {
-    const res = await fetch("/api/scheduler/lifecycle", {
+    const res = await rangersFetch("/api/scheduler/lifecycle", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ agent_id: agentId, version_id: versionId, action }),
     });
     const data = await res.json().catch(() => ({}));

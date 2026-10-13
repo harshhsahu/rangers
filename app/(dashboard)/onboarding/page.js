@@ -24,6 +24,7 @@ import ConnectorsPane from "@/components/rangers/onboarding/ConnectorsPane";
 import ChannelPane from "@/components/rangers/onboarding/ChannelPane";
 import ReviewPane from "@/components/rangers/onboarding/ReviewPane";
 import { ONBOARDING_COPY, ONBOARDING_STEPS } from "@/components/rangers/onboarding/onboardingConstants";
+import { rangersFetch } from "@/utils/rangersApi";
 
 export const runtime = "edge";
 
@@ -135,7 +136,7 @@ function OnboardingPage({ params }) {
     setIsWriting(true);
     setPromptStatus("Writing…");
     try {
-      const res = await fetch("/api/ranger-ai/prompt", {
+      const res = await rangersFetch("/api/ranger-ai/prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: form.name, role: form.role, description: form.description }),

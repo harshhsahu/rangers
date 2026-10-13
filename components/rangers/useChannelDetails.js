@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RANGER_CHANNELS } from "./rangerConstants";
+import { rangersFetch } from "@/utils/rangersApi";
 
 /**
  * Loads /api/channel-details once and derives the two shapes the Rangers page
@@ -28,7 +29,7 @@ const useChannelDetails = ({ orgId, agents = [] }) => {
     (async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/channel-details");
+        const res = await rangersFetch("/api/channel-details");
         const data = await res.json();
         if (!cancelled && mountedRef.current) {
           setChannelDocs(Array.isArray(data?.data) ? data.data : []);

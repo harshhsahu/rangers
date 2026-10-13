@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link2, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "@/utils/toast";
-import { authHeaders, getStoredGtwyUserId } from "@/utils/internalAuth";
+import { getStoredGtwyUserId } from "@/utils/internalAuth";
+import { rangersFetch } from "@/utils/rangersApi";
 
 const CONNECT_SCRIPT = "https://embed.viasocket.com/prod-connectcomponent.js";
 const EMBED_PAGE = "https://embedfrontend.viasocket.com/embed";
@@ -78,9 +79,9 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
       return undefined;
     }
     let cancelled = false;
-    fetch("/api/viasocket/register", {
+    rangersFetch("/api/viasocket/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ embed_token: embedToken }),
     })
       .then((res) => res.json())
@@ -102,7 +103,7 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
       return;
     }
     const params = new URLSearchParams({ agent_id: agentId, ...(versionId ? { version_id: versionId } : {}) });
-    const res = await fetch(`/api/viasocket/app-tools?${params}`, { headers: authHeaders() });
+    const res = await rangersFetch(`/api/viasocket/app-tools?${params}`);
     const data = await res.json().catch(() => ({}));
     if (res.ok && data?.success) setAppTools(data.tools || []);
   }, [agentId, versionId]);
@@ -122,7 +123,7 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
   useEffect(() => {
     let cancelled = false;
     setSearching(true);
-    fetch("/api/viasocket/apps", { headers: authHeaders() })
+    rangersFetch("/api/viasocket/apps")
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
@@ -153,7 +154,7 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
     setSearching(true);
     searchTimer.current = window.setTimeout(async () => {
       try {
-        const res = await fetch(`/api/viasocket/apps?key=${encodeURIComponent(text)}`, { headers: authHeaders() });
+        const res = await rangersFetch(`/api/viasocket/apps?key=${encodeURIComponent(text)}`);
         const data = await res.json();
         if (!res.ok || !data?.success) throw new Error(data?.error || "Search failed");
         setApps(data.apps || []);
@@ -171,9 +172,7 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
     setActions([]);
     setLoadingActions(true);
     try {
-      const res = await fetch(`/api/viasocket/apps/${encodeURIComponent(app.service_id)}/versions`, {
-        headers: authHeaders(),
-      });
+      const res = await rangersFetch(`/api/viasocket/apps/${encodeURIComponent(app.service_id)}/versions`);
       const data = await res.json();
       if (!res.ok || !data?.success) throw new Error(data?.error || "Could not load actions");
       setActions(data.actions || []);
@@ -198,9 +197,9 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
   };
 
   const lookupAuthIds = async () => {
-    const res = await fetch("/api/viasocket/authentications", {
+    const res = await rangersFetch("/api/viasocket/authentications", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         embed_token: embedToken,
         service_id: selected?.service_id,
@@ -289,9 +288,9 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
       try {
         const existingIds = new Set(await lookupAuthIds().catch(() => []));
         if (!readyUrl) {
-          const response = await fetch("/api/viasocket/register", {
+          const response = await rangersFetch("/api/viasocket/register", {
             method: "POST",
-            headers: { "Content-Type": "application/json", ...authHeaders() },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ embed_token: embedToken }),
           });
           const json = await response.json().catch(() => ({}));
@@ -335,9 +334,9 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
         return;
       }
       try {
-        const res = await fetch("/api/viasocket/app-tools", {
+        const res = await rangersFetch("/api/viasocket/app-tools", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...authHeaders() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             org_id: orgId,
             agent_id: agentId,
@@ -376,9 +375,8 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
     if (!window.confirm(`Remove ${tool.service_name} from this agent? You can add it again from the catalog.`)) return;
     setRemovingId(tool.id);
     try {
-      const res = await fetch(`/api/viasocket/app-tools/${encodeURIComponent(tool.id)}`, {
+      const res = await rangersFetch(`/api/viasocket/app-tools/${encodeURIComponent(tool.id)}`, {
         method: "DELETE",
-        headers: authHeaders(),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.success) throw new Error(data?.error || "Could not remove the app");

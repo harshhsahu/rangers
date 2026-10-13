@@ -5,6 +5,7 @@ import { toast } from "@/utils/toast";
 import ChannelsStep from "@/components/rangers/steps/ChannelsStep";
 import { CONNECTABLE_CHANNELS } from "@/components/rangers/rangerConstants";
 import { useConfigurationContext } from "../ConfigurationContext";
+import { rangersFetch } from "@/utils/rangersApi";
 
 const emptyChannels = () =>
   CONNECTABLE_CHANNELS.reduce((acc, channel) => {
@@ -35,7 +36,7 @@ const ChannelsPanel = () => {
   const loadChannels = useCallback(async () => {
     if (!versionId) return;
     try {
-      const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+      const res = await rangersFetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
       const data = await res.json();
       if (!data?.success) return;
 
@@ -108,7 +109,7 @@ const ChannelsPanel = () => {
       }
 
       try {
-        const res = await fetch(channel.setupEndpoint, {
+        const res = await rangersFetch(channel.setupEndpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -156,7 +157,7 @@ const ChannelsPanel = () => {
       if (!channel || !versionId) return { success: false };
 
       try {
-        const res = await fetch(`${channel.setupEndpoint}?version_id=${encodeURIComponent(versionId)}`, {
+        const res = await rangersFetch(`${channel.setupEndpoint}?version_id=${encodeURIComponent(versionId)}`, {
           method: "DELETE",
         });
         const data = await res.json();

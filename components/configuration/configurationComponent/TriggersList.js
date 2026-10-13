@@ -11,6 +11,7 @@ import { openModal } from "@/utils/utility";
 import TriggerChoiceModal from "@/components/modals/TriggerChoiceModal";
 import TelegramConnectModal from "@/components/modals/TelegramConnectModal";
 import DiscordConnectModal from "@/components/modals/DiscordConnectModal";
+import { rangersFetch } from "@/utils/rangersApi";
 
 function getStatusClass(status) {
   switch (status?.toString().trim().toLowerCase()) {
@@ -65,7 +66,7 @@ export default function TriggersList({ params, searchParams, isEmbedUser, isRead
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
+        const res = await rangersFetch(`/api/channel-details?version_id=${encodeURIComponent(versionId)}`);
         const data = await res.json();
         if (!cancelled && data?.success) setChannelDoc(data.data || null);
       } catch (e) {

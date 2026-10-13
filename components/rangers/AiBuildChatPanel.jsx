@@ -8,6 +8,7 @@ import {
   DRAFT_CONFIG_SIDEBAR_FIELDS,
   draftFieldDisplay,
 } from "./aiChatConstants";
+import { rangersFetch } from "@/utils/rangersApi";
 
 let messageSeq = 0;
 const nextMessageId = () => {
@@ -40,7 +41,7 @@ const AiBuildChatPanel = ({ threadId, draftConfig, onDraftConfigChange }) => {
     setIsSending(true);
 
     try {
-      const res = await fetch("/api/ranger-ai/chat", {
+      const res = await rangersFetch("/api/ranger-ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: trimmed, thread_id: threadId }),
