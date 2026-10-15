@@ -335,19 +335,16 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
       <div className="flex flex-col gap-2 w-full ">
         {!hasKnowledgebases ? (
           <div className="dropdown dropdown-end w-full max-w-md">
-            <div className="rounded-[8px] border-2 border-dashed border-stroke p-4 text-center">
-              <p className="text-sm text-base-content/70">No knowledge base found.</p>
-              <button
-                data-testid="knowledgebase-add-button"
-                id="knowledgebase-add-button"
-                tabIndex={0}
-                className="flex items-center justify-center gap-1 mt-3 text-base-content hover:text-base-content/80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full"
-                disabled={!shouldToolsShow || isReadOnly}
-              >
-                <AddIcon className="w-3 h-3" />
-                Add
-              </button>
-            </div>
+            <button
+              data-testid="knowledgebase-add-button"
+              id="knowledgebase-add-button"
+              tabIndex={0}
+              className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-stroke bg-transparent text-base-content/70 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!shouldToolsShow || isReadOnly}
+            >
+              <AddIcon className="w-3.5 h-3.5" />
+              Add Knowledge Base
+            </button>
             {knowledgebaseDropdownContent}
           </div>
         ) : (
@@ -355,18 +352,16 @@ const KnowledgebaseList = ({ params, searchParams, isPublished, isEditor = true 
             {renderKnowledgebase}
             {hasKnowledgebases && (
               <div className="dropdown dropdown-end w-full max-w-md">
-                <div className="rounded-[8px] border-2 border-dashed border-stroke text-center">
-                  <button
-                    data-testid="knowledgebase-add-button"
-                    id="knowledgebase-add-button"
-                    tabIndex={0}
-                    className="flex items-center justify-center gap-1 p-2 text-base-content/50 hover:text-base-content/80 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full"
-                    disabled={isReadOnly}
-                  >
-                    <AddIcon className="w-3 h-3" />
-                    Add Knowledge Base
-                  </button>
-                </div>
+                <button
+                  data-testid="knowledgebase-add-button"
+                  id="knowledgebase-add-button"
+                  tabIndex={0}
+                  className="w-full flex items-center justify-center gap-1 py-2 px-3 text-sm rounded-md border-2 border-dashed border-stroke bg-transparent text-base-content/70 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isReadOnly}
+                >
+                  <AddIcon className="w-3.5 h-3.5" />
+                  Add Knowledge Base
+                </button>
                 {knowledgebaseDropdownContent}
               </div>
             )}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Link2, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, Link2, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "@/utils/toast";
 import { getStoredGtwyUserId } from "@/utils/internalAuth";
 import { rangersFetch } from "@/utils/rangersApi";
@@ -69,6 +69,7 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
   const [authId, setAuthId] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [addingId, setAddingId] = useState(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const searchTimer = useRef(null);
   const linkedThisSession = useRef(new Set());
   const embedDetailsRef = useRef(null);
@@ -390,16 +391,44 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
   };
 
   const selectedTool = appTools.find((tool) => tool.service_id === selected?.service_id) || null;
+  const connectedServiceIds = new Set(appTools.map((tool) => tool.service_id));
+  const sortedApps = [...apps].sort((a, b) => {
+    const aConnected = connectedServiceIds.has(a.service_id);
+    const bConnected = connectedServiceIds.has(b.service_id);
+    if (aConnected === bConnected) return 0;
+    return aConnected ? -1 : 1;
+  });
+
+  const toggleApp = (app) => {
+    if (selected?.service_id === app.service_id) {
+      setSelected(null);
+      setActions([]);
+      return;
+    }
+    openApp(app);
+  };
 
   return (
     <div className="rounded-xl border-2 border-stroke bg-card p-4" data-testid="viasocket-catalog">
-      <div className="mb-3">
-        <h3 className="text-sm font-semibold text-base-content">App catalog</h3>
-        <p className="mt-1 text-xs text-soft">
-          Pick an app, then add it as one tool. That opens the connection page first; the agent gets every action of the
-          app after sign-in succeeds.
-        </p>
-      </div>
+      <button
+        type="button"
+        onClick={() => setCatalogOpen((open) => !open)}
+        className="mb-3 flex w-full items-start justify-between gap-2 text-left"
+        aria-expanded={catalogOpen}
+        data-testid="viasocket-catalog-toggle"
+      >
+        <span>
+          <span className="block text-sm font-semibold text-base-content">App catalog</span>
+          <span className="mt-1 block text-xs text-soft">
+            Pick an app, then add it as one tool. That opens the connection page first; the agent gets every action of
+            the app after sign-in succeeds.
+          </span>
+        </span>
+        <ChevronDown
+          size={16}
+          className={`mt-0.5 flex-none text-soft transition-transform ${catalogOpen ? "rotate-180" : ""}`}
+        />
+      </button>
 
       {appTools.length > 0 && (
         <div className="mb-3 flex flex-col gap-2" data-testid="viasocket-app-tools">
@@ -435,105 +464,126 @@ const ViaSocketCatalog = ({ orgId, agentId, versionId, embedToken, disabled = fa
         </div>
       )}
 
-      <label className="flex items-center gap-2 rounded-[10px] border border-stroke bg-base-100 px-2.5 py-2">
-        <Search size={14} className="text-soft" />
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search Gmail, Slack, Sheets…"
-          className="w-full bg-transparent text-[13px] text-base-content outline-none placeholder:text-soft"
-          data-testid="viasocket-app-search"
-        />
-      </label>
+      {catalogOpen && (
+        <>
+          <label className="flex items-center gap-2 rounded-[10px] border border-stroke bg-base-100 px-2.5 py-2">
+            <Search size={14} className="text-soft" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search Gmail, Slack, Sheets…"
+              className="w-full bg-transparent text-[13px] text-base-content outline-none placeholder:text-soft"
+              data-testid="viasocket-app-search"
+            />
+          </label>
 
-      {searching && (
-        <p className="mt-2 text-[12px] text-soft">{query.trim().length < 2 ? "Loading apps…" : "Searching…"}</p>
+          {searching && (
+            <p className="mt-2 text-[12px] text-soft">{query.trim().length < 2 ? "Loading apps…" : "Searching…"}</p>
+          )}
+        </>
       )}
 
-      {apps.length > 0 && (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {apps.map((app) => (
-            <button
-              key={app.service_id}
-              type="button"
-              onClick={() => openApp(app)}
-              className={`flex min-w-0 items-center gap-2 rounded-lg border-2 bg-base-100 p-2 text-left ${
-                selected?.service_id === app.service_id ? "border-primary" : "border-stroke"
-              }`}
-            >
-              <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-md bg-base-200">
-                {app.iconurl ? (
-                  <img src={app.iconurl} alt="" className="h-5 w-5 object-contain" />
-                ) : (
-                  <Link2 size={14} />
-                )}
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-[13px] font-semibold text-base-content">{app.name}</span>
-                <span className="block truncate text-[11px] text-soft">{app.description}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {selected && (
-        <div className="mt-4 border-t border-stroke pt-3">
-          <div className="mb-2 flex items-center gap-2">
-            <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-base-content">
-              {selected.name} actions
-            </p>
-            {selectedTool ? (
-              <span className="badge badge-success badge-sm">Added</span>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-outline btn-xs gap-1"
-                disabled={disabled || !agentId || !embedToken || Boolean(addingId) || connecting || loadingActions}
-                onClick={addApp}
-                data-testid="viasocket-add-app"
+      {catalogOpen && apps.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2" data-testid="viasocket-app-list">
+          {sortedApps.map((app) => {
+            const isOpen = selected?.service_id === app.service_id;
+            const isConnected = connectedServiceIds.has(app.service_id);
+            return (
+              <div
+                key={app.service_id}
+                className={`overflow-hidden rounded-lg border-2 bg-base-100 ${isOpen ? "border-primary" : "border-stroke"}`}
               >
-                <Plus size={12} />
-                {addingId === selected.service_id
-                  ? connecting
-                    ? "Connecting…"
-                    : "Adding…"
-                  : `Add ${selected.name} as tool`}
-              </button>
-            )}
-          </div>
-          {!embedToken && (
-            <p className="mb-2 text-[12px] text-warning">The organization embed token is not loaded yet.</p>
-          )}
-          {embedToken && !selectedTool && (
-            <p className="mb-2 text-[12px] text-soft">
-              {linkedThisSession.current.has(selected.service_id) && authId
-                ? `${selected.name} is linked for this session.`
-                : `Adding opens the ${selected.name} connection page. Allow popups if the browser asks.`}
-            </p>
-          )}
-          {embedToken && selectedTool && (
-            <p className="mb-2 text-[12px] text-soft">
-              The agent can run every action below through the {selectedTool.tool_name} tool.
-            </p>
-          )}
-          {loadingActions ? (
-            <p className="text-[12px] text-soft">Loading actions…</p>
-          ) : actions.length === 0 ? (
-            <p className="text-[12px] text-soft">This app has no published actions.</p>
-          ) : (
-            <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
-              {actions.map((action) => (
-                <div
-                  key={String(action.actionversionrecordid || action.rowid)}
-                  className="rounded-lg border border-stroke bg-base-100 px-2.5 py-2"
+                <button
+                  type="button"
+                  onClick={() => toggleApp(app)}
+                  className="flex w-full min-w-0 items-center gap-2 p-2 text-left"
+                  aria-expanded={isOpen}
+                  data-testid={`viasocket-app-toggle-${app.service_id}`}
                 >
-                  <p className="truncate text-[13px] font-medium text-base-content">{action.name}</p>
-                  <p className="truncate text-[11px] text-soft">{action.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
+                  <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-md bg-base-200">
+                    {app.iconurl ? (
+                      <img src={app.iconurl} alt="" className="h-5 w-5 object-contain" />
+                    ) : (
+                      <Link2 size={14} />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5">
+                      <span className="truncate text-[13px] font-semibold text-base-content">{app.name}</span>
+                      {isConnected && <span className="badge badge-success badge-xs flex-none">Added</span>}
+                    </span>
+                    <span className="block truncate text-[11px] text-soft">{app.description}</span>
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`flex-none text-soft transition-transform ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-stroke p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-base-content">
+                        {app.name} actions
+                      </p>
+                      {selectedTool ? (
+                        <span className="badge badge-success badge-sm">Added</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-outline btn-xs gap-1"
+                          disabled={
+                            disabled || !agentId || !embedToken || Boolean(addingId) || connecting || loadingActions
+                          }
+                          onClick={addApp}
+                          data-testid="viasocket-add-app"
+                        >
+                          <Plus size={12} />
+                          {addingId === app.service_id
+                            ? connecting
+                              ? "Connecting…"
+                              : "Adding…"
+                            : `Add ${app.name} as tool`}
+                        </button>
+                      )}
+                    </div>
+                    {!embedToken && (
+                      <p className="mb-2 text-[12px] text-warning">The organization embed token is not loaded yet.</p>
+                    )}
+                    {embedToken && !selectedTool && (
+                      <p className="mb-2 text-[12px] text-soft">
+                        {linkedThisSession.current.has(app.service_id) && authId
+                          ? `${app.name} is linked for this session.`
+                          : `Adding opens the ${app.name} connection page. Allow popups if the browser asks.`}
+                      </p>
+                    )}
+                    {embedToken && selectedTool && (
+                      <p className="mb-2 text-[12px] text-soft">
+                        The agent can run every action below through the {selectedTool.tool_name} tool.
+                      </p>
+                    )}
+                    {loadingActions ? (
+                      <p className="text-[12px] text-soft">Loading actions…</p>
+                    ) : actions.length === 0 ? (
+                      <p className="text-[12px] text-soft">This app has no published actions.</p>
+                    ) : (
+                      <div className="flex max-h-72 flex-col gap-2 overflow-y-auto">
+                        {actions.map((action) => (
+                          <div
+                            key={String(action.actionversionrecordid || action.rowid)}
+                            className="rounded-lg border border-stroke bg-base-100 px-2.5 py-2"
+                          >
+                            <p className="truncate text-[13px] font-medium text-base-content">{action.name}</p>
+                            <p className="truncate text-[11px] text-soft">{action.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

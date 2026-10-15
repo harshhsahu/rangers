@@ -49,6 +49,17 @@ const ConnectorsTab = ({ isPublished }) => {
     [functionData, integrationData]
   );
 
+  const sortedOrgTools = useMemo(
+    () =>
+      [...orgTools].sort((a, b) => {
+        const aConnected = connectedFunctionIds.includes(a._id);
+        const bConnected = connectedFunctionIds.includes(b._id);
+        if (aConnected === bConnected) return 0;
+        return aConnected ? -1 : 1;
+      }),
+    [orgTools, connectedFunctionIds]
+  );
+
   const connectTool = (functionId) => {
     if (!functionId || isPublished || !isEditor) return;
     dispatch(
@@ -115,28 +126,6 @@ const ConnectorsTab = ({ isPublished }) => {
       {!shouldToolsShow && <UnsupportedFeatureOverlay featureName="Connectors" />}
 
       <div className="mt-4 space-y-5 px-2">
-        <ViaSocketCatalog
-          orgId={params?.org_id}
-          agentId={params?.id}
-          versionId={searchParams?.version}
-          embedToken={embedToken}
-          disabled={!shouldToolsShow || isPublished || !isEditor}
-        />
-
-        {/* MCP servers and the knowledge base are peers — two columns on a wide
-            screen, stacked below it. The tool list stays full width underneath. */}
-        <div className="grid items-start gap-4 lg:grid-cols-2">
-          {(!isEmbedUser || showMcp) && (
-            <McpServerList params={params} searchParams={searchParams} isPublished={isPublished} isEditor={isEditor} />
-          )}
-          <KnowledgebaseList
-            params={params}
-            searchParams={searchParams}
-            isPublished={isPublished}
-            isEditor={isEditor}
-          />
-        </div>
-
         <section>
           <div className="mb-3">
             <h3 className="text-sm font-semibold text-base-content">Organization tools</h3>
@@ -147,11 +136,11 @@ const ConnectorsTab = ({ isPublished }) => {
 
           {orgTools.length === 0 ? (
             <div className="rounded-lg border-2 border-dashed border-stroke p-5 text-center text-sm text-soft">
-              No authenticated tools yet. Create one above to get started.
+              No authenticated tools yet. Create one below to get started.
             </div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              {orgTools.map((tool) => {
+              {sortedOrgTools.map((tool) => {
                 const isConnected = connectedFunctionIds.includes(tool._id);
                 return (
                   <div
@@ -199,6 +188,28 @@ const ConnectorsTab = ({ isPublished }) => {
             </div>
           )}
         </section>
+
+        {/* MCP servers and the knowledge base are peers — two columns on a wide
+            screen, stacked below it. The tool list stays full width underneath. */}
+        <div className="grid items-start gap-4 lg:grid-cols-2">
+          {(!isEmbedUser || showMcp) && (
+            <McpServerList params={params} searchParams={searchParams} isPublished={isPublished} isEditor={isEditor} />
+          )}
+          <KnowledgebaseList
+            params={params}
+            searchParams={searchParams}
+            isPublished={isPublished}
+            isEditor={isEditor}
+          />
+        </div>
+
+        <ViaSocketCatalog
+          orgId={params?.org_id}
+          agentId={params?.id}
+          versionId={searchParams?.version}
+          embedToken={embedToken}
+          disabled={!shouldToolsShow || isPublished || !isEditor}
+        />
       </div>
     </div>
   );
